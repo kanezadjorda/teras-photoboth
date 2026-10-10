@@ -1,0 +1,40 @@
+{
+  "name": "teras-photobooth",
+  "version": "0.9.1",
+  "description": "Photobooth application with QRIS payment, camera capture, and printing",
+  "main": "electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "electron .",
+    "dev:server": "node server/index.js",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "photobooth",
+    "electron",
+    "vite",
+    "qris"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
+    "electron": "^44.7.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
+  }
+}
