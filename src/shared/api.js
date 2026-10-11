@@ -30,6 +30,9 @@ export const api = {
   updateSettings: (data) => fetchApi('/settings', { method: 'PUT', body: JSON.stringify(data) }),
   getTemplates: (all = false) => fetchApi(`/templates?all=${all}`),
   getTemplate: (id) => fetchApi(`/templates/${id}`),
+  createTemplate: (data) => fetchApi('/templates', { method: 'POST', body: JSON.stringify(data) }),
+  updateTemplate: (id, data) => fetchApi(`/templates/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteTemplate: (id) => fetchApi(`/templates/${id}`, { method: 'DELETE' }),
   getCurrentSession: () => fetchApi('/sessions/current'),
   createSession: () => fetchApi('/sessions', { method: 'POST' }),
   updateSessionStatus: (id, status, template_id) =>

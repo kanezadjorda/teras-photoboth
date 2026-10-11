@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import dotenv from 'dotenv';
 import { DEFAULTS } from '../src/shared/constants.js';
 
@@ -87,5 +87,41 @@ export function initDb() {
   });
 
   transaction(initialSettings);
+
+  // Seed default template if empty
+  const templateCount = db.prepare('SELECT count(*) as count FROM templates').get();
+  if (templateCount.count === 0) {
+    const insertTemplate = db.prepare(`
+      INSERT INTO templates (id, nama, file_png, jumlah_slot, aktif, slots_json)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const defaultSlots = [
+      { x: 100, y: 120, w: 1000, h: 460 },
+      { x: 100, y: 640, w: 1000, h: 460 },
+      { x: 100, y: 1160, w: 1000, h: 460 }
+    ];
+    insertTemplate.run(
+      'strip-3',
+      'Strip 3 Foto Klasik',
+      'strip-3.png',
+      3,
+      1,
+      JSON.stringify(defaultSlots)
+    );
+
+    // Ensure dummy template file exists
+    const tplFile = resolve(process.cwd(), 'templates', 'strip-3.png');
+    if (!existsSync(tplFile)) {
+      const dummyPng = Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAAElFTkSuQmCC',
+        'base64'
+      );
+      try {
+        writeFileSync(tplFile, dummyPng);
+      } catch (e) {
+        console.warn('[DB] Gagal menulis dummy template PNG:', e.message);
+      }
+    }
+  }
 }
 

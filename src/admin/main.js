@@ -1,8 +1,24 @@
 import { api } from '../shared/api.js';
+import { createTemplateEditor } from './screens/template-editor.js';
 
 const appRoot = document.getElementById('app');
+let currentScreen = null;
+
+function renderScreen(screen) {
+  if (currentScreen && currentScreen.unmount) {
+    currentScreen.unmount();
+  }
+  currentScreen = screen;
+  appRoot.innerHTML = '';
+  currentScreen.mount(appRoot);
+}
 
 async function renderAdminDashboard() {
+  if (currentScreen && currentScreen.unmount) {
+    currentScreen.unmount();
+    currentScreen = null;
+  }
+
   appRoot.innerHTML = `
     <header class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b-[5px] border-black gap-4">
       <div>
@@ -13,7 +29,10 @@ async function renderAdminDashboard() {
           PEMANTAUAN PERANGKAT &bull; PENGATURAN SESI &bull; KONTROL SISTEM
         </p>
       </div>
-      <div>
+      <div class="flex items-center gap-3">
+        <button id="btn-nav-templates" class="btn-raw-primary px-5 py-2.5 text-xs font-headline">
+          KELOLA TEMPLATE
+        </button>
         <span id="system-status-pill" class="chip-raw chip-raw-active">
           SISTEM SIAP
         </span>
@@ -55,6 +74,17 @@ async function renderAdminDashboard() {
       </div>
     </div>
 
+    <!-- Quick Status Template Aktif -->
+    <section class="card-raw mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-raw-sunken">
+      <div>
+        <h3 class="font-headline text-base uppercase text-black">STATUS TEMPLATE CETAKAN</h3>
+        <p id="template-count-summary" class="font-mono text-xs text-black/70 mt-1">Memuat data template...</p>
+      </div>
+      <button id="btn-quick-manage-templates" class="btn-raw-secondary px-6 py-2.5 text-xs font-headline">
+        BUKA EDITOR TEMPLATE
+      </button>
+    </section>
+
     <!-- Pengaturan Sesi -->
     <section class="card-raw-elevated my-6">
       <h2 class="text-xl font-headline uppercase tracking-tight text-black pb-2 mb-6 border-b-[3px] border-black">
@@ -92,6 +122,30 @@ async function renderAdminDashboard() {
       </button>
     </section>
   `;
+
+  // Template editor navigation
+  const openTemplateEditor = () => {
+    const editor = createTemplateEditor({
+      onBack: renderAdminDashboard
+    });
+    renderScreen(editor);
+  };
+
+  document.getElementById('btn-nav-templates')?.addEventListener('click', openTemplateEditor);
+  document.getElementById('btn-quick-manage-templates')?.addEventListener('click', openTemplateEditor);
+
+  // Load template summary
+  try {
+    const tplRes = await api.getTemplates(true);
+    const countSummary = document.getElementById('template-count-summary');
+    if (countSummary && tplRes.success) {
+      const activeCount = (tplRes.data || []).filter((t) => t.aktif).length;
+      const totalCount = (tplRes.data || []).length;
+      countSummary.textContent = `${activeCount} TEMPLATE AKTIF DARI TOTAL ${totalCount} TEMPLATE TERSIMPAN.`;
+    }
+  } catch (err) {
+    console.error('Gagal memuat ringkasan template:', err);
+  }
 
   // Load existing settings
   try {

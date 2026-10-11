@@ -14,7 +14,7 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 
 - [x] **Fase 0: Fondasi & Boilerplate Proyek** *(Selesai)*
 - [x] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)** *(Selesai)*
-- [ ] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis**
+- [x] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis** *(Selesai)*
 - [ ] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto**
 - [ ] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Mayar.id)**
 - [ ] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai**
@@ -105,7 +105,7 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
   2. Kembalikan array slot: `[{ x, y, w, h }, ...]`.
 - **Verifikasi:**
   - Unit test pada template strip 4 lubang mengembalikan tepat 4 slot dengan urutan vertikal yang benar.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/shared/slot-detector.js`, `tests/slot-detector.test.js`)
 
 ---
 
@@ -123,7 +123,7 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
   3. Tambahkan endpoint `DELETE /api/templates/:id` untuk menghapus template yang tidak dipakai.
 - **Verifikasi:**
   - Kirim request POST -> file PNG tersimpan di folder `templates/` dan data masuk ke SQLite.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`server/routes/templates.js`, `server/db.js`)
 
 ---
 
@@ -143,7 +143,7 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
   4. Tombol "Simpan Template" untuk mengirim data ke `POST /api/templates`.
 - **Verifikasi:**
   - Unggah PNG template -> kotak bernomor otomatis muncul di area lubang transparan -> simpan -> template muncul di daftar aktif.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/admin/screens/template-editor.js`, `src/admin/main.js`)
 
 ---
 
