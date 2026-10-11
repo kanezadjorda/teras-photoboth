@@ -64,12 +64,14 @@ teras-photobooth/
 │   ├── index.js               # Inisialisasi Express server, middleware, dan mounting rute
 │   ├── db.js                  # Setup koneksi database SQLite (better-sqlite3) & migrasi skema
 │   ├── events.js              # Manajer Server-Sent Events (SSE) untuk sinkronisasi real-time
+│   ├── payment/               # Service integrasi gateway pembayaran
+│   │   └── midtrans.js        # Klien Midtrans Core API (charge QRIS, polling status, mock fallback)
 │   └── routes/                # Endpoint modular REST API
 │       ├── health.js          # (via inline server/index.js) Pemeriksaan kesehatan server
 │       ├── settings.js        # Konfigurasi operasional (harga sesi, jumlah cetak, PIN)
 │       ├── templates.js       # Galeri dan data metadata template
 │       ├── sessions.js        # Siklus hidup sesi photobooth dan validasi state
-│       └── payments.js        # Integrasi pembayaran QRIS dan verifikasi manual staff
+│       └── payments.js        # Integrasi QRIS dinamis, background poller, dan verifikasi manual staff
 │
 ├── src/                       # Frontend antarmuka pengguna
 │   ├── styles.css             # Import Tailwind CSS v4 & konfigurasi tema RawBlock
@@ -85,6 +87,7 @@ teras-photobooth/
 │   │   ├── main.js            # Entry point script kiosk & router state machine layar
 │   │   └── screens/           # Komponen layar modular (pola mount/unmount)
 │   │       ├── welcome.js     # Layar sambutan ("Sentuh/Klik untuk Mulai")
+│   │       ├── payment.js     # Layar QRIS dinamis, hitung mundur 3 menit & listener SSE
 │   │       ├── choose-template.js # Layar galeri pemilihan template aktif
 │   │       ├── capture.js     # Layar hitung mundur, shutter flash & jepret foto beruntun
 │   │       └── review.js      # Layar pratinjau komposit 4R & retake foto (maksimal 1x)
@@ -101,6 +104,7 @@ teras-photobooth/
 ├── templates/                 # Direktori penyimpanan file template cetakan (PNG + JSON)
 └── tests/                     # Unit testing (Vitest)
     ├── session-state.test.js  # Pengujian otomatis logika transisi state machine sesi
+    ├── payment.test.js        # Pengujian mapping status Midtrans, base URL & mock QRIS
     ├── composite.test.js      # Pengujian komposit kanvas 1200x1800 300 DPI
     └── slot-detector.test.js  # Pengujian deteksi lubang transparan template PNG
 ```

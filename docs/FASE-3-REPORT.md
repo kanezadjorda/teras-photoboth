@@ -80,3 +80,4 @@ Pada Fase 3 ini, seluruh alur interaksi pelanggan di layar Kiosk telah terhubung
    - Mengambil N foto berjalan lancar dengan hitung mundur dan kilatan shutter.
    - Komposit foto tertata rapi di dalam kanvas pratinjau 4R.
    - Tombol retake berfungsi dan terkunci setelah 1x pemakaian per slot.
+

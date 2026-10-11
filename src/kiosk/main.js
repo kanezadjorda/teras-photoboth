@@ -1,4 +1,5 @@
 import { createWelcomeScreen } from './screens/welcome.js';
+import { createPaymentScreen } from './screens/payment.js';
 import { createChooseTemplateScreen } from './screens/choose-template.js';
 import { createCaptureScreen } from './screens/capture.js';
 import { createReviewScreen } from './screens/review.js';
@@ -27,16 +28,37 @@ function initWelcomeScreen() {
         const session = res.data;
         console.log('[Kiosk] Sesi dibuat:', session);
 
-        // Transition to template selection (QRIS payment will precede this in Phase 4)
-        initChooseTemplateScreen(session);
+        // Transition to QRIS Payment (Phase 4)
+        initPaymentScreen(session);
       } catch (err) {
         console.error('[Kiosk] Gagal membuat sesi:', err);
         // Fallback for offline/standalone test
-        initChooseTemplateScreen({ id: `demo_${Date.now()}` });
+        initPaymentScreen({ id: `sess_demo_${Date.now()}` });
       }
     }
   });
   renderScreen(welcome);
+}
+
+// 2. Payment Screen (QRIS Dinamis Midtrans)
+function initPaymentScreen(session) {
+  const paymentScreen = createPaymentScreen({
+    sessionId: session.id,
+    onPaid: () => {
+      console.log(`[Kiosk] Pembayaran sesi ${session.id} berhasil! Melanjutkan ke pemilihan template.`);
+      initChooseTemplateScreen(session);
+    },
+    onExpired: async () => {
+      console.warn(`[Kiosk] Pembayaran sesi ${session.id} kedaluwarsa.`);
+      await cancelSession(session);
+    },
+    onCancel: async () => {
+      console.log(`[Kiosk] Pembayaran sesi ${session.id} dibatalkan.`);
+      await cancelSession(session);
+    }
+  });
+
+  renderScreen(paymentScreen);
 }
 
 // 2. Choose Template Screen

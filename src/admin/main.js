@@ -85,6 +85,23 @@ async function renderAdminDashboard() {
       </button>
     </section>
 
+    <!-- Sesi Menunggu Pembayaran & Konfirmasi Manual (F-04) -->
+    <section id="waiting-payment-section" class="card-raw border-[5px] border-black my-6 bg-white">
+      <div class="flex items-center justify-between pb-3 border-b-[3px] border-black">
+        <div class="flex items-center gap-2">
+          <span class="chip-raw bg-black text-white text-xs">F-04</span>
+          <h2 class="text-lg font-headline uppercase tracking-tight text-black">
+            SESI MENUNGGU PEMBAYARAN (QRIS)
+          </h2>
+        </div>
+        <span id="payment-widget-badge" class="chip-raw chip-raw-warning">STANDBY</span>
+      </div>
+
+      <div id="payment-widget-content" class="py-4">
+        <p class="font-mono text-xs text-black/60">Mengecek sesi aktif di kiosk...</p>
+      </div>
+    </section>
+
     <!-- Pengaturan Sesi -->
     <section class="card-raw-elevated my-6">
       <h2 class="text-xl font-headline uppercase tracking-tight text-black pb-2 mb-6 border-b-[3px] border-black">
@@ -94,7 +111,7 @@ async function renderAdminDashboard() {
         <div>
           <label class="label-raw">HARGA PER SESI (RUPIAH)</label>
           <input type="number" id="setting-price" class="input-raw" />
-          <p class="font-body text-xs text-black/70 mt-1">Nominal yang akan digenerate ke QRIS dinamis Mayar</p>
+          <p class="font-body text-xs text-black/70 mt-1">Nominal yang akan digenerate ke QRIS dinamis Midtrans</p>
         </div>
         <div>
           <label class="label-raw">JUMLAH CETAK PER SESI</label>
@@ -178,6 +195,95 @@ async function renderAdminDashboard() {
     });
   }
 
+  // Waiting Payment Widget Logic (F-04)
+  const widgetContent = document.getElementById('payment-widget-content');
+  const widgetBadge = document.getElementById('payment-widget-badge');
+
+  async function checkWaitingPayment() {
+    if (!widgetContent || !widgetBadge) return;
+    try {
+      const sessionRes = await api.getCurrentSession();
+      const session = sessionRes.data;
+
+      if (session && session.status === 'waiting_payment') {
+        let paymentData = null;
+        try {
+          const payRes = await api.getPayment(session.id);
+          paymentData = payRes.data;
+        } catch (e) {
+          // payment data may be pending creation
+        }
+
+        const nominal = paymentData ? Number(paymentData.nominal).toLocaleString('id-ID') : '25.000';
+
+        widgetBadge.className = 'chip-raw bg-black text-white animate-pulse';
+        widgetBadge.textContent = 'MENUNGGU PEMBAYARAN';
+
+        widgetContent.innerHTML = `
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-[3px] border-black bg-raw-sunken">
+            <div>
+              <p class="font-headline text-base text-black uppercase">
+                SESI AKTIF: ${session.id}
+              </p>
+              <p class="font-mono text-xs text-black/80 mt-1">
+                NOMINAL: <span class="font-bold">RP ${nominal}</span> &bull; STATUS: <span class="uppercase">WAITING PAYMENT</span>
+              </p>
+              <p class="font-body text-xs text-black/60 mt-1">
+                Gunakan konfirmasi manual jika customer telah membayar tetapi gateway terganggu.
+              </p>
+            </div>
+            <button id="btn-manual-confirm" class="btn-raw-primary px-6 py-3 text-xs font-headline whitespace-nowrap">
+              KONFIRMASI BAYAR MANUAL
+            </button>
+          </div>
+        `;
+
+        document.getElementById('btn-manual-confirm')?.addEventListener('click', async () => {
+          const pin = prompt('Masukkan PIN Operator/Staff untuk verifikasi manual:');
+          if (pin === null) return;
+
+          try {
+            const settings = await api.getSettings();
+            const validPin = settings.data?.admin_pin || '1234';
+            if (pin.trim() !== String(validPin).trim()) {
+              alert('PIN Salah! Konfirmasi manual dibatalkan.');
+              return;
+            }
+
+            await api.confirmPaymentManual(session.id);
+            alert(`Pembayaran untuk sesi ${session.id} berhasil dikonfirmasi manual! Kiosk langsung melanjutkan.`);
+            checkWaitingPayment();
+          } catch (err) {
+            alert('Gagal mengonfirmasi: ' + err.message);
+          }
+        });
+      } else {
+        widgetBadge.className = 'chip-raw chip-raw-active';
+        widgetBadge.textContent = 'STANDBY';
+        widgetContent.innerHTML = `
+          <div class="p-3 border border-black/30 bg-white">
+            <p class="font-mono text-xs text-black/60">Tidak ada sesi aktif yang sedang menunggu pembayaran.</p>
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.warn('Gagal mengecek status pembayaran aktif:', err.message);
+    }
+  }
+
+  checkWaitingPayment();
+
+  // Listen to SSE events for real-time dashboard updates
+  try {
+    const sse = new EventSource('http://localhost:3000/api/events');
+    sse.addEventListener('session_created', checkWaitingPayment);
+    sse.addEventListener('session_updated', checkWaitingPayment);
+    sse.addEventListener('payment_paid', checkWaitingPayment);
+    sse.addEventListener('payment_expired', checkWaitingPayment);
+  } catch (e) {
+    console.warn('SSE admin error:', e);
+  }
+
   // Emergency reset event
   const resetBtn = document.getElementById('btn-emergency-reset');
   if (resetBtn) {
@@ -189,6 +295,7 @@ async function renderAdminDashboard() {
             await api.updateSessionStatus(current.data.id, 'cancelled');
           }
           alert('Sesi berhasil direset');
+          checkWaitingPayment();
         } catch (err) {
           alert('Gagal mereset: ' + err.message);
         }

@@ -212,25 +212,27 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
 
 ---
 
-## 🚀 FASE 4: Integrasi Pembayaran QRIS Dinamis (Mayar.id)
+## 🚀 FASE 4: Integrasi Pembayaran QRIS Dinamis (Midtrans Core API)
 
-Fase ini menangani integrasi gerbang pembayaran, polling server-side, dan verifikasi manual staff.
+Fase ini menangani integrasi gerbang pembayaran QRIS dinamis via Midtrans Core API, polling status server-side, dan verifikasi manual staff.
 
-### Task 4.1: Service Backend Pembayaran Mayar.id (F-01, F-02, F-03)
-- **Tujuan:** Menghasilkan QRIS dinamis via API Mayar.id dan melakukan polling status pembayaran di server.
+### Task 4.1: Service Backend Pembayaran Midtrans Core API (F-01, F-02, F-03)
+- **Tujuan:** Menghasilkan QRIS dinamis via Midtrans Core API (`/v2/charge`) dan melakukan polling status pembayaran di server.
 - **File Target:**
-  - `server/payment/mayar.js` (Klien API Mayar)
+  - `server/payment/midtrans.js` (Klien Midtrans Core API)
   - `server/routes/payments.js`
 - **Instruksi Kerja:**
-  1. Implementasikan request pembuatan QRIS dinamis di `server/payment/mayar.js`:
-     - Baca `MAYAR_API_KEY` dan `MAYAR_BASE_URL` dari `.env`.
-     - Panggil endpoint Mayar untuk membuat invoice/QR dinamis dengan nominal sesuai pengaturan `session_price`.
-     - Tangkap QR string / URL gambar QR dari respon gateway.
-     - Catat transaksi ke tabel `payments` (`id`, `session_id`, `nominal`, `status = 'pending'`, `qris_string`).
+  1. Implementasikan request pembuatan QRIS dinamis di `server/payment/midtrans.js`:
+     - Baca `MIDTRANS_SERVER_KEY` dan `MIDTRANS_IS_PRODUCTION` dari `.env`.
+     - Gunakan endpoint `POST https://api.sandbox.midtrans.com/v2/charge` (atau production) dengan basic auth `base64(MIDTRANS_SERVER_KEY + ':')`.
+     - Kirim payload `payment_type: "qris"` dengan nominal sesuai pengaturan `session_price`.
+     - Ambil `actions[0].url` (URL gambar QRIS) dan `qr_string` serta `transaction_id`.
+     - Catat transaksi ke tabel `payments` (`id`, `session_id`, `order_id`, `nominal`, `status = 'pending'`, `qris_string`).
+     - Sediakan fallback mock otomatis jika `MIDTRANS_SERVER_KEY` belum diisi agar pengujian lokal tetap berjalan lancar.
   2. Implementasikan *polling worker* server-side:
      - Jalankan interval polling tiap 2.5 detik (`TIMEOUTS.PAYMENT_POLL_INTERVAL_MS`).
-     - Cek status transaksi ke gateway.
-     - Jika status berubah menjadi `PAID`:
+     - Cek status transaksi via `GET /v2/:order_id/status`.
+     - Jika status berubah menjadi `settlement` (atau `capture`):
        - Update status payment ke `paid`.
        - Update status session ke `choosing_template`.
        - Siarkan event SSE `payment_paid` ke client.
@@ -238,10 +240,10 @@ Fase ini menangani integrasi gerbang pembayaran, polling server-side, dan verifi
      - Jika mencapai batas 180 detik (3 menit):
        - Update status menjadi `expired`.
        - Siarkan event SSE `payment_expired`.
-- **Batasan:** Jangan pernah mengekspos API key Mayar ke frontend. Polling wajib dilakukan oleh server Node.js.
+- **Batasan:** Jangan pernah mengekspos Server Key Midtrans ke frontend. Polling wajib dilakukan oleh server Node.js.
 - **Verifikasi:**
-  - Uji dengan mock/sandbox Mayar: saat invoice lunas, status DB berubah menjadi `paid` dan SSE mengirim event.
-- [ ] **Status:** Belum dikerjakan
+  - Uji dengan simulator Midtrans / mock: saat transaksi settlement, status DB berubah menjadi `paid` dan SSE mengirim event.
+- [x] **Status:** Selesai (`server/payment/midtrans.js`, `server/routes/payments.js`, `tests/payment.test.js`)
 
 ---
 
@@ -262,7 +264,7 @@ Fase ini menangani integrasi gerbang pembayaran, polling server-side, dan verifi
 - **Verifikasi:**
   - Timer menghitung mundur dari 03:00 ke 00:00.
   - Simulasi pembayaran lunas langsung memicu perpindahan layar secara otomatis.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/payment.js`, `src/kiosk/main.js`)
 
 ---
 
@@ -281,7 +283,7 @@ Fase ini menangani integrasi gerbang pembayaran, polling server-side, dan verifi
      - Kiosk otomatis melanjutkan ke layar pemilihan template.
 - **Verifikasi:**
   - Tekan tombol konfirmasi manual di admin -> layar kiosk customer langsung berpindah ke pemilihan template tanpa menunggu gateway.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/admin/main.js`, `server/routes/payments.js`)
 
 ---
 
