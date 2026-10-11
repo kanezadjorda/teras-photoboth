@@ -235,3 +235,4 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
 
   return { mount, unmount };
 }
+

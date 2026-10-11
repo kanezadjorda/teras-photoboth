@@ -41,3 +41,4 @@ describe('Composite Engine - calculateCoverFit', () => {
     expect(() => calculateCoverFit(1920, 1080, 0, 500)).toThrow();
   });
 });
+

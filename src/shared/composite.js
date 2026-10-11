@@ -124,3 +124,4 @@ export function loadImage(src) {
     img.src = src;
   });
 }
+

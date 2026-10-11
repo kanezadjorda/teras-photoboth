@@ -129,3 +129,4 @@ export function captureFrame(videoElement, options = {}) {
   ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL('image/jpeg', quality);
 }
+
