@@ -98,3 +98,4 @@ describe('Slot Detector - detectTransparentSlots', () => {
     expect(slots).toHaveLength(0);
   });
 });
+

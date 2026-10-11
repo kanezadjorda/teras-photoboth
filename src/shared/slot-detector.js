@@ -127,3 +127,4 @@ export function detectTransparentSlots(imageData, options = {}) {
 
   return rawComponents;
 }
+

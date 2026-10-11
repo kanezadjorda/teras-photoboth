@@ -441,3 +441,4 @@ export function createTemplateEditor({ onBack }) {
 
   return { mount, unmount };
 }
+

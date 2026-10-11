@@ -15,7 +15,7 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 - [x] **Fase 0: Fondasi & Boilerplate Proyek** *(Selesai)*
 - [x] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)** *(Selesai)*
 - [x] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis** *(Selesai)*
-- [ ] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto**
+- [x] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto** *(Selesai)*
 - [ ] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Mayar.id)**
 - [ ] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai**
 - [ ] **Fase 6: Panel Admin Lengkap (PIN, Riwayat, Cetak Ulang, Laporan CSV)**
@@ -167,7 +167,7 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
 - **Verifikasi:**
   - Hanya template berstatus `aktif = 1` yang tampil.
   - Memilih template mengarahkan kiosk ke layar pengambilan foto dengan jumlah foto yang sesuai.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/choose-template.js`, `src/kiosk/main.js`)
 
 ---
 
@@ -186,7 +186,7 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
   4. Setelah foto terakhir selesai, transisikan state sesi ke `reviewing`.
 - **Verifikasi:**
   - Jika template memiliki 3 slot, sistem otomatis mengambil tepat 3 foto secara berurutan lalu masuk ke layar review.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/capture.js`)
 
 ---
 
@@ -208,7 +208,7 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
   5. Tombol "Cetak Foto Sekarang" (`btn-raw-primary` min-h-16) untuk melanjutkan ke proses pencetakan.
 - **Verifikasi:**
   - Customer hanya bisa mengulang foto yang sama sebanyak 1 kali. Tombol retake dinonaktifkan setelah kuota habis.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/review.js`, `src/shared/constants.js`)
 
 ---
 

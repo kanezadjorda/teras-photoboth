@@ -72,19 +72,27 @@ teras-photobooth/
 │       └── payments.js        # Integrasi pembayaran QRIS dan verifikasi manual staff
 │
 ├── src/                       # Frontend antarmuka pengguna
-│   ├── styles.css             # Import Tailwind CSS v4 & definisi tema warna/font
+│   ├── styles.css             # Import Tailwind CSS v4 & konfigurasi tema RawBlock
 │   ├── shared/                # Modul logika bersama (reusable & pure logic)
 │   │   ├── constants.js       # Konstanta global (status sesi, ukuran kanvas 4R, batas waktu)
 │   │   ├── session-state.js   # Pure state machine transisi status sesi photobooth
+│   │   ├── camera.js          # Modul kamera WebRTC (start/stop stream, capture frame mirror)
+│   │   ├── composite.js       # Kompositor foto 4R 1200x1800 300 DPI dengan template PNG
+│   │   ├── slot-detector.js   # Detektor otomatis lubang transparan alpha PNG (Connected Component)
 │   │   └── api.js             # Klien fetch API ke backend + polyfill browser untuk print
 │   ├── kiosk/                 # Antarmuka Layar Pelanggan (Monitor 2)
 │   │   ├── index.html         # Dokumen HTML kiosk dengan CSP ketat
-│   │   ├── main.js            # Entry point script kiosk & manajemen render layar
+│   │   ├── main.js            # Entry point script kiosk & router state machine layar
 │   │   └── screens/           # Komponen layar modular (pola mount/unmount)
-│   │       └── welcome.js     # Layar awal sambutan ("Sentuh/Klik untuk Mulai")
+│   │       ├── welcome.js     # Layar sambutan ("Sentuh/Klik untuk Mulai")
+│   │       ├── choose-template.js # Layar galeri pemilihan template aktif
+│   │       ├── capture.js     # Layar hitung mundur, shutter flash & jepret foto beruntun
+│   │       └── review.js      # Layar pratinjau komposit 4R & retake foto (maksimal 1x)
 │   └── admin/                 # Antarmuka Layar Staff / Operator (Laptop)
 │       ├── index.html         # Dokumen HTML panel admin dengan CSP ketat
-│       └── main.js            # Panel kendali perangkat, form pengaturan, dan reset darurat
+│       ├── main.js            # Panel kendali perangkat, form pengaturan, dan reset darurat
+│       └── screens/           # Komponen layar admin
+│           └── template-editor.js # Visual editor koordinat slot template & uploader PNG
 │
 ├── data/                      # Folder data lokal (runtime storage)
 │   ├── photobooth.db          # Database file SQLite (dibuat otomatis saat runtime)
@@ -92,7 +100,9 @@ teras-photobooth/
 │
 ├── templates/                 # Direktori penyimpanan file template cetakan (PNG + JSON)
 └── tests/                     # Unit testing (Vitest)
-    └── session-state.test.js  # Pengujian otomatis logika transisi state machine sesi
+    ├── session-state.test.js  # Pengujian otomatis logika transisi state machine sesi
+    ├── composite.test.js      # Pengujian komposit kanvas 1200x1800 300 DPI
+    └── slot-detector.test.js  # Pengujian deteksi lubang transparan template PNG
 ```
 
 ---

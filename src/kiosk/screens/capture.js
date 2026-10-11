@@ -1,18 +1,27 @@
 /**
  * Capture Screen for Kiosk (RawBlock Design System)
- * Handles live preview (mirrored), 3-2-1 countdown, shutter flash, and slot looping.
- * PRD Reference: F-08, F-09, F-06
+ * Handles live preview (mirrored), 3-2-1 countdown, shutter flash, quick preview, and retake mode.
+ * PRD Reference: F-08, F-09, F-06, F-10
  */
 
 import { startCameraStream, stopCameraStream, captureFrame } from '../../shared/camera.js';
 import { TIMEOUTS } from '../../shared/constants.js';
 
-export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
+export function createCaptureScreen({
+  template,
+  retakeSlotIndex = undefined,
+  existingPhotos = [],
+  onCaptureComplete,
+  onCancel
+}) {
   let container = null;
   let videoElement = null;
   let countdownOverlay = null;
   let countdownNumber = null;
   let flashOverlay = null;
+  let previewOverlay = null;
+  let previewImage = null;
+  let previewText = null;
   let triggerBtn = null;
   let cancelBtn = null;
   let thumbnailTray = null;
@@ -22,12 +31,16 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
   let countdownTimer = null;
   let isCapturing = false;
 
+  const isRetakeMode = retakeSlotIndex !== undefined;
   const totalSlots = template?.slots?.length || 3;
-  let currentSlotIndex = 0;
-  const capturedPhotos = [];
+  let currentSlotIndex = isRetakeMode ? retakeSlotIndex : 0;
+  const capturedPhotos = [...existingPhotos];
 
   function updateSlotIndicator() {
-    if (slotIndicator) {
+    if (!slotIndicator) return;
+    if (isRetakeMode) {
+      slotIndicator.textContent = `MENGULANG FOTO #${currentSlotIndex + 1}`;
+    } else {
       slotIndicator.textContent = `FOTO ${currentSlotIndex + 1} DARI ${totalSlots}`;
     }
   }
@@ -37,7 +50,8 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
     thumbnailTray.innerHTML = '';
     for (let i = 0; i < totalSlots; i++) {
       const thumb = document.createElement('div');
-      thumb.className = 'w-20 h-24 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden';
+      thumb.className =
+        'w-20 h-24 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden';
 
       if (capturedPhotos[i]) {
         thumb.innerHTML = `<img src="${capturedPhotos[i]}" alt="Foto ${i + 1}" class="w-full h-full object-cover" />`;
@@ -58,6 +72,26 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
         flashOverlay.classList.add('hidden');
       }
     }, 100);
+  }
+
+  function showQuickPreview(photoData, slotNum, onDone) {
+    if (!previewOverlay || !previewImage) {
+      onDone();
+      return;
+    }
+
+    previewImage.src = photoData;
+    if (previewText) {
+      previewText.textContent = `FOTO #${slotNum} TERSIMPAN!`;
+    }
+    previewOverlay.classList.remove('hidden');
+
+    setTimeout(() => {
+      if (previewOverlay) {
+        previewOverlay.classList.add('hidden');
+      }
+      onDone();
+    }, 1500); // 1.5s quick preview per Task 3.2
   }
 
   function takePhoto() {
@@ -84,27 +118,38 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
         triggerShutterFlash();
         try {
           const photoData = captureFrame(videoElement, { mirror: true });
-          capturedPhotos.push(photoData);
-          currentSlotIndex++;
+
+          if (isRetakeMode) {
+            capturedPhotos[retakeSlotIndex] = photoData;
+          } else {
+            capturedPhotos.push(photoData);
+          }
 
           renderThumbnails();
 
-          if (currentSlotIndex < totalSlots) {
-            updateSlotIndicator();
-            // Jeda 1 detik sebelum membolehkan foto berikutnya
-            setTimeout(() => {
-              isCapturing = false;
-              if (triggerBtn) triggerBtn.disabled = false;
-            }, 1000);
-          } else {
-            // Selesai seluruh slot foto
-            setTimeout(() => {
+          // 1.5s quick preview
+          showQuickPreview(photoData, currentSlotIndex + 1, () => {
+            if (isRetakeMode) {
+              // Finish retake
               cleanupCamera();
               if (onCaptureComplete) {
-                onCaptureComplete(capturedPhotos);
+                onCaptureComplete(photoData, retakeSlotIndex);
               }
-            }, 800);
-          }
+            } else {
+              currentSlotIndex++;
+              if (currentSlotIndex < totalSlots) {
+                updateSlotIndicator();
+                isCapturing = false;
+                if (triggerBtn) triggerBtn.disabled = false;
+              } else {
+                // Selesai seluruh slot foto
+                cleanupCamera();
+                if (onCaptureComplete) {
+                  onCaptureComplete(capturedPhotos);
+                }
+              }
+            }
+          });
         } catch (err) {
           console.error('[Capture] Gagal mengambil frame foto:', err);
           isCapturing = false;
@@ -144,17 +189,22 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
 
   function mount(parent) {
     container = document.createElement('div');
-    container.className = 'flex flex-col items-center justify-between w-full h-full max-w-6xl mx-auto p-6 box-border font-body';
+    container.className =
+      'flex flex-col items-center justify-between w-full h-full max-w-6xl mx-auto p-6 box-border font-body';
 
     container.innerHTML = `
       <!-- Header -->
       <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-4 mb-4">
         <div>
           <h1 id="slot-indicator" class="text-3xl md:text-4xl font-headline uppercase text-black">
-            FOTO 1 DARI ${totalSlots}
+            ${isRetakeMode ? `MENGULANG FOTO #${retakeSlotIndex + 1}` : `FOTO 1 DARI ${totalSlots}`}
           </h1>
           <p class="font-body text-xs text-black/70">
-            BERPOSISILAH DI TENGAH BINGKAI KAMERA &bull; SENYUM TERBAIKMU
+            ${
+              isRetakeMode
+                ? 'AMBIL FOTO PENGGANTI UNTUK SLOT INI &bull; HANYA 1X KESEMPATAN'
+                : 'BERPOSISILAH DI TENGAH BINGKAI KAMERA &bull; SENYUM TERBAIKMU'
+            }
           </p>
         </div>
         <div class="flex items-center gap-3">
@@ -179,6 +229,16 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
           </div>
         </div>
 
+        <!-- 1.5s Quick Preview Overlay -->
+        <div id="preview-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-25 p-4 space-y-3">
+          <div class="border-[5px] border-black bg-white p-2 max-h-[70%] aspect-video overflow-hidden">
+            <img id="preview-image" src="" alt="Pratinjau" class="w-full h-full object-contain" />
+          </div>
+          <p id="preview-text" class="font-headline text-xl text-white uppercase tracking-wider">
+            FOTO TERSIMPAN!
+          </p>
+        </div>
+
         <!-- Shutter Flash Effect -->
         <div id="flash-overlay" class="hidden absolute inset-0 bg-white z-30 pointer-events-none"></div>
       </div>
@@ -190,7 +250,7 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
 
         <!-- Action Button -->
         <button id="btn-trigger-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline">
-          AMBIL FOTO
+          ${isRetakeMode ? 'AMBIL FOTO PENGGANTI' : 'AMBIL FOTO'}
         </button>
       </div>
     `;
@@ -201,6 +261,9 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
     countdownOverlay = container.querySelector('#countdown-overlay');
     countdownNumber = container.querySelector('#countdown-number');
     flashOverlay = container.querySelector('#flash-overlay');
+    previewOverlay = container.querySelector('#preview-overlay');
+    previewImage = container.querySelector('#preview-image');
+    previewText = container.querySelector('#preview-text');
     triggerBtn = container.querySelector('#btn-trigger-photo');
     cancelBtn = container.querySelector('#btn-cancel');
     thumbnailTray = container.querySelector('#thumbnail-tray');
@@ -235,4 +298,3 @@ export function createCaptureScreen({ template, onCaptureComplete, onCancel }) {
 
   return { mount, unmount };
 }
-
