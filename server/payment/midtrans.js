@@ -104,8 +104,22 @@ export async function createQrisCharge({ orderId, amount }) {
 
   // Find QR code image URL in actions
   const qrAction = (data.actions || []).find((act) => act.name === 'generate-qr-code');
-  const qrUrl = qrAction ? qrAction.url : MOCK_QRIS_SVG;
+  let qrUrl = qrAction ? qrAction.url : MOCK_QRIS_SVG;
   const qrString = data.qr_string || '';
+
+  // Convert QR image to Base64 Data URL so it renders instantly without CSP / CORS blocks
+  if (qrAction && qrAction.url) {
+    try {
+      const imgRes = await fetch(qrAction.url);
+      if (imgRes.ok) {
+        const arrayBuf = await imgRes.arrayBuffer();
+        const base64 = Buffer.from(arrayBuf).toString('base64');
+        qrUrl = `data:image/png;base64,${base64}`;
+      }
+    } catch (err) {
+      console.warn('[Midtrans] Gagal pre-fetch gambar QR, menggunakan URL langsung:', err.message);
+    }
+  }
 
   return {
     success: true,

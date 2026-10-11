@@ -10,6 +10,7 @@ import { TIMEOUTS, DEFAULTS } from '../../shared/constants.js';
 export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) {
   let container = null;
   let timerInterval = null;
+  let pollInterval = null;
   let eventSource = null;
   let remainingSeconds = TIMEOUTS.PAYMENT_SECONDS; // 180s (3 minutes)
 
@@ -124,8 +125,6 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     const statusText = container.querySelector('#payment-status-text');
     const cancelBtn = container.querySelector('#btn-cancel-payment');
     const simPayBtn = container.querySelector('#btn-simulate-pay');
-
-    let pollInterval = null;
 
     cancelBtn.addEventListener('click', () => {
       cleanup();
