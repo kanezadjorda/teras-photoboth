@@ -16,7 +16,7 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 - [x] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)** *(Selesai)*
 - [x] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis** *(Selesai)*
 - [x] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto** *(Selesai)*
-- [ ] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Mayar.id)**
+- [x] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Midtrans Core API)** *(Selesai)*
 - [ ] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai**
 - [ ] **Fase 6: Panel Admin Lengkap (PIN, Riwayat, Cetak Ulang, Laporan CSV)**
 - [ ] **Fase 7: Hardening Offline, Penanganan Error & Packaging Produksi**
