@@ -1,5 +1,5 @@
 /**
- * Welcome Screen for Kiosk
+ * Welcome Screen for Kiosk (RawBlock Design System)
  * Customer entry point ("Sentuh/Klik untuk mulai")
  */
 
@@ -9,25 +9,31 @@ export function createWelcomeScreen({ onStart }) {
 
   function mount(parent) {
     container = document.createElement('div');
-    container.className = 'flex flex-col items-center justify-center gap-8 text-center p-8';
+    container.className = 'flex flex-col items-center justify-center text-center p-8 max-w-4xl w-full';
 
     container.innerHTML = `
-      <div class="space-y-4">
-        <h1 class="text-6xl font-extrabold tracking-tight text-dark">
-          Teras Photobooth
-        </h1>
-        <p class="text-2xl text-dark/70 font-medium">
-          Abadikan momen spesialmu dalam hitungan menit
-        </p>
+      <div class="border-[5px] border-black bg-white p-12 w-full space-y-8">
+        <div class="space-y-4">
+          <h1 class="text-6xl md:text-7xl font-headline uppercase tracking-tight text-black leading-none">
+            Teras Photobooth
+          </h1>
+          <p class="text-xl md:text-2xl font-body text-black">
+            Abadikan momen spesialmu dalam hitungan menit
+          </p>
+        </div>
+
+        <div class="pt-4 flex justify-center">
+          <button id="btn-start" class="btn-raw-primary min-h-[64px] px-12 py-5 text-2xl cursor-pointer">
+            Sentuh atau Klik untuk Mulai
+          </button>
+        </div>
+
+        <div class="border-t-[3px] border-black pt-4">
+          <p class="font-mono text-xs uppercase tracking-wider text-black">
+            PEMBAYARAN INSTAN VIA QRIS &bull; HASIL CETAK OTOMATIS 4R
+          </p>
+        </div>
       </div>
-
-      <button id="btn-start" class="mt-8 px-12 h-20 text-2xl font-bold bg-primary text-white rounded-2xl shadow-lg hover:opacity-95 active:scale-95 transition-all duration-150 cursor-pointer min-h-[64px] flex items-center justify-center">
-        Sentuh atau Klik untuk Mulai
-      </button>
-
-      <p class="text-base text-dark/50">
-        Pembayaran instan via QRIS
-      </p>
     `;
 
     parent.appendChild(container);
@@ -51,4 +57,3 @@ export function createWelcomeScreen({ onStart }) {
 
   return { mount, unmount };
 }
-

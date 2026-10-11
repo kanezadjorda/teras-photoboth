@@ -189,23 +189,30 @@ Sesuai aturan di [GEMINI.md](file:///d:/teras-photobooth/GEMINI.md), setiap laya
 - `unmount()`: Membersihkan timer/interval, menghentikan stream webcam, melepas event listener, dan menghapus elemen dari DOM untuk mencegah *memory leak*.
 
 #### [`src/kiosk/`](file:///d:/teras-photobooth/src/kiosk/)
-- **Index HTML:** Memuat stylesheet Tailwind dan script module dengan Content Security Policy (CSP) ketat.
-- **Screen `welcome.js`:** Tampilan awal selamat datang dengan tombol sentuh berukuran besar (tinggi 80px / min-height 64px, ramah sentuhan) bertuliskan *"Sentuh atau Klik untuk Mulai"*. Saat diklik, mengirim panggilan ke API untuk membuat sesi baru berstatus `waiting_payment`.
+- **Index HTML:** Memuat stylesheet Tailwind dan Google Fonts (`Archivo Black`, `Work Sans`, `Space Mono`) dengan Content Security Policy (CSP) ketat.
+- **Screen `welcome.js`:** Tampilan awal selamat datang bertema brutalist RawBlock dengan border tebal 5px, tombol `btn-raw-primary` berukuran besar (min-height 64px, uppercase, tracking 2px, border 3px/5px, inversi warna saat hover) bertuliskan *"Sentuh atau Klik untuk Mulai"*. Saat diklik, mengirim panggilan ke API untuk membuat sesi baru berstatus `waiting_payment`.
 
 #### [`src/admin/`](file:///d:/teras-photobooth/src/admin/)
-- **Panel Indikator Perangkat:** Memantau status perangkat secara visual (Kamera Eksternal, Printer Default, Koneksi Internet, Sinkronisasi Google Drive).
-- **Form Pengaturan:** Input harga sesi per orang (Rp) dan jumlah cetak per sesi yang langsung tersimpan ke SQLite.
-- **Tombol Darurat (Reset Sesi):** Menangani kendala lapangan jika customer membatalkan sesi di tengah jalan.
+- **Panel Indikator Perangkat:** Memantau status perangkat secara visual menggunakan kartu persegi `card-raw` dengan chip status brutalist (`chip-raw-active`, `chip-raw-warning`).
+- **Form Pengaturan:** Input bertema `input-raw` (Space Mono, border 3px/5px, background sunken `#F0F0F0`) untuk harga sesi per orang (Rp) dan jumlah cetak per sesi.
+- **Tombol Darurat (Reset Sesi):** Menggunakan `btn-raw-destructive` (background merah murni `#FF0000`, teks putih, border hitam 3px, inversi saat hover) untuk mereset sesi bermasalah.
 
 #### [`src/styles.css`](file:///d:/teras-photobooth/src/styles.css)
-Menggunakan fitur baru **Tailwind CSS v4** dengan direktif `@theme`:
-- `--color-primary`: `#FF4D6D` (Merah muda cerah khas photobooth)
-- `--color-dark`: `#1F1B2E` (Ungu gelap pekat untuk teks & kontras tajam)
-- `--color-background`: `#FFF8F3` (Krem lembut ramah mata)
-- `--color-accent`: `#FFD166` (Kuning aksen)
-- `--color-success`: `#2BB673` (Hijau status sukses)
-- `--color-error`: `#E5484D` (Merah error/batal)
-- `--font-sans`: `'Plus Jakarta Sans', system-ui, sans-serif`
+Mengadopsi **RawBlock Design System** ([docs/DESIGN.md](file:///d:/teras-photobooth/docs/DESIGN.md)) menggunakan Tailwind CSS v4:
+- **Estetika Brutalisme**: Tanpa rounded corners (`border-radius: 0 !important`), tanpa bayangan (`box-shadow: none !important`), hirarki visual sepenuhnya dibangun dari ketebalan border (3px default, 5px elevated/focus).
+- **Tipografi**:
+  - Headline: `Archivo Black` (uppercase, tracking tight)
+  - Body: `Work Sans`
+  - Mono/Data: `Space Mono`
+- **Warna**:
+  - Hitam: `#000000` (Teks, border, fill primer)
+  - Putih: `#FFFFFF` (Latar belakang, teks inversi)
+  - Sunken: `#F0F0F0` (Latar belakang input form)
+  - Sukses: `#008000` (Hijau murni)
+  - Peringatan: `#FFA500` (Oranye murni)
+  - Error: `#FF0000` (Merah murni)
+  - Link/Aksen: `#0000FF` (Biru hyperlink murni)
+- **Komponen Utilitas**: `.btn-raw-primary`, `.btn-raw-secondary`, `.btn-raw-destructive`, `.card-raw`, `.card-raw-elevated`, `.input-raw`, `.label-raw`, `.chip-raw`.
 
 ---
 
@@ -284,3 +291,4 @@ npm run test
 | `npm run dev:electron`| Menjalankan Vite dan membuka jendela desktop Electron (khusus environment yang mendukung eksekusi Electron). |
 | `npm run build` | Melakukan kompilasi bundle produksi frontend multi-page ke dalam folder `dist/`. |
 | `npm run test` | Menjalankan seluruh unit test dengan Vitest. |
+

@@ -4,79 +4,91 @@ const appRoot = document.getElementById('app');
 
 async function renderAdminDashboard() {
   appRoot.innerHTML = `
-    <header class="flex justify-between items-center pb-6 border-b border-dark/10">
+    <header class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b-[5px] border-black gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-dark">Panel Operator Photobooth</h1>
-        <p class="text-dark/60 text-sm mt-1">Pemantauan perangkat & pengaturan sesi</p>
+        <h1 class="text-3xl md:text-4xl font-headline uppercase tracking-tight text-black">
+          Panel Operator Photobooth
+        </h1>
+        <p class="font-body text-sm text-black mt-1">
+          PEMANTAUAN PERANGKAT &bull; PENGATURAN SESI &bull; KONTROL SISTEM
+        </p>
       </div>
-      <div class="flex items-center gap-3">
-        <span id="system-status-pill" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-success/20 text-success flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-success"></span>
-          Sistem Siap
+      <div>
+        <span id="system-status-pill" class="chip-raw chip-raw-active">
+          SISTEM SIAP
         </span>
       </div>
     </header>
 
+    <!-- Status Perangkat -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 my-6">
-      <div class="bg-white p-4 rounded-xl border border-dark/10 shadow-sm flex flex-col justify-between">
-        <span class="text-xs font-bold text-dark/60 uppercase">Kamera Eksternal</span>
-        <div class="mt-2 flex items-center justify-between">
-          <span id="cam-status" class="text-lg font-bold text-dark">Mengecek...</span>
-          <span class="w-3 h-3 rounded-full bg-accent"></span>
+      <div class="card-raw flex flex-col justify-between">
+        <span class="label-raw text-xs text-black">KAMERA EKSTERNAL</span>
+        <div class="mt-4 flex items-center justify-between">
+          <span id="cam-status" class="font-mono text-base font-bold text-black">MENGECEK...</span>
+          <span class="chip-raw chip-raw-warning">STANDBY</span>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-xl border border-dark/10 shadow-sm flex flex-col justify-between">
-        <span class="text-xs font-bold text-dark/60 uppercase">Printer Default</span>
-        <div class="mt-2 flex items-center justify-between">
-          <span id="printer-status" class="text-lg font-bold text-dark">Sistem Default</span>
-          <span class="w-3 h-3 rounded-full bg-success"></span>
+      <div class="card-raw flex flex-col justify-between">
+        <span class="label-raw text-xs text-black">PRINTER DEFAULT</span>
+        <div class="mt-4 flex items-center justify-between">
+          <span id="printer-status" class="font-mono text-base font-bold text-black">DEFAULT 4R</span>
+          <span class="chip-raw chip-raw-active">TERHUBUNG</span>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-xl border border-dark/10 shadow-sm flex flex-col justify-between">
-        <span class="text-xs font-bold text-dark/60 uppercase">Koneksi Internet</span>
-        <div class="mt-2 flex items-center justify-between">
-          <span id="net-status" class="text-lg font-bold text-dark">Online</span>
-          <span class="w-3 h-3 rounded-full bg-success"></span>
+      <div class="card-raw flex flex-col justify-between">
+        <span class="label-raw text-xs text-black">KONEKSI INTERNET</span>
+        <div class="mt-4 flex items-center justify-between">
+          <span id="net-status" class="font-mono text-base font-bold text-black">ONLINE</span>
+          <span class="chip-raw chip-raw-active">AKTIF</span>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-xl border border-dark/10 shadow-sm flex flex-col justify-between">
-        <span class="text-xs font-bold text-dark/60 uppercase">Sinkron Google Drive</span>
-        <div class="mt-2 flex items-center justify-between">
-          <span id="drive-status" class="text-lg font-bold text-dark">Folder Lokal Aktif</span>
-          <span class="w-3 h-3 rounded-full bg-success"></span>
+      <div class="card-raw flex flex-col justify-between">
+        <span class="label-raw text-xs text-black">SINKRON GOOGLE DRIVE</span>
+        <div class="mt-4 flex items-center justify-between">
+          <span id="drive-status" class="font-mono text-base font-bold text-black">MIRROR AKTIF</span>
+          <span class="chip-raw chip-raw-active">LOKAL</span>
         </div>
       </div>
     </div>
 
-    <section class="bg-white rounded-2xl border border-dark/10 p-6 shadow-sm mb-6">
-      <h2 class="text-xl font-bold text-dark mb-4">Pengaturan Sesi</h2>
+    <!-- Pengaturan Sesi -->
+    <section class="card-raw-elevated my-6">
+      <h2 class="text-xl font-headline uppercase tracking-tight text-black pb-2 mb-6 border-b-[3px] border-black">
+        PENGATURAN SESI
+      </h2>
       <div id="settings-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label class="block text-sm font-semibold text-dark/70 mb-2">Harga Per Sesi (Rp)</label>
-          <input type="number" id="setting-price" class="w-full px-4 py-3 rounded-xl border border-dark/20 text-lg font-semibold focus:outline-none focus:border-primary" />
+          <label class="label-raw">HARGA PER SESI (RUPIAH)</label>
+          <input type="number" id="setting-price" class="input-raw" />
+          <p class="font-body text-xs text-black/70 mt-1">Nominal yang akan digenerate ke QRIS dinamis Mayar</p>
         </div>
         <div>
-          <label class="block text-sm font-semibold text-dark/70 mb-2">Jumlah Cetak Per Sesi</label>
-          <input type="number" id="setting-copies" min="1" max="10" class="w-full px-4 py-3 rounded-xl border border-dark/20 text-lg font-semibold focus:outline-none focus:border-primary" />
+          <label class="label-raw">JUMLAH CETAK PER SESI</label>
+          <input type="number" id="setting-copies" min="1" max="10" class="input-raw" />
+          <p class="font-body text-xs text-black/70 mt-1">Jumlah lembar 4R yang dicetak otomatis per sesi</p>
         </div>
-        <div class="md:col-span-2 flex justify-end">
-          <button id="btn-save-settings" class="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 cursor-pointer">
-            Simpan Pengaturan
+        <div class="md:col-span-2 flex justify-end pt-2">
+          <button id="btn-save-settings" class="btn-raw-primary px-8 py-3 text-sm">
+            SIMPAN PENGATURAN
           </button>
         </div>
       </div>
     </section>
 
-    <section class="bg-white rounded-2xl border border-dark/10 p-6 shadow-sm flex justify-between items-center">
+    <!-- Tombol Darurat -->
+    <section class="card-raw my-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h3 class="text-lg font-bold text-dark">Tombol Darurat (Reset Sesi)</h3>
-        <p class="text-sm text-dark/60">Gunakan jika customer mengalami kendala dan ingin mereset booth ke layar awal.</p>
+        <h3 class="text-lg font-headline uppercase text-black">TOMBOL DARURAT (RESET SESI)</h3>
+        <p class="font-body text-xs text-black mt-1">
+          Gunakan jika customer mengalami kendala dan ingin membatalkan sesi kembali ke layar Welcome.
+        </p>
       </div>
-      <button id="btn-emergency-reset" class="px-6 py-3 bg-error text-white font-bold rounded-xl hover:opacity-90 cursor-pointer">
-        Reset ke Welcome
+      <button id="btn-emergency-reset" class="btn-raw-destructive px-8 py-3 text-sm whitespace-nowrap">
+        RESET KE WELCOME
       </button>
     </section>
   `;
@@ -111,7 +123,24 @@ async function renderAdminDashboard() {
       }
     });
   }
+
+  // Emergency reset event
+  const resetBtn = document.getElementById('btn-emergency-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async () => {
+      if (confirm('Yakin ingin mereset sesi aktif dan kembali ke layar awal?')) {
+        try {
+          const current = await api.getCurrentSession();
+          if (current.data && current.data.id) {
+            await api.updateSessionStatus(current.data.id, 'cancelled');
+          }
+          alert('Sesi berhasil direset');
+        } catch (err) {
+          alert('Gagal mereset: ' + err.message);
+        }
+      }
+    });
+  }
 }
 
 renderAdminDashboard();
-

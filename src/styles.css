@@ -1,18 +1,192 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #FF4D6D;
-  --color-dark: #1F1B2E;
-  --color-background: #FFF8F3;
-  --color-accent: #FFD166;
-  --color-success: #2BB673;
-  --color-error: #E5484D;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --color-raw-black: #000000;
+  --color-raw-white: #FFFFFF;
+  --color-raw-blue: #0000FF;
+  --color-raw-sunken: #F0F0F0;
+  --color-raw-success: #008000;
+  --color-raw-warning: #FFA500;
+  --color-raw-error: #FF0000;
+  --color-raw-info: #0000FF;
+
+  --font-headline: 'Archivo Black', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+
+  --border-width-thick: 3px;
+  --border-width-heavy: 5px;
+}
+
+/* Global RawBlock Reset */
+* {
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--color-background);
-  color: var(--color-dark);
+  font-family: var(--font-body);
+  background-color: #FFFFFF;
+  color: #000000;
+  margin: 0;
+  padding: 0;
 }
 
+/* RawBlock Typography */
+.font-headline {
+  font-family: var(--font-headline);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* RawBlock Buttons */
+.btn-raw-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000000;
+  color: #FFFFFF;
+  border: 3px solid #000000;
+  font-family: var(--font-headline);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: none;
+}
+.btn-raw-primary:hover {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+.btn-raw-primary:active {
+  background-color: #000000;
+  color: #FFFFFF;
+  border-width: 5px;
+}
+.btn-raw-primary:disabled {
+  background-color: #F0F0F0;
+  color: #888888;
+  border-color: #CCCCCC;
+  cursor: not-allowed;
+}
+
+.btn-raw-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFFFFF;
+  color: #000000;
+  border: 3px solid #000000;
+  font-family: var(--font-headline);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: none;
+}
+.btn-raw-secondary:hover {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+.btn-raw-secondary:active {
+  background-color: #FFFFFF;
+  color: #000000;
+  border-width: 5px;
+}
+
+.btn-raw-destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FF0000;
+  color: #FFFFFF;
+  border: 3px solid #000000;
+  font-family: var(--font-headline);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: none;
+}
+.btn-raw-destructive:hover {
+  background-color: #000000;
+  color: #FF0000;
+}
+.btn-raw-destructive:active {
+  border-width: 5px;
+}
+
+/* RawBlock Cards */
+.card-raw {
+  background-color: #FFFFFF;
+  border: 3px solid #000000;
+  padding: 24px;
+}
+
+.card-raw-elevated {
+  background-color: #FFFFFF;
+  border: 5px solid #000000;
+  padding: 24px;
+}
+
+/* RawBlock Inputs */
+.input-raw {
+  background-color: #F0F0F0;
+  color: #000000;
+  border: 3px solid #000000;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  padding: 10px 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input-raw:hover {
+  background-color: #E8E8E8;
+}
+.input-raw:focus {
+  border: 5px solid #000000;
+  outline: none;
+}
+
+.label-raw {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #000000;
+  margin-bottom: 4px;
+}
+
+/* RawBlock Status Chips */
+.chip-raw {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 10px;
+  background-color: #FFFFFF;
+  border-width: 2px;
+  border-style: solid;
+}
+.chip-raw-active {
+  border-color: #008000;
+  color: #008000;
+}
+.chip-raw-warning {
+  border-color: #FFA500;
+  color: #FFA500;
+}
+.chip-raw-error {
+  border-color: #FF0000;
+  color: #FF0000;
+}
+.chip-raw-default {
+  border-color: #000000;
+  color: #000000;
+}
