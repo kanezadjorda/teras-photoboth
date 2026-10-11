@@ -38,6 +38,7 @@ app.get('/api/health', (req, res) => {
 
 // Real-time Server-Sent Events (SSE)
 app.get('/events', sseHandler);
+app.get('/api/events', sseHandler);
 
 // API Routes
 app.use('/api/settings', settingsRouter);

@@ -125,6 +125,8 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     const cancelBtn = container.querySelector('#btn-cancel-payment');
     const simPayBtn = container.querySelector('#btn-simulate-pay');
 
+    let pollInterval = null;
+
     cancelBtn.addEventListener('click', () => {
       cleanup();
       if (onCancel) onCancel();
@@ -135,10 +137,18 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
         simPayBtn.disabled = true;
         simPayBtn.textContent = 'MEMPROSES SIMULASI...';
         await api.simulatePayment(sessionId);
+        // Direct instant transition on successful simulation
+        handleSuccess();
       } catch (e) {
         console.warn('[Payment] Simulasi bayar gagal:', e.message);
-        // Fallback: trigger manual confirm
-        await api.confirmPaymentManual(sessionId);
+        try {
+          await api.confirmPaymentManual(sessionId);
+          handleSuccess();
+        } catch (err) {
+          alert('Gagal simulasi: ' + err.message);
+          simPayBtn.disabled = false;
+          simPayBtn.textContent = '[DEV] SIMULASI BAYAR LANGSUNG';
+        }
       }
     });
 
@@ -196,25 +206,47 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
         eventSource = new EventSource(`http://localhost:${DEFAULTS.SERVER_PORT}/api/events`);
 
         eventSource.addEventListener('payment_paid', (e) => {
-          const data = JSON.parse(e.data);
-          if (data.sessionId === sessionId) {
-            handleSuccess();
+          try {
+            const data = JSON.parse(e.data);
+            if (data.sessionId === sessionId) {
+              handleSuccess();
+            }
+          } catch (err) {
+            console.warn('[Payment SSE] Parse error:', err);
           }
         });
 
         eventSource.addEventListener('payment_expired', (e) => {
-          const data = JSON.parse(e.data);
-          if (data.sessionId === sessionId) {
-            handleExpired();
+          try {
+            const data = JSON.parse(e.data);
+            if (data.sessionId === sessionId) {
+              handleExpired();
+            }
+          } catch (err) {
+            console.warn('[Payment SSE] Parse error:', err);
           }
         });
 
         eventSource.onerror = (err) => {
-          console.warn('[Payment SSE] Koneksi terputus, mengandalkan polling backend.', err);
+          console.warn('[Payment SSE] Koneksi terputus, mengandalkan polling backend.');
         };
       } catch (e) {
         console.warn('[Payment] SSE tidak didukung:', e);
       }
+    }
+
+    // 4. Polling Fallback (Cek status tiap 2 detik jika SSE terhambat)
+    function startPollingFallback() {
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await api.getPayment(sessionId);
+          if (res.success && res.data && res.data.status === 'paid') {
+            handleSuccess();
+          }
+        } catch (e) {
+          // ignore
+        }
+      }, 2000);
     }
 
     function handleSuccess() {
@@ -246,6 +278,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     loadQris();
     startTimer();
     connectSse();
+    startPollingFallback();
   }
 
   function cleanup() {
@@ -256,6 +289,10 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     if (eventSource) {
       eventSource.close();
       eventSource = null;
+    }
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
     }
   }
 
@@ -269,3 +306,4 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
 
   return { mount, unmount };
 }
+

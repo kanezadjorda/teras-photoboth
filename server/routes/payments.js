@@ -214,13 +214,34 @@ router.post('/:sessionId/confirm-manual', (req, res) => {
 router.post('/:orderId/simulate-pay', (req, res) => {
   try {
     const { orderId } = req.params;
-    const simulated = simulateMockPayment(orderId);
+    const now = new Date().toISOString();
+
+    // 1. Update in-memory mock store if present
+    simulateMockPayment(orderId);
+
+    // 2. Find and update database records immediately
+    const payment = db.prepare('SELECT * FROM payments WHERE order_id = ? OR session_id = ? LIMIT 1').get(orderId, orderId);
+
+    if (payment) {
+      db.prepare('UPDATE payments SET status = ?, dibayar_pada = ? WHERE id = ?')
+        .run(PAYMENT_STATES.PAID, now, payment.id);
+
+      db.prepare('UPDATE sessions SET status = ? WHERE id = ?')
+        .run(SESSION_STATES.CHOOSING_TEMPLATE, payment.session_id);
+
+      if (activePollers.has(payment.session_id)) {
+        clearInterval(activePollers.get(payment.session_id));
+        activePollers.delete(payment.session_id);
+      }
+
+      broadcastEvent('payment_paid', { sessionId: payment.session_id, orderId });
+      broadcastEvent('session_updated', { id: payment.session_id, status: SESSION_STATES.CHOOSING_TEMPLATE });
+    }
+
     res.json({
       success: true,
-      simulated,
-      message: simulated
-        ? `Status transaksi ${orderId} diubah menjadi settlement (lunas).`
-        : `Order ${orderId} tidak ditemukan di memory mock (mungkin menggunakan server key nyata).`
+      simulated: true,
+      message: `Status transaksi ${orderId} berhasil diubah menjadi lunas (settlement).`
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

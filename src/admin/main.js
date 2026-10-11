@@ -138,6 +138,46 @@ async function renderAdminDashboard() {
         RESET KE WELCOME
       </button>
     </section>
+
+    <!-- Modal PIN Konfirmasi Manual RawBlock (F-04) -->
+    <div id="pin-modal-overlay" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+      <div class="card-raw border-[5px] border-black bg-white max-w-md w-full p-6 space-y-4">
+        <div class="border-b-[3px] border-black pb-3 flex items-center justify-between">
+          <span class="chip-raw bg-black text-white text-xs">OTORISASI STAFF</span>
+          <span class="font-headline text-lg uppercase">MASUKKAN PIN</span>
+        </div>
+
+        <p class="font-body text-xs text-black/80">
+          Konfirmasi pembayaran manual untuk sesi: <span id="pin-modal-session-id" class="font-mono font-bold text-black"></span>
+        </p>
+
+        <form id="pin-confirm-form" class="space-y-4">
+          <div>
+            <label class="label-raw">PIN OPERATOR (DEFAULT: 1234)</label>
+            <input
+              type="password"
+              id="input-pin-confirm"
+              class="input-raw text-center text-3xl font-mono tracking-[0.5em] py-3 w-full"
+              maxlength="8"
+              placeholder="••••"
+              autocomplete="off"
+            />
+            <p id="pin-modal-error" class="hidden font-headline text-xs text-raw-error mt-2">
+              PIN SALAH! SILAKAN COBA LAGI.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button type="button" id="btn-cancel-pin-modal" class="btn-raw-secondary px-6 py-3 text-xs font-headline">
+              BATAL
+            </button>
+            <button type="submit" id="btn-submit-pin-modal" class="btn-raw-primary px-6 py-3 text-xs font-headline">
+              KONFIRMASI BAYAR
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   `;
 
   // Template editor navigation
@@ -199,6 +239,83 @@ async function renderAdminDashboard() {
   const widgetContent = document.getElementById('payment-widget-content');
   const widgetBadge = document.getElementById('payment-widget-badge');
 
+  // Modal elements
+  const pinModalOverlay = document.getElementById('pin-modal-overlay');
+  const pinModalSessionId = document.getElementById('pin-modal-session-id');
+  const inputPinConfirm = document.getElementById('input-pin-confirm');
+  const pinModalError = document.getElementById('pin-modal-error');
+  const btnCancelPin = document.getElementById('btn-cancel-pin-modal');
+  const pinForm = document.getElementById('pin-confirm-form');
+
+  let activeConfirmSessionId = null;
+
+  function openPinModal(sessionId) {
+    activeConfirmSessionId = sessionId;
+    if (pinModalSessionId) pinModalSessionId.textContent = sessionId;
+    if (inputPinConfirm) inputPinConfirm.value = '';
+    if (pinModalError) pinModalError.classList.add('hidden');
+    if (pinModalOverlay) pinModalOverlay.classList.remove('hidden');
+    setTimeout(() => inputPinConfirm?.focus(), 100);
+  }
+
+  function closePinModal() {
+    activeConfirmSessionId = null;
+    if (pinModalOverlay) pinModalOverlay.classList.add('hidden');
+  }
+
+  btnCancelPin?.addEventListener('click', closePinModal);
+
+  // Close modal when clicking outside
+  pinModalOverlay?.addEventListener('click', (e) => {
+    if (e.target === pinModalOverlay) {
+      closePinModal();
+    }
+  });
+
+  pinForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeConfirmSessionId) return;
+
+    const enteredPin = inputPinConfirm?.value || '';
+    try {
+      const settings = await api.getSettings();
+      const validPin = settings.data?.admin_pin || '1234';
+
+      if (enteredPin.trim() !== String(validPin).trim()) {
+        if (pinModalError) {
+          pinModalError.textContent = 'PIN SALAH! SILAKAN COBA LAGI.';
+          pinModalError.classList.remove('hidden');
+        }
+        inputPinConfirm?.focus();
+        return;
+      }
+
+      // PIN is valid!
+      const targetSessionId = activeConfirmSessionId;
+      closePinModal();
+
+      await api.confirmPaymentManual(targetSessionId);
+      alert(`Pembayaran untuk sesi ${targetSessionId} berhasil dikonfirmasi secara manual! Kiosk langsung melanjutkan.`);
+      checkWaitingPayment();
+    } catch (err) {
+      if (pinModalError) {
+        pinModalError.textContent = 'GAGAL: ' + err.message;
+        pinModalError.classList.remove('hidden');
+      }
+    }
+  });
+
+  // Event delegation on widgetContent so click ALWAYS triggers openPinModal
+  widgetContent?.addEventListener('click', (e) => {
+    const btn = e.target.closest('#btn-manual-confirm');
+    if (btn) {
+      const sId = btn.getAttribute('data-session-id');
+      if (sId) {
+        openPinModal(sId);
+      }
+    }
+  });
+
   async function checkWaitingPayment() {
     if (!widgetContent || !widgetBadge) return;
     try {
@@ -232,31 +349,16 @@ async function renderAdminDashboard() {
                 Gunakan konfirmasi manual jika customer telah membayar tetapi gateway terganggu.
               </p>
             </div>
-            <button id="btn-manual-confirm" class="btn-raw-primary px-6 py-3 text-xs font-headline whitespace-nowrap">
+            <button
+              id="btn-manual-confirm"
+              type="button"
+              data-session-id="${session.id}"
+              class="btn-raw-primary px-6 py-3 text-xs font-headline whitespace-nowrap cursor-pointer hover:bg-black hover:text-white"
+            >
               KONFIRMASI BAYAR MANUAL
             </button>
           </div>
         `;
-
-        document.getElementById('btn-manual-confirm')?.addEventListener('click', async () => {
-          const pin = prompt('Masukkan PIN Operator/Staff untuk verifikasi manual:');
-          if (pin === null) return;
-
-          try {
-            const settings = await api.getSettings();
-            const validPin = settings.data?.admin_pin || '1234';
-            if (pin.trim() !== String(validPin).trim()) {
-              alert('PIN Salah! Konfirmasi manual dibatalkan.');
-              return;
-            }
-
-            await api.confirmPaymentManual(session.id);
-            alert(`Pembayaran untuk sesi ${session.id} berhasil dikonfirmasi manual! Kiosk langsung melanjutkan.`);
-            checkWaitingPayment();
-          } catch (err) {
-            alert('Gagal mengonfirmasi: ' + err.message);
-          }
-        });
       } else {
         widgetBadge.className = 'chip-raw chip-raw-active';
         widgetBadge.textContent = 'STANDBY';
@@ -272,6 +374,9 @@ async function renderAdminDashboard() {
   }
 
   checkWaitingPayment();
+
+  // Polling fallback every 2.5s to ensure admin UI is always up to date
+  setInterval(checkWaitingPayment, 2500);
 
   // Listen to SSE events for real-time dashboard updates
   try {

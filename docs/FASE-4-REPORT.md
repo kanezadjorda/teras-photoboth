@@ -80,3 +80,4 @@ Jika ingin menguji menggunakan akun Midtrans Sandbox asli:
 4. Restart server backend (`npm run dev:server`).
 5. Scan QR code yang tampil di kiosk menggunakan simulator Midtrans di:
    [https://simulator.sandbox.midtrans.com/qris/index](https://simulator.sandbox.midtrans.com/qris/index).
+
