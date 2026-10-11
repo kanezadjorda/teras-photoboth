@@ -13,7 +13,7 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 ## 📌 Ringkasan Milestone
 
 - [x] **Fase 0: Fondasi & Boilerplate Proyek** *(Selesai)*
-- [ ] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)**
+- [x] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)** *(Selesai)*
 - [ ] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis**
 - [ ] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto**
 - [ ] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Mayar.id)**
@@ -43,7 +43,7 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
 - **Verifikasi:**
   - Buka layar capture di Chrome: video kamera muncul tanpa lag dan terbalik secara mirror.
   - Saat berpindah layar, pastikan stream kamera berhenti.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/shared/camera.js`, `src/kiosk/screens/capture.js`)
 
 ---
 
@@ -58,7 +58,7 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
   4. Ambil frame foto dari video menggunakan elemen `<canvas>` off-screen dengan ukuran native video stream dan konversi ke dataURL/Blob JPEG.
 - **Verifikasi:**
   - Klik tombol "Ambil Foto", angka 3, 2, 1 berganti tiap detik, diikuti kilatan flash putih dan data gambar tersimpan di memori.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/capture.js`)
 
 ---
 
@@ -81,7 +81,7 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
 - **Verifikasi:**
   - Jalankan `npm run test` -> test komposit lolos.
   - Gambar hasil komposit berukuran tepat 1200×1800 px.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/shared/composite.js`, `tests/composite.test.js`)
 
 ---
 
@@ -469,3 +469,4 @@ Sebelum booth dinyatakan siap digunakan di event mall/lapangan, seluruh item ber
 - [ ] **Silent Print:** Pencetakan berjalan otomatis tanpa pernah memunculkan dialog konfigurasi printer.
 - [ ] **Desain Konsisten:** Seluruh layar mematuhi RawBlock Brutalism (tanpa sudut bulat, tanpa shadow, kontras tinggi).
 - [ ] **Stabilitas:** Aplikasi mampu berjalan 4 jam nonstop tanpa crash atau *memory leak*.
+
