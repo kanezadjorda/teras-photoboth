@@ -16,9 +16,11 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
+        main: resolve(__dirname, 'index.html'),
         kiosk: resolve(__dirname, 'src/kiosk/index.html'),
         admin: resolve(__dirname, 'src/admin/index.html')
       }
     }
   }
 });
+

@@ -6,3 +6,4 @@ contextBridge.exposeInMainWorld('photobooth', {
   printSilent: (options) => ipcRenderer.invoke('printer:print-silent', options),
   quitApp: () => ipcRenderer.invoke('app:quit')
 });
+

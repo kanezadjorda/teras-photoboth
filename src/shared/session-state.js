@@ -54,3 +54,4 @@ export function transitionSessionState(currentState, targetState) {
   }
   return targetState;
 }
+

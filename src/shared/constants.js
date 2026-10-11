@@ -44,3 +44,4 @@ export const DEFAULTS = Object.freeze({
   CLIENT_PORT: 5173,
   MAX_RETAKES_PER_SLOT: 1
 });
+

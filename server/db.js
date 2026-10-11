@@ -88,3 +88,4 @@ export function initDb() {
 
   transaction(initialSettings);
 }
+

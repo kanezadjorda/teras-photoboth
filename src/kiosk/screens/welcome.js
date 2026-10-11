@@ -51,3 +51,4 @@ export function createWelcomeScreen({ onStart }) {
 
   return { mount, unmount };
 }
+

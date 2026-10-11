@@ -34,3 +34,4 @@ describe('Session State Machine', () => {
     expect(() => transitionSessionState(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.PRINTING)).toThrow();
   });
 });
+

@@ -41,3 +41,18 @@ export const api = {
   confirmPaymentManual: (sessionId) =>
     fetchApi(`/payments/${sessionId}/confirm-manual`, { method: 'POST' })
 };
+
+// Graceful fallback for window.photobooth when running in web browser mode
+if (typeof window !== 'undefined' && !window.photobooth) {
+  window.photobooth = {
+    getAppVersion: async () => '0.9.1 (web)',
+    printSilent: async () => {
+      window.print();
+      return { success: true };
+    },
+    quitApp: async () => {
+      console.warn('[Photobooth] quitApp called in web mode (no-op)');
+    }
+  };
+}
+

@@ -5,9 +5,10 @@
   "main": "electron/main.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:electron\"",
+    "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:server\"",
+    "dev:web": "concurrently -k \"npm:dev:vite\" \"npm:dev:server\"",
+    "dev:electron": "concurrently -k \"npm:dev:vite\" \"electron .\"",
     "dev:vite": "vite",
-    "dev:electron": "electron .",
     "dev:server": "node server/index.js",
     "build": "vite build",
     "test": "vitest run",

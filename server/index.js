@@ -64,3 +64,4 @@ export function startServer(port = PORT) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   startServer();
 }
+

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teras Photobooth — Navigator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body class="bg-background text-dark flex items-center justify-center min-h-screen p-6">
+  <div class="max-w-md w-full bg-white border border-dark/10 rounded-3xl p-8 shadow-sm text-center space-y-6">
+    <div class="space-y-2">
+      <h1 class="text-3xl font-extrabold text-dark">Teras Photobooth</h1>
+      <p class="text-sm text-dark/60 font-medium">Pilih antarmuka yang ingin dibuka di browser:</p>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <a href="/src/kiosk/index.html" class="w-full py-4 px-6 bg-primary text-white font-bold text-lg rounded-2xl shadow hover:opacity-95 transition-all text-center">
+        Buka Layar Kiosk (Pelanggan)
+      </a>
+
+      <a href="/src/admin/index.html" class="w-full py-4 px-6 bg-dark text-white font-bold text-lg rounded-2xl shadow hover:opacity-95 transition-all text-center">
+        Buka Panel Admin (Staff)
+      </a>
+    </div>
+
+    <p class="text-xs text-dark/40">
+      Mode Pengembangan Web (Express Port 3000 & Vite Port 5173)
+    </p>
+  </div>
+</body>
+</html>
