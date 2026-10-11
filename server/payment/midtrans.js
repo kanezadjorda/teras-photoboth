@@ -126,6 +126,7 @@ export async function createQrisCharge({ orderId, amount }) {
     orderId: data.order_id || orderId,
     transactionId: data.transaction_id,
     qrUrl,
+    rawQrUrl: qrAction ? qrAction.url : '',
     qrString,
     grossAmount: Number(data.gross_amount) || amount,
     rawStatus: data.transaction_status,

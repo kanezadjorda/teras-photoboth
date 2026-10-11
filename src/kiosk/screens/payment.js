@@ -70,6 +70,13 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
             <p class="font-mono text-[11px] text-center text-black/80 mt-3 uppercase tracking-tight">
               TAMPILKAN KE KAMERA HP ANDA
             </p>
+
+            <!-- Simulator URL Helper Button -->
+            <div id="sim-url-helper" class="hidden w-full mt-2 pt-2 border-t border-black/20 flex flex-col items-center">
+              <button id="btn-copy-simulator-url" type="button" class="btn-raw-secondary w-full text-[10px] py-1.5 px-2 font-mono">
+                📋 SALIN URL KE SIMULATOR
+              </button>
+            </div>
           </div>
         </div>
 
@@ -167,6 +174,25 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
               ${data.qr_string}
             </div>
           `;
+        }
+
+        // Show simulator copy button if raw Midtrans URL is available
+        const simHelper = container.querySelector('#sim-url-helper');
+        const copyBtn = container.querySelector('#btn-copy-simulator-url');
+
+        if (data.raw_qr_url && simHelper && copyBtn) {
+          simHelper.classList.remove('hidden');
+          copyBtn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(data.raw_qr_url);
+              copyBtn.textContent = '✔️ TERSALIN! PASTE DI SIMULATOR';
+              setTimeout(() => {
+                if (copyBtn) copyBtn.textContent = '📋 SALIN URL KE SIMULATOR';
+              }, 2500);
+            } catch (e) {
+              prompt('Salin URL ini untuk simulator Midtrans:', data.raw_qr_url);
+            }
+          });
         }
       } catch (err) {
         console.error('[Payment] Gagal memuat QRIS:', err);

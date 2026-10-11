@@ -142,6 +142,7 @@ router.post('/charge', async (req, res) => {
         nominal: sessionPrice,
         status: PAYMENT_STATES.PENDING,
         qr_url: charge.qrUrl,
+        raw_qr_url: charge.rawQrUrl || '',
         qr_string: charge.qrString,
         is_mock: charge.isMock
       }
