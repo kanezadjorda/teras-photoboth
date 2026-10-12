@@ -1,10 +1,11 @@
-import * as electron from 'electron/main';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { startServer } from '../server/index.js';
 import { DEFAULTS } from '../src/shared/constants.js';
 
-const { app, BrowserWindow, screen, ipcMain, session } = electron;
+const require = createRequire(import.meta.url);
+const { app, BrowserWindow, screen, ipcMain, session } = require('electron');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -90,8 +91,23 @@ async function createWindows() {
   applySecurityHandlers(kioskWindow);
 
   if (isDev) {
-    adminWindow.loadURL(`${VITE_DEV_SERVER}/src/admin/index.html`);
-    kioskWindow.loadURL(`${VITE_DEV_SERVER}/src/kiosk/index.html`);
+    const loadWithRetry = async (win, url, maxRetries = 15, delayMs = 500) => {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          await win.loadURL(url);
+          return;
+        } catch {
+          if (i === maxRetries - 1) {
+            console.error(`[Electron] Gagal memuat URL setelah beberapa percobaan: ${url}`);
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+          }
+        }
+      }
+    };
+
+    loadWithRetry(adminWindow, `${VITE_DEV_SERVER}/src/admin/index.html`);
+    loadWithRetry(kioskWindow, `${VITE_DEV_SERVER}/src/kiosk/index.html`);
   } else {
     adminWindow.loadFile(resolve(__dirname, '../dist/src/admin/index.html'));
     kioskWindow.loadFile(resolve(__dirname, '../dist/src/kiosk/index.html'));
