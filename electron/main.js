@@ -10,7 +10,7 @@ const { app, BrowserWindow, screen, ipcMain, session } = require('electron');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const isDev = process.env.NODE_ENV !== 'production' && !app.isPackaged;
+const isDev = process.env.NODE_ENV !== 'production' && (app ? !app.isPackaged : true);
 const VITE_DEV_SERVER = `http://localhost:${DEFAULTS.CLIENT_PORT}`;
 
 let adminWindow = null;

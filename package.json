@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:server\"",
     "dev:web": "concurrently -k \"npm:dev:vite\" \"npm:dev:server\"",
-    "start": "cross-env ELECTRON_RUN_AS_NODE= electron .",
-    "dev:electron": "concurrently -k \"npm:dev:vite\" \"cross-env ELECTRON_RUN_AS_NODE= electron .\"",
+    "start": "node electron/launch.cjs",
+    "dev:electron": "concurrently -k \"npm:dev:vite\" \"node electron/launch.cjs\"",
     "dev:vite": "vite",
     "dev:server": "node --watch server/index.js",
     "build": "vite build",
