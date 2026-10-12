@@ -190,3 +190,66 @@ body {
   border-color: #000000;
   color: #000000;
 }
+
+/* ==========================================================================
+   RawBlock Print Styling (PRD F-12: 4R 300 DPI Borderless Silent Print)
+   ========================================================================== */
+@media print {
+  @page {
+    size: 4in 6in;
+    margin: 0;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 4in !important;
+    height: 6in !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Sembunyikan seluruh UI kiosk saat mencetak */
+  body > * {
+    display: none !important;
+  }
+
+  /* Hanya tampilkan container print */
+  #photobooth-print-container {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 4in !important;
+  }
+
+  .print-page {
+    width: 4in !important;
+    height: 6in !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .print-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .print-page img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+}
+

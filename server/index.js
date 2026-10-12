@@ -9,6 +9,7 @@ import settingsRouter from './routes/settings.js';
 import templatesRouter from './routes/templates.js';
 import sessionsRouter from './routes/sessions.js';
 import paymentsRouter from './routes/payments.js';
+import photosRouter from './routes/photos.js';
 import { DEFAULTS } from '../src/shared/constants.js';
 
 dotenv.config();
@@ -24,8 +25,9 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve templates folder for template assets
+// Serve templates and photos folder
 app.use('/templates', express.static(resolve(__dirname, '../templates')));
+app.use('/photos', express.static(resolve(process.cwd(), process.env.OUTPUT_FOLDER || './data/photos')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -44,6 +46,7 @@ app.get('/api/events', sseHandler);
 app.use('/api/settings', settingsRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/sessions', photosRouter);
 app.use('/api/payments', paymentsRouter);
 
 /**

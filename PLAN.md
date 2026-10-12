@@ -17,7 +17,7 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 - [x] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis** *(Selesai)*
 - [x] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto** *(Selesai)*
 - [x] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Midtrans Core API)** *(Selesai)*
-- [ ] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai**
+- [x] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai** *(Selesai)*
 - [ ] **Fase 6: Panel Admin Lengkap (PIN, Riwayat, Cetak Ulang, Laporan CSV)**
 - [ ] **Fase 7: Hardening Offline, Penanganan Error & Packaging Produksi**
 
@@ -308,7 +308,7 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
 - **Batasan Penting:** Sesuai PRD, foto **wajib tersimpan di disk sebelum instruksi cetak dikirimkan** untuk mencegah kehilangan data jika printer macet.
 - **Verifikasi:**
   - File JPG tersimpan dengan format nama yang benar di folder output dan dapat dibuka tanpa korup.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`server/routes/photos.js`, `src/shared/filename.js`, `tests/filename.test.js`, `tests/save-photos.test.js`)
 
 ---
 
@@ -336,7 +336,7 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
   3. Setelah perintah print terkirim, transisikan state sesi ke `done`.
 - **Verifikasi:**
   - CSS print merender tepat N halaman sesuai pengaturan salinan tanpa margin putih yang memotong gambar.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/printing.js`, `electron/main.js`, `src/styles.css`)
 
 ---
 
@@ -355,7 +355,7 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
   4. Saat timer habis, update status sesi ke `done` dan otomatis kembali ke Welcome screen.
 - **Verifikasi:**
   - Layar selesai tampil selama 10 detik, lalu booth kembali ke layar awal siap untuk customer berikutnya.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/kiosk/screens/done.js`, `src/kiosk/main.js`)
 
 ---
 

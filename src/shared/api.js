@@ -46,7 +46,13 @@ export const api = {
   confirmPaymentManual: (sessionId) =>
     fetchApi(`/payments/${sessionId}/confirm-manual`, { method: 'POST' }),
   simulatePayment: (orderId) =>
-    fetchApi(`/payments/${orderId}/simulate-pay`, { method: 'POST' })
+    fetchApi(`/payments/${orderId}/simulate-pay`, { method: 'POST' }),
+  savePhotos: (sessionId, { composite, rawPhotos }) =>
+    fetchApi(`/sessions/${sessionId}/save-photos`, {
+      method: 'POST',
+      body: JSON.stringify({ composite, rawPhotos })
+    }),
+  getSessionPhotos: (sessionId) => fetchApi(`/sessions/${sessionId}/photos`)
 };
 
 // Graceful fallback for window.photobooth when running in web browser mode

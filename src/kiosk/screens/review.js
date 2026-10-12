@@ -20,6 +20,7 @@ export function createReviewScreen({
   let slotsContainer = null;
   let confirmBtn = null;
   let cancelBtn = null;
+  let compositeCanvas = null;
 
   async function generateCompositePreview() {
     if (!canvasContainer) return;
@@ -44,7 +45,7 @@ export function createReviewScreen({
         photos.map((src) => (src ? loadImage(src) : null))
       );
 
-      const compositeCanvas = renderComposite({
+      compositeCanvas = renderComposite({
         canvasWidth: CANVAS_SPECS.WIDTH,
         canvasHeight: CANVAS_SPECS.HEIGHT,
         templateImage: templateImg,
@@ -186,7 +187,10 @@ export function createReviewScreen({
     cancelBtn = container.querySelector('#btn-cancel-review');
 
     if (confirmBtn && onConfirm) {
-      confirmBtn.addEventListener('click', () => onConfirm(photos));
+      confirmBtn.addEventListener('click', () => {
+        const compositeDataUrl = compositeCanvas ? compositeCanvas.toDataURL('image/jpeg', 0.95) : null;
+        onConfirm({ photos, compositeDataUrl });
+      });
     }
 
     if (cancelBtn && onCancel) {
