@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+const { contextBridge, ipcRenderer } = require('electron/renderer');
 
 // Expose minimal, secure API to renderer
 contextBridge.exposeInMainWorld('photobooth', {
@@ -6,4 +6,3 @@ contextBridge.exposeInMainWorld('photobooth', {
   printSilent: (options) => ipcRenderer.invoke('printer:print-silent', options),
   quitApp: () => ipcRenderer.invoke('app:quit')
 });
-

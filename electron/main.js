@@ -1,8 +1,10 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron';
+import * as electron from 'electron/main';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { startServer } from '../server/index.js';
 import { DEFAULTS } from '../src/shared/constants.js';
+
+const { app, BrowserWindow, screen, ipcMain, session } = electron;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,20 +15,57 @@ const VITE_DEV_SERVER = `http://localhost:${DEFAULTS.CLIENT_PORT}`;
 let adminWindow = null;
 let kioskWindow = null;
 
+/**
+ * Menerapkan konfigurasi keamanan ketat untuk BrowserWindow
+ * Mengacu pada Praktik Terbaik Keamanan Electron Windows 11 & PRD
+ */
+function applySecurityHandlers(win) {
+  if (!win) return;
+
+  // 1. Validasi Navigasi: Cegah navigasi ke sembarang URL eksternal
+  win.webContents.on('will-navigate', (event, navigationUrl) => {
+    try {
+      const parsedUrl = new URL(navigationUrl);
+      if (isDev) {
+        const allowedOrigin = new URL(VITE_DEV_SERVER).origin;
+        if (parsedUrl.origin === allowedOrigin) return;
+      } else {
+        if (parsedUrl.protocol === 'file:') return;
+      }
+    } catch {
+      // URL tidak valid, langsung blokir
+    }
+    event.preventDefault();
+    console.warn(`[Security] Navigasi eksternal diblokir: ${navigationUrl}`);
+  });
+
+  // 2. Cegah pembukaan jendela/tab baru eksternal (window.open, target="_blank")
+  win.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
+    console.warn(`[Security] Pembukaan jendela eksternal ditolak: ${targetUrl}`);
+    return { action: 'deny' };
+  });
+
+  // 3. Nonaktifkan menu bar default pada kiosk dan mode fullscreen
+  win.removeMenu();
+}
+
 async function createWindows() {
   const displays = screen.getAllDisplays();
   const primaryDisplay = screen.getPrimaryDisplay();
   const secondaryDisplay = displays.find((d) => d.id !== primaryDisplay.id) || primaryDisplay;
 
-  // Common WebPreferences with strict security
+  // WebPreferences dengan isolasi ketat sesuai panduan keamanan
   const webPreferences = {
-    preload: resolve(__dirname, 'preload.js'),
+    preload: resolve(__dirname, 'preload.cjs'),
     contextIsolation: true,
     nodeIntegration: false,
-    sandbox: true
+    nodeIntegrationInWorker: false,
+    nodeIntegrationInSubFrames: false,
+    sandbox: true,
+    webviewTag: false
   };
 
-  // 1. Admin Window (Laptop Screen / Primary Display)
+  // 1. Admin Window (Layar Laptop / Monitor Utama)
   adminWindow = new BrowserWindow({
     title: 'Photobooth Staff Admin',
     width: 1280,
@@ -35,8 +74,9 @@ async function createWindows() {
     y: primaryDisplay.bounds.y + 50,
     webPreferences
   });
+  applySecurityHandlers(adminWindow);
 
-  // 2. Kiosk Window (Second Monitor if available)
+  // 2. Kiosk Window (Layar Kiosk / Monitor Kedua)
   kioskWindow = new BrowserWindow({
     title: 'Photobooth Kiosk',
     x: secondaryDisplay.bounds.x,
@@ -47,6 +87,7 @@ async function createWindows() {
     autoHideMenuBar: true,
     webPreferences
   });
+  applySecurityHandlers(kioskWindow);
 
   if (isDev) {
     adminWindow.loadURL(`${VITE_DEV_SERVER}/src/admin/index.html`);
@@ -57,7 +98,7 @@ async function createWindows() {
   }
 }
 
-// IPC Handlers
+// IPC Handlers - Hanya ekspos fungsi yang tervalidasi minimal
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('app:quit', () => app.quit());
 ipcMain.handle('printer:print-silent', async (event, options = {}) => {
@@ -83,6 +124,12 @@ ipcMain.handle('printer:print-silent', async (event, options = {}) => {
 });
 
 app.whenReady().then(async () => {
+  // Batasi izin hanya untuk media (kamera/webcam untuk fitur capture)
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    const allowed = ['media'];
+    callback(allowed.includes(permission));
+  });
+
   await startServer();
   await createWindows();
 
@@ -98,4 +145,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
