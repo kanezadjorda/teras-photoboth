@@ -78,6 +78,9 @@ export async function createQrisCharge({ orderId, amount }) {
   const url = `${getMidtransBaseUrl()}/charge`;
   const body = {
     payment_type: 'qris',
+    qris: {
+      acquirer: 'gopay'
+    },
     transaction_details: {
       order_id: orderId,
       gross_amount: Math.round(amount)
