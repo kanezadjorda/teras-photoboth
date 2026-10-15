@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.teras.photobooth",
+  "productName": "Teras Photobooth",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "server/**/*",
+    "templates/**/*",
+    "src/shared/**/*",
+    "package.json"
+  ],
+  "asar": true,
+  "npmRebuild": false,
+  "asarUnpack": [
+    "**/node_modules/better-sqlite3/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "templates",
+      "to": "templates",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Teras Photobooth"
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["arm64"]
+      }
+    ],
+    "category": "public.app-category.photography"
+  }
+}

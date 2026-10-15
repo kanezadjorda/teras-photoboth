@@ -140,6 +140,17 @@ ipcMain.handle('printer:print-silent', async (event, options = {}) => {
 });
 
 app.whenReady().then(async () => {
+  // Pastikan data persisten SQLite dan foto tersimpan di userData saat produksi (PRD 8.1)
+  if (!isDev && app) {
+    const userData = app.getPath('userData');
+    if (!process.env.DATABASE_PATH) {
+      process.env.DATABASE_PATH = resolve(userData, 'data/photobooth.db');
+    }
+    if (!process.env.OUTPUT_FOLDER) {
+      process.env.OUTPUT_FOLDER = resolve(userData, 'data/photos');
+    }
+  }
+
   // Batasi izin hanya untuk media (kamera/webcam untuk fitur capture)
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
     const allowed = ['media'];

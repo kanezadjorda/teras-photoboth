@@ -6,6 +6,7 @@
 
 import { renderComposite, loadImage } from '../../shared/composite.js';
 import { DEFAULTS, CANVAS_SPECS } from '../../shared/constants.js';
+import { preventDoubleClick } from '../../shared/ui.js';
 
 export function createReviewScreen({
   template,
@@ -187,10 +188,11 @@ export function createReviewScreen({
     cancelBtn = container.querySelector('#btn-cancel-review');
 
     if (confirmBtn && onConfirm) {
-      confirmBtn.addEventListener('click', () => {
+      const clickHandler = preventDoubleClick(confirmBtn, async () => {
         const compositeDataUrl = compositeCanvas ? compositeCanvas.toDataURL('image/jpeg', 0.95) : null;
-        onConfirm({ photos, compositeDataUrl });
-      });
+        await onConfirm({ photos, compositeDataUrl });
+      }, 'MENYIAPKAN CETAKAN...');
+      confirmBtn.addEventListener('click', clickHandler);
     }
 
     if (cancelBtn && onCancel) {

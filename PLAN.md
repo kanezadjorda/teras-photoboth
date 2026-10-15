@@ -464,7 +464,7 @@ Fase final untuk memastikan aplikasi stabil di lapangan tanpa intervensi develop
   3. **Double-click Prevention:** Nonaktifkan semua tombol kiosk dan admin segera setelah diklik pertama kali untuk mencegah _double charge_ atau _double print_.
 - **Verifikasi:**
   - Putuskan koneksi WiFi -> aplikasi tetap bisa memfoto dan membuka template yang sudah ada di lokal.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/shared/ui.js`, `src/kiosk/screens/recovery-modal.js`, `src/kiosk/main.js`, `src/admin/main.js`, `tests/offline-recovery.test.js`)
 
 ---
 
@@ -487,7 +487,7 @@ Fase final untuk memastikan aplikasi stabil di lapangan tanpa intervensi develop
      - `"dist:mac": "npm run build && electron-builder --mac --arm64"`
 - **Verifikasi:**
   - Jalankan `npm run dist:win` -> menghasilkan file installer di folder `release/`.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`package.json`, `electron-builder.json`, `electron/main.js`)
 
 ---
 

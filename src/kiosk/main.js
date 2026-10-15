@@ -5,6 +5,8 @@ import { createCaptureScreen } from './screens/capture.js';
 import { createReviewScreen } from './screens/review.js';
 import { createPrintingScreen } from './screens/printing.js';
 import { createDoneScreen } from './screens/done.js';
+import { createRecoveryModal } from './screens/recovery-modal.js';
+import { setupOfflineMonitor } from '../shared/ui.js';
 import { api } from '../shared/api.js';
 import { SESSION_STATES, DEFAULTS } from '../shared/constants.js';
 
@@ -227,5 +229,115 @@ async function cancelSession(session) {
   }
 }
 
-// Initial mount
-initWelcomeScreen();
+// Monitor koneksi internet untuk peringatan offline
+setupOfflineMonitor(document.body);
+
+async function resumeSession(session) {
+  console.log(`[Kiosk] Melanjutkan sesi ${session.id} pada status: ${session.status}`);
+
+  switch (session.status) {
+    case SESSION_STATES.WAITING_PAYMENT:
+      initPaymentScreen(session);
+      break;
+
+    case SESSION_STATES.CHOOSING_TEMPLATE:
+      initChooseTemplateScreen(session);
+      break;
+
+    case SESSION_STATES.CAPTURING:
+      if (session.template_id) {
+        try {
+          const tplRes = await api.getTemplate(session.template_id);
+          if (tplRes.data) {
+            initCaptureScreen(session, tplRes.data);
+            return;
+          }
+        } catch (e) {
+          console.warn('[Kiosk] Gagal memuat template sesi:', e);
+        }
+      }
+      initChooseTemplateScreen(session);
+      break;
+
+    case SESSION_STATES.REVIEWING:
+      if (session.template_id) {
+        try {
+          const tplRes = await api.getTemplate(session.template_id);
+          if (tplRes.data) {
+            initCaptureScreen(session, tplRes.data);
+            return;
+          }
+        } catch (e) {}
+      }
+      initChooseTemplateScreen(session);
+      break;
+
+    case SESSION_STATES.PRINTING:
+      try {
+        const photosRes = await api.getSessionPhotos(session.id);
+        const composite = (photosRes.data || []).find((p) => p.urutan === 0);
+        if (composite) {
+          const settings = await api.getSettings().catch(() => ({ data: {} }));
+          initPrintingScreen({
+            session,
+            compositeUrl: `/photos/${composite.path_file}`,
+            copies: settings.data?.copies_per_session || 1,
+            sessionNo: String(session.rowid || 1).padStart(4, '0')
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn('[Kiosk] Gagal resume printing:', e);
+      }
+      initWelcomeScreen();
+      break;
+
+    default:
+      initWelcomeScreen();
+      break;
+  }
+}
+
+async function checkSessionRecovery() {
+  try {
+    const res = await api.getCurrentSession();
+    const session = res.data;
+
+    if (session && session.id && session.status) {
+      console.log('[Kiosk] Ditemukan sesi aktif saat startup:', session);
+
+      // Jika statusnya waiting_payment, cek apakah sudah bayar
+      if (session.status === SESSION_STATES.WAITING_PAYMENT) {
+        try {
+          const payRes = await api.getPayment(session.id);
+          if (payRes.data && payRes.data.status === 'paid') {
+            console.log('[Kiosk] Sesi sudah terbayar, melanjutkan ke pilih template');
+            initChooseTemplateScreen(session);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Tampilkan modal pemulihan sesi
+      const recoveryModal = createRecoveryModal({
+        session,
+        onResume: (activeSession) => {
+          resumeSession(activeSession);
+        },
+        onDiscard: async (activeSession) => {
+          await cancelSession(activeSession);
+        }
+      });
+      renderScreen(recoveryModal);
+      return;
+    }
+  } catch (err) {
+    console.warn('[Kiosk] Tidak dapat mengecek pemulihan sesi:', err.message);
+  }
+
+  // Standar: buka Welcome Screen
+  initWelcomeScreen();
+}
+
+// Initial mount with session recovery check
+checkSessionRecovery();

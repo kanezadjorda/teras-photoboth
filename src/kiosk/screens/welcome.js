@@ -3,9 +3,12 @@
  * Customer entry point ("Sentuh/Klik untuk mulai")
  */
 
+import { preventDoubleClick } from '../../shared/ui.js';
+
 export function createWelcomeScreen({ onStart }) {
   let container = null;
   let startBtn = null;
+  let clickHandler = null;
 
   function mount(parent) {
     container = document.createElement('div');
@@ -40,13 +43,14 @@ export function createWelcomeScreen({ onStart }) {
 
     startBtn = container.querySelector('#btn-start');
     if (startBtn && onStart) {
-      startBtn.addEventListener('click', onStart);
+      clickHandler = preventDoubleClick(startBtn, onStart, 'MEMPROSES SESI...');
+      startBtn.addEventListener('click', clickHandler);
     }
   }
 
   function unmount() {
-    if (startBtn && onStart) {
-      startBtn.removeEventListener('click', onStart);
+    if (startBtn && clickHandler) {
+      startBtn.removeEventListener('click', clickHandler);
     }
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);

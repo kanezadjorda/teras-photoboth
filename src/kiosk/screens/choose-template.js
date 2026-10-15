@@ -57,8 +57,11 @@ export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
           </button>
         `;
 
-        // Select template event
+        // Select template event with double-click guard
+        let isSelecting = false;
         const triggerSelect = () => {
+          if (isSelecting) return;
+          isSelecting = true;
           if (onSelectTemplate) {
             onSelectTemplate(tpl);
           }

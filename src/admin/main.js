@@ -1,6 +1,7 @@
 import { api } from '../shared/api.js';
 import { createTemplateEditor } from './screens/template-editor.js';
 import { createPinModal } from './screens/pin-modal.js';
+import { preventDoubleClick, setupOfflineMonitor } from '../shared/ui.js';
 
 const appRoot = document.getElementById('app');
 let currentScreen = null;
@@ -344,24 +345,53 @@ async function renderAdminDashboard() {
     console.error('Gagal memuat pengaturan:', err);
   }
 
-  // Save settings event
+  // Monitor status koneksi internet di panel admin
+  const netStatus = document.getElementById('net-status');
+  const netCard = netStatus?.closest('.card-raw');
+  const netChip = netCard?.querySelector('.chip-raw');
+
+  function updateNetworkIndicator() {
+    if (!netStatus) return;
+    if (navigator.onLine) {
+      netStatus.textContent = 'ONLINE';
+      if (netChip) {
+        netChip.textContent = 'AKTIF';
+        netChip.className = 'chip-raw chip-raw-active';
+      }
+    } else {
+      netStatus.textContent = 'TERPUTUS';
+      if (netChip) {
+        netChip.textContent = 'OFFLINE';
+        netChip.className = 'chip-raw chip-raw-destructive';
+      }
+    }
+  }
+
+  window.addEventListener('online', updateNetworkIndicator);
+  window.addEventListener('offline', updateNetworkIndicator);
+  updateNetworkIndicator();
+
+  // Save settings event with double-click guard
   const saveBtn = document.getElementById('btn-save-settings');
   if (saveBtn) {
-    saveBtn.addEventListener('click', async () => {
-      const price = Number(document.getElementById('setting-price')?.value) || 25000;
-      const copies = Number(document.getElementById('setting-copies')?.value) || 1;
-      const pin = document.getElementById('setting-pin')?.value?.trim() || '1234';
-      try {
-        await api.updateSettings({
-          session_price: price,
-          copies_per_session: copies,
-          admin_pin: pin
-        });
-        alert('Pengaturan berhasil disimpan');
-      } catch (err) {
-        alert('Gagal menyimpan: ' + err.message);
-      }
-    });
+    saveBtn.addEventListener(
+      'click',
+      preventDoubleClick(
+        saveBtn,
+        async () => {
+          const price = Number(document.getElementById('setting-price')?.value) || 25000;
+          const copies = Number(document.getElementById('setting-copies')?.value) || 1;
+          const pin = document.getElementById('setting-pin')?.value?.trim() || '1234';
+          await api.updateSettings({
+            session_price: price,
+            copies_per_session: copies,
+            admin_pin: pin
+          });
+          alert('Pengaturan berhasil disimpan');
+        },
+        'MENYIMPAN...'
+      )
+    );
   }
 
   // Load Daily Report (F-15)
@@ -490,11 +520,21 @@ async function renderAdminDashboard() {
     loadDailyReport();
   });
 
-  // Handle Reprint Action (F-13)
-  async function handleReprint(sessionId, sessionNo) {
+  // Handle Reprint Action (F-13) with double-click guard
+  let isReprinting = false;
+  async function handleReprint(sessionId, sessionNo, btn) {
+    if (isReprinting) return;
     if (!confirm(`Cetak ulang foto untuk Sesi #${sessionNo}?`)) {
       return;
     }
+    isReprinting = true;
+    const origText = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'MENCETAK...';
+      btn.classList.add('opacity-50');
+    }
+
     try {
       const res = await api.reprintSession(sessionId);
       if (!res.success || !res.data) {
@@ -527,6 +567,13 @@ async function renderAdminDashboard() {
       alert(`Instruksi cetak ulang untuk Sesi #${res.data.sessionNo} telah dikirim ke printer!`);
     } catch (err) {
       alert('Gagal mencetak ulang: ' + err.message);
+    } finally {
+      isReprinting = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = origText;
+        btn.classList.remove('opacity-50');
+      }
     }
   }
 
@@ -537,7 +584,7 @@ async function renderAdminDashboard() {
       const sessionId = btn.getAttribute('data-session-id');
       const sessionNo = btn.getAttribute('data-session-no');
       if (sessionId) {
-        handleReprint(sessionId, sessionNo);
+        handleReprint(sessionId, sessionNo, btn);
       }
     }
   });
@@ -697,25 +744,32 @@ async function renderAdminDashboard() {
     console.warn('SSE admin error:', e);
   }
 
-  // Emergency reset event
+  // Emergency reset event with double-click guard
   const resetBtn = document.getElementById('btn-emergency-reset');
   if (resetBtn) {
-    resetBtn.addEventListener('click', async () => {
-      if (confirm('Yakin ingin mereset sesi aktif dan kembali ke layar awal?')) {
-        try {
-          const current = await api.getCurrentSession();
-          if (current.data && current.data.id) {
-            await api.updateSessionStatus(current.data.id, 'cancelled');
+    resetBtn.addEventListener(
+      'click',
+      preventDoubleClick(
+        resetBtn,
+        async () => {
+          if (confirm('Yakin ingin mereset sesi aktif dan kembali ke layar awal?')) {
+            try {
+              const current = await api.getCurrentSession();
+              if (current.data && current.data.id) {
+                await api.updateSessionStatus(current.data.id, 'cancelled');
+              }
+              alert('Sesi berhasil direset');
+              checkWaitingPayment();
+              loadHistory();
+              loadDailyReport();
+            } catch (err) {
+              alert('Gagal mereset: ' + err.message);
+            }
           }
-          alert('Sesi berhasil direset');
-          checkWaitingPayment();
-          loadHistory();
-          loadDailyReport();
-        } catch (err) {
-          alert('Gagal mereset: ' + err.message);
-        }
-      }
-    });
+        },
+        'MERESET...'
+      )
+    );
   }
 }
 
