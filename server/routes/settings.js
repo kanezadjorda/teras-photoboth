@@ -44,5 +44,26 @@ router.put('/', (req, res) => {
   }
 });
 
+// VERIFY admin PIN
+router.post('/verify-pin', (req, res) => {
+  try {
+    const { pin } = req.body;
+    if (!pin) {
+      return res.status(400).json({ success: false, error: 'PIN wajib diisi' });
+    }
+
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'admin_pin'").get();
+    const storedPin = row?.value || process.env.ADMIN_PIN || '1234';
+
+    if (String(pin).trim() === String(storedPin).trim()) {
+      return res.json({ success: true, message: 'PIN valid' });
+    }
+
+    return res.status(401).json({ success: false, error: 'PIN yang dimasukkan salah' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;
 

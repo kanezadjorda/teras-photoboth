@@ -1,8 +1,9 @@
 # Rencana Kerja Produksi (PLAN.md) — Teras Photobooth
 
-Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang disusun secara presisi untuk developer junior maupun AI coding assistant berikutnya. Setiap tugas dirancang modular, terisolasi, memiliki kriteria verifikasi yang jelas, dan merujuk langsung ke requirement ID di [docs/PRD.md](file:///d:/teras-photobooth/docs/PRD.md) serta standar desain [docs/DESIGN.md](file:///d:/teras-photobooth/docs/DESIGN.md).
+Dokumen ini adalah instruksi kerja bertahap (_step-by-step master plan_) yang disusun secara presisi untuk developer junior maupun AI coding assistant berikutnya. Setiap tugas dirancang modular, terisolasi, memiliki kriteria verifikasi yang jelas, dan merujuk langsung ke requirement ID di [docs/PRD.md](file:///d:/teras-photobooth/docs/PRD.md) serta standar desain [docs/DESIGN.md](file:///d:/teras-photobooth/docs/DESIGN.md).
 
 > **PANDUAN EKSEKUSI UNTUK AI / DEVELOPER:**
+>
 > 1. **Dilarang melompati tahapan.** Kerjakan hanya satu tugas dalam satu waktu.
 > 2. **Wajib patuhi gaya desain:** RawBlock Brutalism (tanpa sudut bulat `0px radius`, tanpa bayangan `shadow-none`, border 3px/5px, font `Archivo Black`, `Work Sans`, `Space Mono`).
 > 3. **Wajib uji sebelum mencentang:** Jalankan unit test (`npm run test`) dan build (`npm run build`).
@@ -12,12 +13,12 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 
 ## 📌 Ringkasan Milestone
 
-- [x] **Fase 0: Fondasi & Boilerplate Proyek** *(Selesai)*
-- [x] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)** *(Selesai)*
-- [x] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis** *(Selesai)*
-- [x] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto** *(Selesai)*
-- [x] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Midtrans Core API)** *(Selesai)*
-- [x] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai** *(Selesai)*
+- [x] **Fase 0: Fondasi & Boilerplate Proyek** _(Selesai)_
+- [x] **Fase 1: Modul Kamera, Capture & Komposit Canvas (4R 300 DPI)** _(Selesai)_
+- [x] **Fase 2: Manajemen Template & Algoritma Deteksi Slot Otomatis** _(Selesai)_
+- [x] **Fase 3: Layar Kiosk Pemilihan Template, Review & Retake Foto** _(Selesai)_
+- [x] **Fase 4: Integrasi Pembayaran QRIS Dinamis (Midtrans Core API)** _(Selesai)_
+- [x] **Fase 5: Penyimpanan File Soft File, Modul Cetak Senyap & Layar Selesai** _(Selesai)_
 - [ ] **Fase 6: Panel Admin Lengkap (PIN, Riwayat, Cetak Ulang, Laporan CSV)**
 - [ ] **Fase 7: Hardening Offline, Penanganan Error & Packaging Produksi**
 
@@ -28,6 +29,7 @@ Dokumen ini adalah instruksi kerja bertahap (*step-by-step master plan*) yang di
 Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan menggabungkan foto dengan overlay cetak.
 
 ### Task 1.1: Service Kamera & Live Preview (F-08)
+
 - **Tujuan:** Mengakses kamera eksternal (UVC webcam / HDMI capture card) dengan mode mirror dan aspect ratio optimal.
 - **File Target:**
   - `src/shared/camera.js` (Modul helper native Web API `navigator.mediaDevices`)
@@ -48,6 +50,7 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
 ---
 
 ### Task 1.2: Hitung Mundur (Countdown 3-2-1) & Visual Flash (F-09)
+
 - **Tujuan:** Memberikan hitung mundur visual 3-2-1 dan efek flash layar sesaat saat shutter mengambil foto.
 - **File Target:**
   - `src/kiosk/screens/capture.js`
@@ -63,6 +66,7 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
 ---
 
 ### Task 1.3: Mesin Komposit Canvas 300 DPI (F-11, F-06)
+
 - **Tujuan:** Menggabungkan N foto pengguna ke dalam lubang slot template dan menimpa overlay PNG template dengan ukuran 1200×1800 px (4R 300 DPI).
 - **File Target:**
   - `src/shared/composite.js` (Pure logic komposit gambar)
@@ -73,11 +77,11 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
      - Gambar background putih.
      - Iterasi setiap slot pada `templateConfig.slots`:
        - Ambil foto urutan terkait.
-       - Hitung skala *cover-fit* (pusat foto terpotong rapi tanpa distorsi aspect ratio).
+       - Hitung skala _cover-fit_ (pusat foto terpotong rapi tanpa distorsi aspect ratio).
        - Gambar foto pada koordinat `{ x, y, w, h }` slot.
      - Gambar `templateImage` (PNG transparan) tepat di atas seluruh canvas (`0, 0, 1200, 1800`).
      - Kembalikan canvas atau Blob JPEG kualitas 0.95.
-  2. Buat unit test dengan canvas mock untuk memastikan perhitungan koordinat dan *aspect ratio cover-fit* presisi.
+  2. Buat unit test dengan canvas mock untuk memastikan perhitungan koordinat dan _aspect ratio cover-fit_ presisi.
 - **Verifikasi:**
   - Jalankan `npm run test` -> test komposit lolos.
   - Gambar hasil komposit berukuran tepat 1200×1800 px.
@@ -90,6 +94,7 @@ Fase ini membangun fondasi visual utama: menangkap video kamera eksternal dan me
 Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang transparan otomatis.
 
 ### Task 2.1: Algoritma Deteksi Lubang Transparan Otomatis (F-07)
+
 - **Tujuan:** Membaca channel alpha (transparansi) dari file PNG template 1200×1800 px untuk mendeteksi koordinat slot foto secara otomatis.
 - **File Target:**
   - `src/shared/slot-detector.js`
@@ -98,9 +103,9 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
   1. Implementasikan algoritma deteksi area transparan:
      - Baca pixel data dari canvas context: `ctx.getImageData(0, 0, 1200, 1800).data`.
      - Cari pixel dengan nilai alpha < 128 (transparan).
-     - Gunakan algoritma *Connected Component Labeling* (atau grid flood fill/bounding box traversal) untuk mengelompokkan pixel transparan yang berdekatan.
+     - Gunakan algoritma _Connected Component Labeling_ (atau grid flood fill/bounding box traversal) untuk mengelompokkan pixel transparan yang berdekatan.
      - Abaikan area kecil (< 2% dari total kanvas) untuk membuang noise/dekorasi kecil.
-     - Hitung *bounding box* `{ x, y, w, h }` untuk setiap lubang yang terdeteksi.
+     - Hitung _bounding box_ `{ x, y, w, h }` untuk setiap lubang yang terdeteksi.
      - Urutkan kotak dari atas ke bawah, lalu dari kiri ke kanan.
   2. Kembalikan array slot: `[{ x, y, w, h }, ...]`.
 - **Verifikasi:**
@@ -110,6 +115,7 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
 ---
 
 ### Task 2.2: Backend API Upload & Pengelolaan Template (F-05, F-23)
+
 - **Tujuan:** Menyimpan file PNG template ke folder `templates/` dan mencatat metadata JSON ke database SQLite.
 - **File Target:**
   - `server/routes/templates.js`
@@ -128,6 +134,7 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
 ---
 
 ### Task 2.3: Admin UI: Editor Visual Template & Koreksi Slot (F-07, F-22)
+
 - **Tujuan:** Layar admin untuk mengunggah template, melihat kotak slot bernomor, serta menggeser/mengubah ukuran slot jika deteksi otomatis meleset.
 - **File Target:**
   - `src/admin/screens/template-editor.js`
@@ -152,6 +159,7 @@ Fase ini menangani template cetak photobooth, upload admin, dan pembacaan lubang
 Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanisme retake.
 
 ### Task 3.1: Layar Kiosk Pemilihan Template (F-06, F-23)
+
 - **Tujuan:** Menampilkan galeri template yang aktif dan meminta customer memilih salah satu sebelum sesi foto dimulai.
 - **File Target:**
   - `src/kiosk/screens/choose-template.js`
@@ -172,6 +180,7 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
 ---
 
 ### Task 3.2: Alur Siklus Pengambilan Foto Berurutan (F-06, F-09)
+
 - **Tujuan:** Mengambil foto secara berurutan sebanyak jumlah slot template terpilih ("Foto 1 dari 4", "Foto 2 dari 4", dst.).
 - **File Target:**
   - `src/kiosk/screens/capture.js`
@@ -191,6 +200,7 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
 ---
 
 ### Task 3.3: Layar Review & Mekanisme Retake Maksimal 1x (F-10)
+
 - **Tujuan:** Customer dapat melihat pratinjau hasil komposit foto dan memiliki kesempatan mengulang (retake) maksimal 1x per slot.
 - **File Target:**
   - `src/kiosk/screens/review.js`
@@ -217,6 +227,7 @@ Fase ini menghubungkan pemilihan template customer dengan alur foto dan mekanism
 Fase ini menangani integrasi gerbang pembayaran QRIS dinamis via Midtrans Core API, polling status server-side, dan verifikasi manual staff.
 
 ### Task 4.1: Service Backend Pembayaran Midtrans Core API (F-01, F-02, F-03)
+
 - **Tujuan:** Menghasilkan QRIS dinamis via Midtrans Core API (`/v2/charge`) dan melakukan polling status pembayaran di server.
 - **File Target:**
   - `server/payment/midtrans.js` (Klien Midtrans Core API)
@@ -229,7 +240,7 @@ Fase ini menangani integrasi gerbang pembayaran QRIS dinamis via Midtrans Core A
      - Ambil `actions[0].url` (URL gambar QRIS) dan `qr_string` serta `transaction_id`.
      - Catat transaksi ke tabel `payments` (`id`, `session_id`, `order_id`, `nominal`, `status = 'pending'`, `qris_string`).
      - Sediakan fallback mock otomatis jika `MIDTRANS_SERVER_KEY` belum diisi agar pengujian lokal tetap berjalan lancar.
-  2. Implementasikan *polling worker* server-side:
+  2. Implementasikan _polling worker_ server-side:
      - Jalankan interval polling tiap 2.5 detik (`TIMEOUTS.PAYMENT_POLL_INTERVAL_MS`).
      - Cek status transaksi via `GET /v2/:order_id/status`.
      - Jika status berubah menjadi `settlement` (atau `capture`):
@@ -248,6 +259,7 @@ Fase ini menangani integrasi gerbang pembayaran QRIS dinamis via Midtrans Core A
 ---
 
 ### Task 4.2: Layar Kiosk Pembayaran QRIS (F-01, F-02)
+
 - **Tujuan:** Menampilkan QRIS dinamis, nominal pembayaran dalam Rupiah, dan hitung mundur kedaluwarsa 3 menit.
 - **File Target:**
   - `src/kiosk/screens/payment.js`
@@ -269,6 +281,7 @@ Fase ini menangani integrasi gerbang pembayaran QRIS dinamis via Midtrans Core A
 ---
 
 ### Task 4.3: Cadangan Konfirmasi Manual oleh Staff (F-04)
+
 - **Tujuan:** Staff dapat memverifikasi pembayaran secara manual dari panel admin jika ada gangguan koneksi ke payment gateway.
 - **File Target:**
   - `src/admin/main.js`
@@ -292,6 +305,7 @@ Fase ini menangani integrasi gerbang pembayaran QRIS dinamis via Midtrans Core A
 Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum mencetak dan menjalankan silent print.
 
 ### Task 5.1: Penyimpanan Foto Lokal & Pola Penamaan (F-17, F-18)
+
 - **Tujuan:** Menyimpan file komposit dan foto mentah ke folder output sebelum mencetak dengan format nama standar.
 - **File Target:**
   - `server/routes/photos.js`
@@ -313,6 +327,7 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
 ---
 
 ### Task 5.2: Modul Pencetakan Otomatis 4R & Jumlah Salinan (F-12)
+
 - **Tujuan:** Mencetak hasil komposit ke printer default sistem dalam ukuran kertas 4R tanpa memunculkan dialog print.
 - **File Target:**
   - `src/kiosk/screens/printing.js`
@@ -322,9 +337,19 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
   1. Buat CSS print layout di `src/styles.css`:
      ```css
      @media print {
-       @page { size: 4in 6in; margin: 0; }
-       body { margin: 0; padding: 0; }
-       .print-page { page-break-after: always; width: 4in; height: 6in; }
+       @page {
+         size: 4in 6in;
+         margin: 0;
+       }
+       body {
+         margin: 0;
+         padding: 0;
+       }
+       .print-page {
+         page-break-after: always;
+         width: 4in;
+         height: 6in;
+       }
      }
      ```
   2. Di `src/kiosk/screens/printing.js`:
@@ -341,6 +366,7 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
 ---
 
 ### Task 5.3: Layar Selesai (Soft File & QR Drive) (F-20, F-19)
+
 - **Tujuan:** Menampilkan pesan terima kasih dan instruksi unduh soft file dari QR code yang tercetak di kertas.
 - **File Target:**
   - `src/kiosk/screens/done.js`
@@ -364,6 +390,7 @@ Fase ini menyelesaikan alur akhir transaksi: menyimpan foto ke disk sebelum menc
 Fase ini melengkapi fungsionalitas pengawasan dan manajerial staff photobooth.
 
 ### Task 6.1: Proteksi Keamanan Panel Admin dengan PIN (F-14)
+
 - **Tujuan:** Melindungi halaman `/admin` agar tidak bisa diakses oleh customer umum.
 - **File Target:**
   - `src/admin/screens/pin-modal.js`
@@ -377,11 +404,12 @@ Fase ini melengkapi fungsionalitas pengawasan dan manajerial staff photobooth.
   4. Berikan fitur ubah PIN di pengaturan.
 - **Verifikasi:**
   - Membuka halaman admin meminta PIN. Input PIN yang salah ditolak dengan pesan error RawBlock.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`src/admin/screens/pin-modal.js`, `src/admin/main.js`, `server/routes/settings.js`)
 
 ---
 
 ### Task 6.2: Riwayat Transaksi & Fitur Cetak Ulang (Reprint) (F-13)
+
 - **Tujuan:** Staff dapat melihat daftar sesi yang telah selesai dan mencetak ulang foto jika printer sebelumnya macet/kehabisan kertas.
 - **File Target:**
   - `src/admin/screens/history.js`
@@ -396,11 +424,12 @@ Fase ini melengkapi fungsionalitas pengawasan dan manajerial staff photobooth.
      - Tampilkan notifikasi status cetak ulang berhasil.
 - **Verifikasi:**
   - Klik cetak ulang pada sesi kemarin -> perintah cetak dikirim ke printer dengan file foto yang benar.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`server/routes/sessions.js`, `src/admin/main.js`)
 
 ---
 
 ### Task 6.3: Laporan Harian & Ekspor CSV (F-15)
+
 - **Tujuan:** Memberikan ringkasan performa penjualan harian dan kemampuan mengunduh data transaksi ke spreadsheet.
 - **File Target:**
   - `src/admin/screens/reports.js`
@@ -415,7 +444,7 @@ Fase ini melengkapi fungsionalitas pengawasan dan manajerial staff photobooth.
      - Browser otomatis mengunduh file `laporan-photobooth-YYYYMMDD.csv`.
 - **Verifikasi:**
   - File CSV yang diunduh dapat dibuka dengan rapi di Microsoft Excel atau Google Sheets.
-- [ ] **Status:** Belum dikerjakan
+- [x] **Status:** Selesai (`server/routes/reports.js`, `src/admin/main.js`, `src/shared/api.js`)
 
 ---
 
@@ -424,6 +453,7 @@ Fase ini melengkapi fungsionalitas pengawasan dan manajerial staff photobooth.
 Fase final untuk memastikan aplikasi stabil di lapangan tanpa intervensi developer.
 
 ### Task 7.1: Penanganan Kegagalan & Ketahanan Offline (PRD Bagian 7 & 12)
+
 - **Tujuan:** Aplikasi tetap dapat memfoto dan mencetak saat koneksi internet terputus, serta mampu memulihkan status sesi jika aplikasi tiba-tiba ditutup.
 - **File Target:**
   - `server/routes/sessions.js`
@@ -431,7 +461,7 @@ Fase final untuk memastikan aplikasi stabil di lapangan tanpa intervensi develop
 - **Instruksi Kerja:**
   1. **Session Recovery:** Saat aplikasi dimuat, cek sesi terakhir di SQLite (`GET /api/sessions/current`). Jika ada sesi menggantung di tengah jalan (misal laptop mati saat capturing), tanyakan pada operator atau pulihkan state terakhir.
   2. **Offline Detection:** Jika internet terputus saat berada di layar Welcome/Admin, tampilkan banner peringatan: `INTERNET TERPUTUS - PEMBAYARAN QRIS TIDAK DAPAT DIBUAT`.
-  3. **Double-click Prevention:** Nonaktifkan semua tombol kiosk dan admin segera setelah diklik pertama kali untuk mencegah *double charge* atau *double print*.
+  3. **Double-click Prevention:** Nonaktifkan semua tombol kiosk dan admin segera setelah diklik pertama kali untuk mencegah _double charge_ atau _double print_.
 - **Verifikasi:**
   - Putuskan koneksi WiFi -> aplikasi tetap bisa memfoto dan membuka template yang sudah ada di lokal.
 - [ ] **Status:** Belum dikerjakan
@@ -439,6 +469,7 @@ Fase final untuk memastikan aplikasi stabil di lapangan tanpa intervensi develop
 ---
 
 ### Task 7.2: Konfigurasi Electron Builder & Installer Desktop (PRD Bagian 8.1)
+
 - **Tujuan:** Mengemas seluruh aplikasi ke dalam satu file installer desktop (.exe untuk Windows dan .dmg untuk macOS M1 Apple Silicon).
 - **File Target:**
   - `package.json` (Konfigurasi script `electron-builder`)
@@ -470,5 +501,4 @@ Sebelum booth dinyatakan siap digunakan di event mall/lapangan, seluruh item ber
 - [ ] **Ketepatan Cetak:** Hasil cetak 4R tidak terpotong, borderless, dan resolusi tajam (300 DPI).
 - [ ] **Silent Print:** Pencetakan berjalan otomatis tanpa pernah memunculkan dialog konfigurasi printer.
 - [ ] **Desain Konsisten:** Seluruh layar mematuhi RawBlock Brutalism (tanpa sudut bulat, tanpa shadow, kontras tinggi).
-- [ ] **Stabilitas:** Aplikasi mampu berjalan 4 jam nonstop tanpa crash atau *memory leak*.
-
+- [ ] **Stabilitas:** Aplikasi mampu berjalan 4 jam nonstop tanpa crash atau _memory leak_.

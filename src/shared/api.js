@@ -52,7 +52,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ composite, rawPhotos })
     }),
-  getSessionPhotos: (sessionId) => fetchApi(`/sessions/${sessionId}/photos`)
+  getSessionPhotos: (sessionId) => fetchApi(`/sessions/${sessionId}/photos`),
+  verifyPin: (pin) =>
+    fetchApi('/settings/verify-pin', {
+      method: 'POST',
+      body: JSON.stringify({ pin })
+    }),
+  getHistory: () => fetchApi('/sessions/history'),
+  reprintSession: (sessionId) =>
+    fetchApi(`/sessions/${sessionId}/reprint`, { method: 'POST' }),
+  getDailyReport: () => fetchApi('/reports/daily'),
+  getExportCsvUrl: () => `http://localhost:${DEFAULTS.SERVER_PORT}/api/reports/export-csv`
 };
 
 // Graceful fallback for window.photobooth when running in web browser mode

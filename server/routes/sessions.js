@@ -72,5 +72,65 @@ router.patch('/:id/status', (req, res) => {
   }
 });
 
+// GET /api/sessions/history - Riwayat sesi transaksi
+router.get('/history', (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT 
+        s.rowid as session_no,
+        s.id,
+        s.template_id,
+        s.status as session_status,
+        s.dibuat_pada,
+        t.nama as template_nama,
+        p.nominal,
+        p.status as payment_status,
+        ph.path_file as composite_file
+      FROM sessions s
+      LEFT JOIN templates t ON s.template_id = t.id
+      LEFT JOIN payments p ON p.session_id = s.id
+      LEFT JOIN photos ph ON ph.session_id = s.id AND ph.urutan = 0
+      ORDER BY s.rowid DESC
+      LIMIT 100
+    `).all();
+
+    const formattedRows = rows.map((r) => ({
+      ...r,
+      formatted_session_no: String(r.session_no).padStart(4, '0')
+    }));
+
+    res.json({ success: true, data: formattedRows });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/sessions/:id/reprint - Ambil info foto komposit untuk cetak ulang
+router.post('/:id/reprint', (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = db.prepare('SELECT rowid, * FROM sessions WHERE id = ?').get(id);
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Sesi tidak ditemukan' });
+    }
+
+    const photo = db.prepare('SELECT path_file FROM photos WHERE session_id = ? AND urutan = 0').get(id);
+    if (!photo || !photo.path_file) {
+      return res.status(400).json({ success: false, error: 'Foto komposit belum tersedia untuk sesi ini' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        sessionNo: String(session.rowid).padStart(4, '0'),
+        compositeFile: photo.path_file,
+        compositeUrl: `/photos/${photo.path_file}`
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;
 

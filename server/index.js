@@ -10,6 +10,7 @@ import templatesRouter from './routes/templates.js';
 import sessionsRouter from './routes/sessions.js';
 import paymentsRouter from './routes/payments.js';
 import photosRouter from './routes/photos.js';
+import reportsRouter from './routes/reports.js';
 import { DEFAULTS } from '../src/shared/constants.js';
 
 dotenv.config();
@@ -48,6 +49,7 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/sessions', photosRouter);
 app.use('/api/payments', paymentsRouter);
+app.use('/api/reports', reportsRouter);
 
 /**
  * Start Express HTTP server
