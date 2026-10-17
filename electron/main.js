@@ -118,12 +118,17 @@ async function createWindows() {
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('app:quit', () => app.quit());
 ipcMain.handle('dialog:select-folder', async (event, defaultPath) => {
-  const win = BrowserWindow.fromWebContents(event.sender);
-  const result = await dialog.showOpenDialog(win, {
+  const win = BrowserWindow.fromWebContents(event.sender) || adminWindow || null;
+  const options = {
     title: 'Pilih Folder Output Google Drive',
     defaultPath: defaultPath || undefined,
     properties: ['openDirectory', 'createDirectory']
-  });
+  };
+
+  const result = win
+    ? await dialog.showOpenDialog(win, options)
+    : await dialog.showOpenDialog(options);
+
   if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
     return null;
   }

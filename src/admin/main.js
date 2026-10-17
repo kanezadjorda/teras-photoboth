@@ -576,6 +576,7 @@ async function renderAdminDashboard() {
         }
       } catch (err) {
         console.warn('Gagal memilih folder:', err);
+        alert('Gagal membuka jendela pilih folder: ' + err.message + '\n\nSilakan restart aplikasi Electron jika baru saja memperbarui kode backend Electron.');
       }
     } else {
       alert('Fitur pemilihan folder otomatis aktif di aplikasi desktop Electron. Anda dapat mengetikkan lokasi folder secara manual.');
