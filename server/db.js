@@ -26,6 +26,14 @@ db.pragma('journal_mode = WAL');
  */
 export function initDb() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS events (
+      id TEXT PRIMARY KEY,
+      nama TEXT NOT NULL,
+      folder_path TEXT NOT NULL,
+      aktif INTEGER NOT NULL DEFAULT 0,
+      dibuat_pada TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS templates (
       id TEXT PRIMARY KEY,
       nama TEXT NOT NULL,
@@ -38,9 +46,11 @@ export function initDb() {
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
       template_id TEXT,
+      event_id TEXT,
       status TEXT NOT NULL,
       dibuat_pada TEXT NOT NULL,
-      FOREIGN KEY(template_id) REFERENCES templates(id)
+      FOREIGN KEY(template_id) REFERENCES templates(id),
+      FOREIGN KEY(event_id) REFERENCES events(id)
     );
 
     CREATE TABLE IF NOT EXISTS payments (
@@ -50,6 +60,8 @@ export function initDb() {
       nominal INTEGER NOT NULL,
       status TEXT NOT NULL,
       qris_string TEXT,
+      qr_code_url TEXT,
+      qr_code_url_v2 TEXT,
       dibayar_pada TEXT,
       FOREIGN KEY(session_id) REFERENCES sessions(id)
     );
@@ -67,6 +79,35 @@ export function initDb() {
       value TEXT NOT NULL
     );
   `);
+
+  // Safe migration for existing sessions table (event_id column)
+  const sessionCols = db.prepare('PRAGMA table_info(sessions)').all().map((c) => c.name);
+  if (!sessionCols.includes('event_id')) {
+    db.exec('ALTER TABLE sessions ADD COLUMN event_id TEXT');
+  }
+
+  // Safe migration for existing payments table
+  const paymentCols = db.prepare('PRAGMA table_info(payments)').all().map((c) => c.name);
+  if (!paymentCols.includes('qr_code_url')) {
+    db.exec('ALTER TABLE payments ADD COLUMN qr_code_url TEXT');
+  }
+  if (!paymentCols.includes('qr_code_url_v2')) {
+    db.exec('ALTER TABLE payments ADD COLUMN qr_code_url_v2 TEXT');
+  }
+
+  // Seed default event if empty
+  const eventCount = db.prepare('SELECT count(*) as count FROM events').get();
+  if (eventCount.count === 0) {
+    const defaultFolder = process.env.OUTPUT_FOLDER || './data/photos';
+    const nowIso = new Date().toISOString();
+    db.prepare(`
+      INSERT INTO events (id, nama, folder_path, aktif, dibuat_pada)
+      VALUES (?, ?, ?, 1, ?)
+    `).run('evt_default', 'Event Reguler', defaultFolder, nowIso);
+
+    // Link existing sessions to default event
+    db.prepare("UPDATE sessions SET event_id = 'evt_default' WHERE event_id IS NULL").run();
+  }
 
   // Seed default settings if empty
   const insertSetting = db.prepare(`
@@ -124,4 +165,7 @@ export function initDb() {
     }
   }
 }
+
+// Ensure schema, migrations, and default seed data are initialized
+initDb();
 

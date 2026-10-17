@@ -203,10 +203,121 @@ describe('Admin Panel, Security, History & Reports (PRD F-13, F-14, F-15)', () =
       // Verifikasi baris header
       const text = buf.subarray(3).toString('utf-8');
       const lines = text.split('\r\n');
-      expect(lines[0]).toBe('No Sesi,ID Sesi,Waktu Dibuat,Template Terpilih,Nominal (IDR),Status Sesi,Status Pembayaran');
+      expect(lines[0]).toBe('No Sesi,ID Sesi,Event,Waktu Dibuat,Template Terpilih,Nominal (IDR),Status Sesi,Status Pembayaran');
 
       // Pastikan ada baris data transaksi
       expect(lines.length).toBeGreaterThan(1);
+    });
+  });
+
+  describe('Event & Operational Session Management (PRD F-17, F-18)', () => {
+    const testEventId = `evt_test_${Date.now()}`;
+    const testEventName = 'Wedding Test Automation';
+    const testEventFolder = './data/photos/test-automation';
+
+    afterAll(() => {
+      db.prepare('DELETE FROM payments WHERE session_id IN (SELECT id FROM sessions WHERE event_id = ?)').run(testEventId);
+      db.prepare('DELETE FROM photos WHERE session_id IN (SELECT id FROM sessions WHERE event_id = ?)').run(testEventId);
+      db.prepare('DELETE FROM sessions WHERE event_id = ?').run(testEventId);
+      db.prepare('DELETE FROM events WHERE id = ?').run(testEventId);
+      // Restore default event as active
+      db.prepare("UPDATE events SET aktif = 1 WHERE id = 'evt_default'").run();
+      db.prepare("UPDATE events SET aktif = 0 WHERE id != 'evt_default'").run();
+    });
+
+    it('lists existing events including default regular event', async () => {
+      const res = await fetch(`${baseUrl}/api/events`);
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+      const defaultEvt = body.data.find((e) => e.id === 'evt_default');
+      expect(defaultEvt).toBeDefined();
+      expect(defaultEvt.nama).toBe('Event Reguler');
+    });
+
+    it('creates a new operational event with target folder and activates it', async () => {
+      const res = await fetch(`${baseUrl}/api/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: testEventId,
+          nama: testEventName,
+          folder_path: testEventFolder,
+          set_active: true
+        })
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(201);
+      expect(body.success).toBe(true);
+      expect(body.data.id).toBe(testEventId);
+      expect(body.data.aktif).toBe(1);
+
+      // Verify active event endpoint returns the new event
+      const activeRes = await fetch(`${baseUrl}/api/events/active`);
+      const activeBody = await activeRes.json();
+      expect(activeRes.status).toBe(200);
+      expect(activeBody.data.id).toBe(testEventId);
+      expect(activeBody.data.nama).toBe(testEventName);
+    });
+
+    it('switches active event using activate endpoint', async () => {
+      const res = await fetch(`${baseUrl}/api/events/evt_default/activate`, {
+        method: 'PATCH'
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(body.data.id).toBe('evt_default');
+      expect(body.data.aktif).toBe(1);
+
+      const activeRes = await fetch(`${baseUrl}/api/events/active`);
+      const activeBody = await activeRes.json();
+      expect(activeBody.data.id).toBe('evt_default');
+    });
+
+    it('filters transaction history and daily reports by event_id', async () => {
+      // Create session linked to testEventId
+      const eventSessionId = `sess_event_${Date.now()}`;
+      const nowIso = '2020-01-01T10:00:00.000Z'; // Past timestamp to avoid race with currentSession
+      db.prepare(`
+        INSERT INTO sessions (id, event_id, status, dibuat_pada)
+        VALUES (?, ?, 'done', ?)
+      `).run(eventSessionId, testEventId, nowIso);
+
+      db.prepare(`
+        INSERT INTO payments (id, session_id, order_id, nominal, status, dibayar_pada)
+        VALUES (?, ?, ?, 50000, 'paid', ?)
+      `).run(`pay_${eventSessionId}`, eventSessionId, `ord_${eventSessionId}`, nowIso);
+
+      // 1. History filtered by event_id
+      const historyRes = await fetch(`${baseUrl}/api/sessions/history?event_id=${testEventId}`);
+      const historyBody = await historyRes.json();
+      expect(historyRes.status).toBe(200);
+      expect(historyBody.data.every((s) => s.id === eventSessionId)).toBe(true);
+      expect(historyBody.data[0].event_nama).toBe(testEventName);
+
+      // 2. Daily report filtered by event_id
+      const reportRes = await fetch(`${baseUrl}/api/reports/daily?event_id=${testEventId}`);
+      const reportBody = await reportRes.json();
+      expect(reportRes.status).toBe(200);
+      expect(reportBody.data.filter_event.id).toBe(testEventId);
+      expect(reportBody.data.all_time.total_sessions).toBe(1);
+      expect(reportBody.data.all_time.revenue).toBe(50000);
+
+      // 3. Export CSV filtered by event_id
+      const csvRes = await fetch(`${baseUrl}/api/reports/export-csv?event_id=${testEventId}`);
+      expect(csvRes.status).toBe(200);
+      const csvText = (await csvRes.text());
+      expect(csvText).toContain(testEventName);
+      expect(csvText).toContain(eventSessionId);
+
+      // Cleanup event session
+      db.prepare('DELETE FROM payments WHERE session_id = ?').run(eventSessionId);
+      db.prepare('DELETE FROM sessions WHERE id = ?').run(eventSessionId);
     });
   });
 });

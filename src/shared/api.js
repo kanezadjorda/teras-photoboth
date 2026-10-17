@@ -58,11 +58,24 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ pin })
     }),
-  getHistory: () => fetchApi('/sessions/history'),
+  getHistory: (eventId = '') =>
+    fetchApi(eventId ? `/sessions/history?event_id=${encodeURIComponent(eventId)}` : '/sessions/history'),
   reprintSession: (sessionId) =>
     fetchApi(`/sessions/${sessionId}/reprint`, { method: 'POST' }),
-  getDailyReport: () => fetchApi('/reports/daily'),
-  getExportCsvUrl: () => `http://localhost:${DEFAULTS.SERVER_PORT}/api/reports/export-csv`
+  getDailyReport: (eventId = '') =>
+    fetchApi(eventId ? `/reports/daily?event_id=${encodeURIComponent(eventId)}` : '/reports/daily'),
+  getExportCsvUrl: (eventId = '') =>
+    eventId
+      ? `http://localhost:${DEFAULTS.SERVER_PORT}/api/reports/export-csv?event_id=${encodeURIComponent(eventId)}`
+      : `http://localhost:${DEFAULTS.SERVER_PORT}/api/reports/export-csv`,
+  getEvents: () => fetchApi('/events'),
+  getActiveEvent: () => fetchApi('/events/active'),
+  createEvent: (data) =>
+    fetchApi('/events', { method: 'POST', body: JSON.stringify(data) }),
+  activateEvent: (id) =>
+    fetchApi(`/events/${id}/activate`, { method: 'PATCH' }),
+  deleteEvent: (id) =>
+    fetchApi(`/events/${id}`, { method: 'DELETE' })
 };
 
 // Graceful fallback for window.photobooth when running in web browser mode
@@ -75,7 +88,9 @@ if (typeof window !== 'undefined' && !window.photobooth) {
     },
     quitApp: async () => {
       console.warn('[Photobooth] quitApp called in web mode (no-op)');
-    }
+    },
+    selectFolder: async () => null
   };
 }
+
 

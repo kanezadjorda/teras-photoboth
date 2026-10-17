@@ -101,3 +101,4 @@ Konfigurasi ([`electron-builder.json`](../electron-builder.json)):
    - `vite build` berhasil mengompilasi 24 modul tanpa peringatan.
 3. **Electron Builder Verification:**
    - Eksekusi `electron-builder --dir --win` sukses menghasilkan file distribusi di `release/win-unpacked/Teras Photobooth.exe`.
+

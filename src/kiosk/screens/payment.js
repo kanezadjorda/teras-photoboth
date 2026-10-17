@@ -5,7 +5,7 @@
  */
 
 import { api } from '../../shared/api.js';
-import { TIMEOUTS, DEFAULTS } from '../../shared/constants.js';
+import { TIMEOUTS, DEFAULTS, PAYMENT_STATES } from '../../shared/constants.js';
 
 export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) {
   let container = null;
@@ -22,6 +22,21 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function attachCopyAction(btn, urlText, defaultLabel) {
+    if (!btn || !urlText) return;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(urlText);
+        btn.textContent = '✔️ TERSALIN!';
+        setTimeout(() => {
+          if (btn) btn.textContent = defaultLabel;
+        }, 2000);
+      } catch (e) {
+        prompt('Salin URL ini untuk simulator Midtrans:', urlText);
+      }
+    });
   }
 
   function mount(parent) {
@@ -70,18 +85,11 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
             <p class="font-mono text-[11px] text-center text-black/80 mt-3 uppercase tracking-tight">
               TAMPILKAN KE KAMERA HP ANDA
             </p>
-
-            <!-- Simulator URL Helper Button -->
-            <div id="sim-url-helper" class="hidden w-full mt-2 pt-2 border-t border-black/20 flex flex-col items-center">
-              <button id="btn-copy-simulator-url" type="button" class="btn-raw-secondary w-full text-[10px] py-1.5 px-2 font-mono">
-                📋 SALIN URL KE SIMULATOR
-              </button>
-            </div>
           </div>
         </div>
 
         <!-- Right: Nominal & Countdown Card -->
-        <div class="flex flex-col space-y-6">
+        <div class="flex flex-col space-y-4">
           <!-- Total Tagihan -->
           <div class="card-raw p-6 border-[5px] border-black bg-white">
             <span class="chip-raw bg-black text-white text-xs mb-2">TOTAL PEMBAYARAN</span>
@@ -112,9 +120,36 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
             </p>
           </div>
 
-          <!-- Dev Simulator Button (Helper) -->
-          <div id="dev-sim-wrapper" class="pt-2">
-            <button id="btn-simulate-pay" class="btn-raw-secondary w-full text-xs py-2 bg-raw-sunken text-black border-dashed">
+          <!-- Dev Simulator Panel (ONLY rendered and visible when MIDTRANS_ENV=sandbox) -->
+          <div id="dev-sim-wrapper" class="hidden card-raw p-3 border-[3px] border-black border-dashed bg-raw-sunken space-y-2">
+            <div class="flex items-center justify-between border-b border-black/30 pb-1">
+              <span class="font-headline text-[11px] uppercase text-black">[DEV PANEL - SANDBOX ONLY]</span>
+              <span class="chip-raw bg-black text-white text-[9px] px-1.5 py-0.5">MIDTRANS_ENV=SANDBOX</span>
+            </div>
+
+            <!-- Action 1: generate-qr-code -->
+            <div id="dev-action-v1-box" class="hidden flex flex-col gap-1 bg-white p-2 border border-black">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-[10px] font-bold text-black">generate-qr-code:</span>
+                <button id="btn-copy-url-v1" type="button" class="btn-raw-secondary text-[10px] py-1 px-2 font-mono">
+                  📋 SALIN URL V1
+                </button>
+              </div>
+              <p id="dev-url-v1" class="font-mono text-[9px] text-black/80 break-all select-all"></p>
+            </div>
+
+            <!-- Action 2: generate-qr-code-v2 -->
+            <div id="dev-action-v2-box" class="hidden flex flex-col gap-1 bg-white p-2 border border-black">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-[10px] font-bold text-black">generate-qr-code-v2:</span>
+                <button id="btn-copy-url-v2" type="button" class="btn-raw-secondary text-[10px] py-1 px-2 font-mono">
+                  📋 SALIN URL V2
+                </button>
+              </div>
+              <p id="dev-url-v2" class="font-mono text-[9px] text-black/80 break-all select-all"></p>
+            </div>
+
+            <button id="btn-simulate-pay" type="button" class="btn-raw-secondary w-full text-xs py-2 bg-white text-black border-dashed">
               [DEV] SIMULASI BAYAR LANGSUNG
             </button>
           </div>
@@ -176,23 +211,35 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           `;
         }
 
-        // Show simulator copy button if raw Midtrans URL is available
-        const simHelper = container.querySelector('#sim-url-helper');
-        const copyBtn = container.querySelector('#btn-copy-simulator-url');
+        // Only display dev panel and action URLs when MIDTRANS_ENV=sandbox
+        const devWrapper = container.querySelector('#dev-sim-wrapper');
+        if (data.midtrans_env === 'sandbox' && devWrapper) {
+          devWrapper.classList.remove('hidden');
 
-        if (data.raw_qr_url && simHelper && copyBtn) {
-          simHelper.classList.remove('hidden');
-          copyBtn.addEventListener('click', async () => {
-            try {
-              await navigator.clipboard.writeText(data.raw_qr_url);
-              copyBtn.textContent = '✔️ TERSALIN! PASTE DI SIMULATOR';
-              setTimeout(() => {
-                if (copyBtn) copyBtn.textContent = '📋 SALIN URL KE SIMULATOR';
-              }, 2500);
-            } catch (e) {
-              prompt('Salin URL ini untuk simulator Midtrans:', data.raw_qr_url);
-            }
-          });
+          const urlV1 = data.actions?.['generate-qr-code'] || data.qr_code_url || '';
+          const urlV2 = data.actions?.['generate-qr-code-v2'] || data.qr_code_url_v2 || '';
+
+          const boxV1 = container.querySelector('#dev-action-v1-box');
+          const textV1 = container.querySelector('#dev-url-v1');
+          const btnV1 = container.querySelector('#btn-copy-url-v1');
+          if (urlV1 && boxV1 && textV1 && btnV1) {
+            boxV1.classList.remove('hidden');
+            textV1.textContent = urlV1;
+            attachCopyAction(btnV1, urlV1, '📋 SALIN URL V1');
+          }
+
+          const boxV2 = container.querySelector('#dev-action-v2-box');
+          const textV2 = container.querySelector('#dev-url-v2');
+          const btnV2 = container.querySelector('#btn-copy-url-v2');
+          if (urlV2 && boxV2 && textV2 && btnV2) {
+            boxV2.classList.remove('hidden');
+            textV2.textContent = urlV2;
+            attachCopyAction(btnV2, urlV2, '📋 SALIN URL V2');
+          }
+        } else if (devWrapper) {
+          // Ensure completely hidden and empty in production mode
+          devWrapper.classList.add('hidden');
+          devWrapper.innerHTML = '';
         }
       } catch (err) {
         console.error('[Payment] Gagal memuat QRIS:', err);
@@ -228,7 +275,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     // 3. Connect to Server-Sent Events (SSE)
     function connectSse() {
       try {
-        eventSource = new EventSource(`http://localhost:${DEFAULTS.SERVER_PORT}/api/events`);
+        eventSource = new EventSource(`http://localhost:${DEFAULTS.SERVER_PORT}/api/sse`);
 
         eventSource.addEventListener('payment_paid', (e) => {
           try {
@@ -241,7 +288,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           }
         });
 
-        eventSource.addEventListener('payment_expired', (e) => {
+        const onFailedOrExpired = (e) => {
           try {
             const data = JSON.parse(e.data);
             if (data.sessionId === sessionId) {
@@ -250,9 +297,12 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           } catch (err) {
             console.warn('[Payment SSE] Parse error:', err);
           }
-        });
+        };
 
-        eventSource.onerror = (err) => {
+        eventSource.addEventListener('payment_expired', onFailedOrExpired);
+        eventSource.addEventListener('payment_failed', onFailedOrExpired);
+
+        eventSource.onerror = () => {
           console.warn('[Payment SSE] Koneksi terputus, mengandalkan polling backend.');
         };
       } catch (e) {
@@ -265,8 +315,13 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
       pollInterval = setInterval(async () => {
         try {
           const res = await api.getPayment(sessionId);
-          if (res.success && res.data && res.data.status === 'paid') {
-            handleSuccess();
+          if (res.success && res.data) {
+            const st = res.data.status;
+            if (st === PAYMENT_STATES.LUNAS || st === 'paid') {
+              handleSuccess();
+            } else if (st === PAYMENT_STATES.GAGAL || st === 'failed' || st === 'expired') {
+              handleExpired();
+            }
           }
         } catch (e) {
           // ignore

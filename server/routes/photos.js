@@ -8,8 +8,41 @@ const router = Router();
 
 /**
  * Helper untuk mendapatkan direktori folder output foto
+ * Mengutamakan folder event dari sesi terkait (PRD F-17, F-18)
  */
-function getOutputDir() {
+function getOutputDir(sessionId) {
+  if (sessionId) {
+    try {
+      const session = db.prepare('SELECT event_id FROM sessions WHERE id = ?').get(sessionId);
+      if (session && session.event_id) {
+        const eventRow = db.prepare('SELECT folder_path FROM events WHERE id = ?').get(session.event_id);
+        if (eventRow && eventRow.folder_path) {
+          const fullEventPath = resolve(process.cwd(), eventRow.folder_path);
+          if (!existsSync(fullEventPath)) {
+            mkdirSync(fullEventPath, { recursive: true });
+          }
+          return fullEventPath;
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+  }
+
+  // Fallback ke event yang sedang aktif
+  try {
+    const activeEvent = db.prepare('SELECT folder_path FROM events WHERE aktif = 1 LIMIT 1').get();
+    if (activeEvent && activeEvent.folder_path) {
+      const fullActivePath = resolve(process.cwd(), activeEvent.folder_path);
+      if (!existsSync(fullActivePath)) {
+        mkdirSync(fullActivePath, { recursive: true });
+      }
+      return fullActivePath;
+    }
+  } catch (e) {
+    // fallback
+  }
+
   const setting = db.prepare("SELECT value FROM settings WHERE key = 'output_folder'").get();
   const folder = setting?.value || process.env.OUTPUT_FOLDER || './data/photos';
   const fullPath = resolve(process.cwd(), folder);
@@ -39,7 +72,7 @@ router.post('/:id/save-photos', (req, res) => {
     }
 
     const sessionNo = formatSessionNumber(session.rowid);
-    const outputDir = getOutputDir();
+    const outputDir = getOutputDir(sessionId);
     const now = new Date();
 
     // 2. Simpan Foto Komposit Final

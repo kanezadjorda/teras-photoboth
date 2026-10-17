@@ -5,7 +5,8 @@ import { broadcastEvent } from '../events.js';
 import {
   createQrisCharge,
   checkTransactionStatus,
-  simulateMockPayment
+  simulateMockPayment,
+  isSandboxMode
 } from '../payment/midtrans.js';
 
 const router = Router();
@@ -41,7 +42,7 @@ function startPollingWorker(sessionId, orderId) {
         activePollers.delete(sessionId);
 
         db.prepare('UPDATE payments SET status = ? WHERE session_id = ? AND status = ?')
-          .run(PAYMENT_STATES.EXPIRED, sessionId, PAYMENT_STATES.PENDING);
+          .run(PAYMENT_STATES.GAGAL, sessionId, PAYMENT_STATES.MENUNGGU);
         db.prepare('UPDATE sessions SET status = ? WHERE id = ? AND status = ?')
           .run(SESSION_STATES.EXPIRED, sessionId, SESSION_STATES.WAITING_PAYMENT);
 
@@ -54,13 +55,13 @@ function startPollingWorker(sessionId, orderId) {
       // 3. Poll Midtrans Gateway Status
       const statusRes = await checkTransactionStatus(orderId);
 
-      if (statusRes.internalStatus === PAYMENT_STATES.PAID) {
+      if (statusRes.internalStatus === PAYMENT_STATES.LUNAS) {
         clearInterval(intervalId);
         activePollers.delete(sessionId);
 
         const now = new Date().toISOString();
         db.prepare('UPDATE payments SET status = ?, dibayar_pada = ? WHERE session_id = ?')
-          .run(PAYMENT_STATES.PAID, now, sessionId);
+          .run(PAYMENT_STATES.LUNAS, now, sessionId);
 
         db.prepare('UPDATE sessions SET status = ? WHERE id = ?')
           .run(SESSION_STATES.CHOOSING_TEMPLATE, sessionId);
@@ -68,6 +69,25 @@ function startPollingWorker(sessionId, orderId) {
         console.log(`[Payment] Sesi ${sessionId} terbayar lunas via QRIS!`);
         broadcastEvent('payment_paid', { sessionId, orderId });
         broadcastEvent('session_updated', { id: sessionId, status: SESSION_STATES.CHOOSING_TEMPLATE });
+      } else if (statusRes.internalStatus === PAYMENT_STATES.GAGAL) {
+        clearInterval(intervalId);
+        activePollers.delete(sessionId);
+
+        db.prepare('UPDATE payments SET status = ? WHERE session_id = ?')
+          .run(PAYMENT_STATES.GAGAL, sessionId);
+
+        const nextSessionState =
+          statusRes.status === 'cancel' || statusRes.status === 'cancelled'
+            ? SESSION_STATES.CANCELLED
+            : SESSION_STATES.EXPIRED;
+
+        db.prepare('UPDATE sessions SET status = ? WHERE id = ? AND status = ?')
+          .run(nextSessionState, sessionId, SESSION_STATES.WAITING_PAYMENT);
+
+        console.log(`[Payment] Pembayaran sesi ${sessionId} gagal (${statusRes.status}).`);
+        broadcastEvent('payment_failed', { sessionId, orderId, reason: statusRes.status });
+        broadcastEvent('payment_expired', { sessionId, orderId, reason: statusRes.status });
+        broadcastEvent('session_updated', { id: sessionId, status: nextSessionState });
       }
     } catch (err) {
       console.warn(`[Payment] Polling status order ${orderId} error:`, err.message);
@@ -107,7 +127,7 @@ router.post('/charge', async (req, res) => {
 
     // Check existing payment
     const existingPayment = db.prepare('SELECT * FROM payments WHERE session_id = ? LIMIT 1').get(sessionId);
-    if (existingPayment && existingPayment.status === PAYMENT_STATES.PAID) {
+    if (existingPayment && (existingPayment.status === PAYMENT_STATES.LUNAS || existingPayment.status === 'paid')) {
       return res.json({ success: true, data: existingPayment });
     }
 
@@ -117,21 +137,26 @@ router.post('/charge', async (req, res) => {
 
     const paymentId = existingPayment ? existingPayment.id : `pay_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const qrisData = charge.qrUrl || charge.qrString;
+    const qrCodeUrl = charge.qrCodeUrl || '';
+    const qrCodeUrlV2 = charge.qrCodeUrlV2 || '';
 
     if (existingPayment) {
       db.prepare(`
-        UPDATE payments SET nominal = ?, status = ?, qris_string = ?, order_id = ?
+        UPDATE payments
+        SET nominal = ?, status = ?, qris_string = ?, qr_code_url = ?, qr_code_url_v2 = ?, order_id = ?
         WHERE id = ?
-      `).run(sessionPrice, PAYMENT_STATES.PENDING, qrisData, orderId, paymentId);
+      `).run(sessionPrice, PAYMENT_STATES.MENUNGGU, qrisData, qrCodeUrl, qrCodeUrlV2, orderId, paymentId);
     } else {
       db.prepare(`
-        INSERT INTO payments (id, session_id, order_id, nominal, status, qris_string, dibayar_pada)
-        VALUES (?, ?, ?, ?, ?, ?, NULL)
-      `).run(paymentId, sessionId, orderId, sessionPrice, PAYMENT_STATES.PENDING, qrisData);
+        INSERT INTO payments (id, session_id, order_id, nominal, status, qris_string, qr_code_url, qr_code_url_v2, dibayar_pada)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+      `).run(paymentId, sessionId, orderId, sessionPrice, PAYMENT_STATES.MENUNGGU, qrisData, qrCodeUrl, qrCodeUrlV2);
     }
 
     // Start background polling worker
     startPollingWorker(sessionId, orderId);
+
+    const sandbox = isSandboxMode();
 
     res.json({
       success: true,
@@ -140,11 +165,22 @@ router.post('/charge', async (req, res) => {
         session_id: sessionId,
         order_id: orderId,
         nominal: sessionPrice,
-        status: PAYMENT_STATES.PENDING,
+        status: PAYMENT_STATES.MENUNGGU,
         qr_url: charge.qrUrl,
-        raw_qr_url: charge.rawQrUrl || '',
         qr_string: charge.qrString,
-        is_mock: charge.isMock
+        is_mock: charge.isMock,
+        midtrans_env: sandbox ? 'sandbox' : 'production',
+        ...(sandbox
+          ? {
+              raw_qr_url: qrCodeUrl,
+              qr_code_url: qrCodeUrl,
+              qr_code_url_v2: qrCodeUrlV2,
+              actions: {
+                'generate-qr-code': qrCodeUrl,
+                'generate-qr-code-v2': qrCodeUrlV2
+              }
+            }
+          : {})
       }
     });
   } catch (error) {
@@ -164,6 +200,12 @@ router.get('/:sessionId', (req, res) => {
 
     if (!payment) {
       return res.status(404).json({ success: false, error: 'Data pembayaran tidak ditemukan' });
+    }
+
+    const sandbox = isSandboxMode();
+    if (!sandbox) {
+      delete payment.qr_code_url;
+      delete payment.qr_code_url_v2;
     }
 
     res.json({ success: true, data: payment });

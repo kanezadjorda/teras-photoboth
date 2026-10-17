@@ -5,7 +5,7 @@ import { startServer } from '../server/index.js';
 import { DEFAULTS } from '../src/shared/constants.js';
 
 const require = createRequire(import.meta.url);
-const { app, BrowserWindow, screen, ipcMain, session } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, session, dialog } = require('electron');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -117,6 +117,18 @@ async function createWindows() {
 // IPC Handlers - Hanya ekspos fungsi yang tervalidasi minimal
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('app:quit', () => app.quit());
+ipcMain.handle('dialog:select-folder', async (event, defaultPath) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const result = await dialog.showOpenDialog(win, {
+    title: 'Pilih Folder Output Google Drive',
+    defaultPath: defaultPath || undefined,
+    properties: ['openDirectory', 'createDirectory']
+  });
+  if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+    return null;
+  }
+  return result.filePaths[0];
+});
 ipcMain.handle('printer:print-silent', async (event, options = {}) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return { success: false, error: 'Window not found' };

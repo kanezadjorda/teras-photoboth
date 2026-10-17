@@ -15,11 +15,14 @@ export const SESSION_STATES = Object.freeze({
 });
 
 export const PAYMENT_STATES = Object.freeze({
-  PENDING: 'pending',
-  PAID: 'paid',
-  EXPIRED: 'expired',
-  CANCELLED: 'cancelled',
-  FAILED: 'failed'
+  PENDING: 'menunggu',
+  PAID: 'lunas',
+  EXPIRED: 'gagal',
+  CANCELLED: 'gagal',
+  FAILED: 'gagal',
+  MENUNGGU: 'menunggu',
+  LUNAS: 'lunas',
+  GAGAL: 'gagal'
 });
 
 export const CANVAS_SPECS = Object.freeze({

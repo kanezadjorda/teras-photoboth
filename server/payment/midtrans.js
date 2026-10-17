@@ -12,10 +12,35 @@ const MOCK_QRIS_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/200
 const mockStore = new Map();
 
 /**
+ * Determine current Midtrans environment ('sandbox' | 'production')
+ */
+export function getMidtransEnv() {
+  const envVal = (process.env.MIDTRANS_ENV || '').trim().toLowerCase();
+  if (envVal === 'production' || process.env.MIDTRANS_IS_PRODUCTION === 'true') {
+    return 'production';
+  }
+  if (envVal === 'sandbox') {
+    return 'sandbox';
+  }
+  return process.env.MIDTRANS_IS_PRODUCTION === 'false' ? 'sandbox' : 'production';
+}
+
+/**
+ * Strictly true only when MIDTRANS_ENV=sandbox (and not forced to production)
+ */
+export function isSandboxMode() {
+  const envVal = (process.env.MIDTRANS_ENV || '').trim().toLowerCase();
+  if (envVal === 'production' || process.env.MIDTRANS_IS_PRODUCTION === 'true') {
+    return false;
+  }
+  return envVal === 'sandbox';
+}
+
+/**
  * Get Midtrans Base URL
  */
 export function getMidtransBaseUrl() {
-  const isProd = process.env.MIDTRANS_IS_PRODUCTION === 'true';
+  const isProd = getMidtransEnv() === 'production';
   return isProd
     ? 'https://api.midtrans.com/v2'
     : 'https://api.sandbox.midtrans.com/v2';
@@ -32,16 +57,27 @@ export function getAuthHeader() {
 
 /**
  * Pure function: Map Midtrans status string to internal PAYMENT_STATES
+ * Mapping:
+ * - settlement -> lunas
+ * - pending -> menunggu
+ * - expire / deny / cancel -> gagal
  */
 export function mapMidtransStatusToPaymentState(status) {
-  if (!status) return PAYMENT_STATES.PENDING;
-  const s = String(status).toLowerCase();
-  if (s === 'settlement' || s === 'capture') return PAYMENT_STATES.PAID;
-  if (s === 'pending') return PAYMENT_STATES.PENDING;
-  if (s === 'expire' || s === 'expired') return PAYMENT_STATES.EXPIRED;
-  if (s === 'cancel' || s === 'cancelled') return PAYMENT_STATES.CANCELLED;
-  if (s === 'deny' || s === 'failure') return PAYMENT_STATES.FAILED;
-  return PAYMENT_STATES.PENDING;
+  if (!status) return PAYMENT_STATES.MENUNGGU;
+  const s = String(status).trim().toLowerCase();
+  if (s === 'settlement' || s === 'capture') return PAYMENT_STATES.LUNAS;
+  if (s === 'pending') return PAYMENT_STATES.MENUNGGU;
+  if (
+    s === 'expire' ||
+    s === 'expired' ||
+    s === 'deny' ||
+    s === 'cancel' ||
+    s === 'cancelled' ||
+    s === 'failure'
+  ) {
+    return PAYMENT_STATES.GAGAL;
+  }
+  return PAYMENT_STATES.MENUNGGU;
 }
 
 /**
@@ -57,6 +93,10 @@ export async function createQrisCharge({ orderId, amount }) {
   // Fallback to Mock if server key is not configured
   if (!serverKey || serverKey.trim() === '') {
     console.warn('[Midtrans] MIDTRANS_SERVER_KEY tidak ditemukan. Menggunakan mode Simulasi Mock.');
+    const mockTxId = `mock_${Date.now()}`;
+    const mockQrCodeUrl = `https://api.sandbox.midtrans.com/v2/qris/${mockTxId}/qr-code`;
+    const mockQrCodeUrlV2 = `https://merchants-app.sbx.midtrans.com/v4/qris/gopay/${mockTxId}/qr-code`;
+
     mockStore.set(orderId, {
       transaction_status: 'pending',
       order_id: orderId,
@@ -67,8 +107,15 @@ export async function createQrisCharge({ orderId, amount }) {
     return {
       success: true,
       orderId,
-      transactionId: `mock_${Date.now()}`,
+      transactionId: mockTxId,
       qrUrl: MOCK_QRIS_SVG,
+      rawQrUrl: mockQrCodeUrl,
+      qrCodeUrl: mockQrCodeUrl,
+      qrCodeUrlV2: mockQrCodeUrlV2,
+      actions: {
+        'generate-qr-code': mockQrCodeUrl,
+        'generate-qr-code-v2': mockQrCodeUrlV2
+      },
       qrString: `00020101021126590014ID.LINKAJA.WWW011893600014000000000002150000000000000000303UMI51440014ID.DANA.WWW011893600014000000000002150000000000000000303UMI5204581253033605405${amount}5802ID5916TERAS PHOTOBOOTH6007BANDUNG61054011562070703A016304`,
       grossAmount: amount,
       isMock: true
@@ -105,15 +152,21 @@ export async function createQrisCharge({ orderId, amount }) {
     throw new Error(`Midtrans Charge Error: ${errorMsg}`);
   }
 
-  // Find QR code image URL in actions
-  const qrAction = (data.actions || []).find((act) => act.name === 'generate-qr-code');
-  let qrUrl = qrAction ? qrAction.url : MOCK_QRIS_SVG;
+  // Extract both QR code URLs from actions (generate-qr-code and generate-qr-code-v2)
+  const actions = Array.isArray(data.actions) ? data.actions : [];
+  const qrAction = actions.find((act) => act.name === 'generate-qr-code');
+  const qrActionV2 = actions.find((act) => act.name === 'generate-qr-code-v2');
+  const qrCodeUrl = qrAction?.url || '';
+  const qrCodeUrlV2 = qrActionV2?.url || '';
+
+  let qrUrl = qrCodeUrl || qrCodeUrlV2 || MOCK_QRIS_SVG;
   const qrString = data.qr_string || '';
 
   // Convert QR image to Base64 Data URL so it renders instantly without CSP / CORS blocks
-  if (qrAction && qrAction.url) {
+  const fetchTargetUrl = qrCodeUrl || qrCodeUrlV2;
+  if (fetchTargetUrl) {
     try {
-      const imgRes = await fetch(qrAction.url);
+      const imgRes = await fetch(fetchTargetUrl);
       if (imgRes.ok) {
         const arrayBuf = await imgRes.arrayBuffer();
         const base64 = Buffer.from(arrayBuf).toString('base64');
@@ -129,7 +182,13 @@ export async function createQrisCharge({ orderId, amount }) {
     orderId: data.order_id || orderId,
     transactionId: data.transaction_id,
     qrUrl,
-    rawQrUrl: qrAction ? qrAction.url : '',
+    rawQrUrl: qrCodeUrl,
+    qrCodeUrl,
+    qrCodeUrlV2,
+    actions: {
+      'generate-qr-code': qrCodeUrl,
+      'generate-qr-code-v2': qrCodeUrlV2
+    },
     qrString,
     grossAmount: Number(data.gross_amount) || amount,
     rawStatus: data.transaction_status,

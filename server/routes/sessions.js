@@ -29,12 +29,21 @@ router.post('/', (req, res) => {
     const now = new Date().toISOString();
     const initialStatus = SESSION_STATES.WAITING_PAYMENT;
 
-    db.prepare(`
-      INSERT INTO sessions (id, template_id, status, dibuat_pada)
-      VALUES (?, ?, ?, ?)
-    `).run(id, null, initialStatus, now);
+    // Ambil event yang sedang aktif jika ada
+    let eventId = null;
+    try {
+      const activeEvent = db.prepare('SELECT id FROM events WHERE aktif = 1 LIMIT 1').get();
+      eventId = activeEvent ? activeEvent.id : null;
+    } catch (e) {
+      // fallback jika tabel events belum ada
+    }
 
-    const session = { id, template_id: null, status: initialStatus, dibuat_pada: now };
+    db.prepare(`
+      INSERT INTO sessions (id, template_id, event_id, status, dibuat_pada)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(id, null, eventId, initialStatus, now);
+
+    const session = { id, template_id: null, event_id: eventId, status: initialStatus, dibuat_pada: now };
     broadcastEvent('session_created', session);
 
     res.status(201).json({ success: true, data: session });
@@ -72,14 +81,18 @@ router.patch('/:id/status', (req, res) => {
   }
 });
 
-// GET /api/sessions/history - Riwayat sesi transaksi
+// GET /api/sessions/history - Riwayat sesi transaksi (bisa difilter per event_id)
 router.get('/history', (req, res) => {
   try {
-    const rows = db.prepare(`
+    const { event_id } = req.query;
+
+    let query = `
       SELECT 
         s.rowid as session_no,
         s.id,
         s.template_id,
+        s.event_id,
+        coalesce(e.nama, 'Event Reguler') as event_nama,
         s.status as session_status,
         s.dibuat_pada,
         t.nama as template_nama,
@@ -88,11 +101,20 @@ router.get('/history', (req, res) => {
         ph.path_file as composite_file
       FROM sessions s
       LEFT JOIN templates t ON s.template_id = t.id
+      LEFT JOIN events e ON s.event_id = e.id
       LEFT JOIN payments p ON p.session_id = s.id
       LEFT JOIN photos ph ON ph.session_id = s.id AND ph.urutan = 0
-      ORDER BY s.rowid DESC
-      LIMIT 100
-    `).all();
+    `;
+
+    const params = [];
+    if (event_id && event_id.trim()) {
+      query += ' WHERE s.event_id = ? ';
+      params.push(event_id.trim());
+    }
+
+    query += ' ORDER BY s.rowid DESC LIMIT 100';
+
+    const rows = db.prepare(query).all(...params);
 
     const formattedRows = rows.map((r) => ({
       ...r,
