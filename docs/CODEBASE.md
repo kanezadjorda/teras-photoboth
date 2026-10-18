@@ -93,8 +93,16 @@ teras-photobooth/
 │   │       └── review.js      # Layar pratinjau komposit 4R & retake foto (maksimal 1x)
 │   └── admin/                 # Antarmuka Layar Staff / Operator (Laptop)
 │       ├── index.html         # Dokumen HTML panel admin dengan CSP ketat
-│       ├── main.js            # Panel kendali perangkat, form pengaturan, dan reset darurat
-│       └── screens/           # Komponen layar admin
+│       ├── main.js            # Entry point otentikasi PIN & mounting shell admin
+│       ├── router.js          # Helper routing murni berbasis hash (#/beranda, dsb.)
+│       ├── shell.js           # Layout sidebar, live top bar, router hash, SSE & background poller
+│       ├── ui-helpers.js      # Helper UI bersama (pageHeader, formatRupiah)
+│       └── screens/           # Komponen layar modular admin
+│           ├── pin-modal.js   # Modal otentikasi keypad PIN operator
+│           ├── home.js        # Beranda (statistik hari ini, sesi menunggu bayar, tombol darurat, monitor perangkat)
+│           ├── events.js      # Pengelolaan folder kegiatan & sinkronisasi Google Drive
+│           ├── reports.js     # Laporan omset, riwayat transaksi & cetak ulang foto
+│           ├── settings.js    # Pengaturan harga sesi, jumlah cetak & PIN operator
 │           └── template-editor.js # Visual editor koordinat slot template & uploader PNG
 │
 ├── data/                      # Folder data lokal (runtime storage)
@@ -207,9 +215,18 @@ Sesuai aturan di [GEMINI.md](file:///d:/teras-photobooth/GEMINI.md), setiap laya
 - **Screen `welcome.js`:** Tampilan awal selamat datang bertema brutalist RawBlock dengan border tebal 5px, tombol `btn-raw-primary` berukuran besar (min-height 64px, uppercase, tracking 2px, border 3px/5px, inversi warna saat hover) bertuliskan *"Sentuh atau Klik untuk Mulai"*. Saat diklik, mengirim panggilan ke API untuk membuat sesi baru berstatus `waiting_payment`.
 
 #### [`src/admin/`](file:///d:/teras-photobooth/src/admin/)
-- **Panel Indikator Perangkat:** Memantau status perangkat secara visual menggunakan kartu persegi `card-raw` dengan chip status brutalist (`chip-raw-active`, `chip-raw-warning`).
-- **Form Pengaturan:** Input bertema `input-raw` (Space Mono, border 3px/5px, background sunken `#F0F0F0`) untuk harga sesi per orang (Rp) dan jumlah cetak per sesi.
-- **Tombol Darurat (Reset Sesi):** Menggunakan `btn-raw-destructive` (background merah murni `#FF0000`, teks putih, border hitam 3px, inversi saat hover) untuk mereset sesi bermasalah.
+Menggunakan arsitektur modular berbasis **Sidebar Shell & Hash Routing** (`#/beranda`, `#/event`, `#/laporan`, `#/template`, `#/pengaturan`):
+- **Entry Point (`main.js`):** Script ramping (±30 baris) untuk otentikasi PIN operator staff (`pin-modal.js`) dan inisialisasi `shell.js`.
+- **Admin Shell (`shell.js`):** Mengelola kerangka sidebar navigasi, live top bar status perangkat (kamera, printer, event aktif), routing hash dinamis, manajemen koneksi tunggal SSE (`/api/sse`), dan background poller sesi aktif dengan badge indikator.
+- **Router Helper (`router.js`):** Fungsi murni (`parseAdminRoute`, `toAdminHash`) untuk parsing dan sanitasi hash navigasi.
+- **UI Helper (`ui-helpers.js`):** Helper antarmuka bersama untuk standardisasi header halaman (`pageHeader`) dan format mata uang (`formatRupiah`).
+- **Screen Modular (`src/admin/screens/`):**
+  - `home.js`: Pantauan metrik hari ini, widget konfirmasi manual QRIS, tombol darurat reset sesi, dan monitor/pemilih kamera & printer.
+  - `events.js`: Pengelolaan folder penyimpanan foto lokal terhubung Google Drive, status event operasional aktif, dan pembuatan event baru.
+  - `reports.js`: Ringkasan omset dan sesi harian/akumulasi dengan filter event terpadu, ekspor CSV, serta riwayat transaksi dengan fitur cetak ulang (*reprint*).
+  - `settings.js`: Konfigurasi harga per sesi, jumlah lembar cetak otomatis 4R, dan PIN operator.
+  - `template-editor.js`: Visual editor tata letak slot template cetakan dan pengunggah PNG.
+
 
 #### [`src/styles.css`](file:///d:/teras-photobooth/src/styles.css)
 Mengadopsi **RawBlock Design System** ([docs/DESIGN.md](file:///d:/teras-photobooth/docs/DESIGN.md)) menggunakan Tailwind CSS v4:
