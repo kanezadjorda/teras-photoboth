@@ -10,10 +10,10 @@ import { getUniquePhotoCount } from '../../shared/composite.js';
 
 export function createCaptureScreen({
   template,
+  countdownSeconds = TIMEOUTS.COUNTDOWN_SECONDS || 3,
   retakeSlotIndex = undefined,
   existingPhotos = [],
-  onCaptureComplete,
-  onCancel
+  onCaptureComplete
 }) {
   let container = null;
   let videoElement = null;
@@ -24,7 +24,6 @@ export function createCaptureScreen({
   let previewImage = null;
   let previewText = null;
   let triggerBtn = null;
-  let cancelBtn = null;
   let thumbnailTray = null;
   let slotIndicator = null;
 
@@ -100,7 +99,7 @@ export function createCaptureScreen({
     isCapturing = true;
     if (triggerBtn) triggerBtn.disabled = true;
 
-    let count = TIMEOUTS.COUNTDOWN_SECONDS || 3;
+    let count = countdownSeconds;
     if (countdownOverlay && countdownNumber) {
       countdownNumber.textContent = count;
       countdownOverlay.classList.remove('hidden');
@@ -191,11 +190,11 @@ export function createCaptureScreen({
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col items-center justify-between w-full h-full max-w-6xl mx-auto p-6 box-border font-body';
+      'flex flex-col justify-between w-full h-screen max-w-none px-6 py-4 box-border font-body bg-white overflow-hidden';
 
     container.innerHTML = `
       <!-- Header -->
-      <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-4 mb-4">
+      <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-3 shrink-0">
         <div>
           <h1 id="slot-indicator" class="text-3xl md:text-4xl font-headline uppercase text-black">
             ${isRetakeMode ? `MENGULANG FOTO #${retakeSlotIndex + 1}` : `FOTO 1 DARI ${totalPhotos}`}
@@ -210,47 +209,44 @@ export function createCaptureScreen({
         </div>
         <div class="flex items-center gap-3">
           <span class="chip-raw chip-raw-active">KAMERA AKTIF</span>
-          <button id="btn-cancel" class="btn-raw-destructive px-4 py-2 text-xs">
-            BATALKAN
-          </button>
         </div>
       </div>
 
       <!-- Error Banner (Hidden by default) -->
-      <div id="camera-error-banner" class="hidden w-full bg-raw-error text-white font-headline text-center p-3 mb-4 border-[3px] border-black"></div>
+      <div id="camera-error-banner" class="hidden w-full bg-raw-error text-white font-headline text-center p-3 mb-2 border-[3px] border-black"></div>
 
-      <!-- Video Viewport Frame -->
-      <div class="relative w-full max-w-4xl aspect-[16/9] border-[5px] border-black bg-black flex items-center justify-center overflow-hidden">
-        <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover -scale-x-100"></video>
+      <!-- Video Viewport Frame: Flexible & Expanding to Available Viewport Space -->
+      <div class="flex-1 w-full min-h-0 py-2 flex items-center justify-center overflow-hidden">
+        <div class="relative h-full max-w-full aspect-[16/9] border-[5px] border-black bg-black flex items-center justify-center overflow-hidden">
+          <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover -scale-x-100"></video>
 
-        <!-- Countdown Overlay -->
-        <div id="countdown-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/50 z-20">
-          <div class="border-[5px] border-black bg-white px-12 py-8 flex items-center justify-center min-w-[160px] min-h-[160px]">
-            <span id="countdown-number" class="font-headline text-8xl md:text-9xl text-black leading-none">3</span>
+          <!-- Countdown Overlay: Pure bright typography without box/backdrop -->
+          <div id="countdown-overlay" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <span id="countdown-number" class="font-headline text-[180px] md:text-[240px] text-white drop-shadow-[0_10px_24px_rgba(0,0,0,0.95)] leading-none select-none tracking-normal">3</span>
           </div>
-        </div>
 
-        <!-- 1.5s Quick Preview Overlay -->
-        <div id="preview-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-25 p-4 space-y-3">
-          <div class="border-[5px] border-black bg-white p-2 max-h-[70%] aspect-video overflow-hidden">
-            <img id="preview-image" src="" alt="Pratinjau" class="w-full h-full object-contain" />
+          <!-- 1.5s Quick Preview Overlay -->
+          <div id="preview-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-25 p-4 space-y-3">
+            <div class="border-[5px] border-black bg-white p-2 max-h-[70%] aspect-video overflow-hidden">
+              <img id="preview-image" src="" alt="Pratinjau" class="w-full h-full object-contain" />
+            </div>
+            <p id="preview-text" class="font-headline text-xl text-white uppercase tracking-wider">
+              FOTO TERSIMPAN!
+            </p>
           </div>
-          <p id="preview-text" class="font-headline text-xl text-white uppercase tracking-wider">
-            FOTO TERSIMPAN!
-          </p>
-        </div>
 
-        <!-- Shutter Flash Effect -->
-        <div id="flash-overlay" class="hidden absolute inset-0 bg-white z-30 pointer-events-none"></div>
+          <!-- Shutter Flash Effect -->
+          <div id="flash-overlay" class="hidden absolute inset-0 bg-white z-30 pointer-events-none"></div>
+        </div>
       </div>
 
       <!-- Bottom Controls & Thumbnails -->
-      <div class="w-full max-w-4xl flex items-center justify-between mt-4 pt-4 border-t-[3px] border-black gap-6">
+      <div class="w-full flex items-center justify-between pt-3 border-t-[3px] border-black gap-6 shrink-0">
         <!-- Thumbnail Slot Tray -->
         <div id="thumbnail-tray" class="flex items-center gap-3"></div>
 
         <!-- Action Button -->
-        <button id="btn-trigger-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline">
+        <button id="btn-trigger-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline cursor-pointer">
           ${isRetakeMode ? 'AMBIL FOTO PENGGANTI' : 'AMBIL FOTO'}
         </button>
       </div>
@@ -266,7 +262,6 @@ export function createCaptureScreen({
     previewImage = container.querySelector('#preview-image');
     previewText = container.querySelector('#preview-text');
     triggerBtn = container.querySelector('#btn-trigger-photo');
-    cancelBtn = container.querySelector('#btn-cancel');
     thumbnailTray = container.querySelector('#thumbnail-tray');
     slotIndicator = container.querySelector('#slot-indicator');
 
@@ -277,17 +272,12 @@ export function createCaptureScreen({
       triggerBtn.addEventListener('click', takePhoto);
     }
 
-    if (cancelBtn && onCancel) {
-      cancelBtn.addEventListener('click', onCancel);
-    }
-
     initCamera();
   }
 
   function unmount() {
     cleanupCamera();
     if (triggerBtn) triggerBtn.removeEventListener('click', takePhoto);
-    if (cancelBtn && onCancel) cancelBtn.removeEventListener('click', onCancel);
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }

@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import dotenv from 'dotenv';
-import { DEFAULTS } from '../src/shared/constants.js';
+import { DEFAULTS, TIMEOUTS } from '../src/shared/constants.js';
 
 dotenv.config();
 
@@ -117,6 +117,7 @@ export function initDb() {
   const initialSettings = [
     ['session_price', String(DEFAULTS.SESSION_PRICE)],
     ['copies_per_session', String(DEFAULTS.COPIES_PER_SESSION)],
+    ['countdown_seconds', String(TIMEOUTS.COUNTDOWN_SECONDS || 3)],
     ['admin_pin', process.env.ADMIN_PIN || DEFAULTS.ADMIN_PIN],
     ['output_folder', process.env.OUTPUT_FOLDER || './data/photos']
   ];

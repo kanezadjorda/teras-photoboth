@@ -13,14 +13,12 @@ export function createReviewScreen({
   photos = [],
   retakeCounts = {},
   onConfirm,
-  onRetakeSlot,
-  onCancel
+  onRetakeSlot
 }) {
   let container = null;
   let canvasContainer = null;
   let slotsContainer = null;
   let confirmBtn = null;
-  let cancelBtn = null;
   let compositeCanvas = null;
 
   async function generateCompositePreview() {
@@ -154,9 +152,6 @@ export function createReviewScreen({
             PERIKSA HASIL FOTO SEBELUM DICETAK &bull; SETIAP FOTO BISA DIULANG MAKSIMAL 1X
           </p>
         </div>
-        <button id="btn-cancel-review" class="btn-raw-destructive px-5 py-2.5 text-xs font-headline">
-          BATALKAN SESI
-        </button>
       </div>
 
       <!-- Main Layout: Composite Preview (Left/Center) & Slot Controls (Right) -->
@@ -200,7 +195,6 @@ export function createReviewScreen({
     canvasContainer = container.querySelector('#composite-canvas-container');
     slotsContainer = container.querySelector('#slots-review-list');
     confirmBtn = container.querySelector('#btn-confirm-print');
-    cancelBtn = container.querySelector('#btn-cancel-review');
 
     if (confirmBtn && onConfirm) {
       const clickHandler = preventDoubleClick(confirmBtn, async () => {
@@ -210,17 +204,12 @@ export function createReviewScreen({
       confirmBtn.addEventListener('click', clickHandler);
     }
 
-    if (cancelBtn && onCancel) {
-      cancelBtn.addEventListener('click', onCancel);
-    }
-
     renderSlotsList();
     generateCompositePreview();
   }
 
   function unmount() {
     if (confirmBtn && onConfirm) confirmBtn.removeEventListener('click', onConfirm);
-    if (cancelBtn && onCancel) cancelBtn.removeEventListener('click', onCancel);
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
@@ -228,7 +217,6 @@ export function createReviewScreen({
     canvasContainer = null;
     slotsContainer = null;
     confirmBtn = null;
-    cancelBtn = null;
   }
 
   return { mount, unmount };

@@ -107,6 +107,20 @@ describe('Admin Panel, Security, History & Reports (PRD F-13, F-14, F-15)', () =
         body: JSON.stringify({ admin_pin: '1234' })
       });
     });
+
+    it('allows updating and retrieving countdown_seconds setting', async () => {
+      const updateRes = await fetch(`${baseUrl}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ countdown_seconds: 5 })
+      });
+      expect(updateRes.status).toBe(200);
+
+      const getRes = await fetch(`${baseUrl}/api/settings`);
+      const body = await getRes.json();
+      expect(body.success).toBe(true);
+      expect(body.data.countdown_seconds).toBe('5');
+    });
   });
 
   describe('Transaction History & Reprint (PRD F-13)', () => {

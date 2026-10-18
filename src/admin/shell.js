@@ -240,8 +240,8 @@ function renderLayout() {
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
 
     <!-- Responsive Sidebar Drawer on mobile, static on md+ -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:static md:h-screen md:sticky md:top-0 md:shrink-0">
-      <div class="p-4 sm:p-6 border-b-[3px] border-white flex items-center justify-between">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:static md:h-screen md:top-0 md:shrink-0">
+      <div class="p-4 sm:p-6 border-b-thick border-white flex items-center justify-between">
         <div>
           <p class="font-headline text-lg sm:text-xl uppercase leading-tight">TERAS<br/>PHOTOBOOTH</p>
           <p class="font-mono text-[10px] sm:text-[11px] text-white/60 mt-1">PANEL OPERATOR</p>
@@ -251,15 +251,15 @@ function renderLayout() {
       <nav class="flex-1 py-4 overflow-y-auto" aria-label="Menu admin">
         ${navHtml}
       </nav>
-      <div class="p-4 border-t-[3px] border-white">
+      <div class="p-4 border-t-thick border-white">
         <button id="btn-lock-panel" class="btn-raw-secondary w-full py-3 text-xs font-headline">KUNCI PANEL</button>
       </div>
     </aside>
 
     <div class="flex-1 min-w-0 flex flex-col w-full">
-      <header class="sticky top-0 z-40 bg-white border-b-[3px] border-black px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+      <header class="sticky top-0 z-40 bg-white border-b-thick border-black px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 md:hidden">
-          <button id="btn-toggle-sidebar" class="md:!hidden btn-raw-secondary px-3 py-1.5 text-xs font-headline flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
+          <button id="btn-toggle-sidebar" class="md:hidden! btn-raw-secondary px-3 py-1.5 text-xs font-headline flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
             <span>☰</span>
             <span>MENU</span>
           </button>

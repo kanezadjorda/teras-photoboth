@@ -7,10 +7,9 @@
 import { api } from '../../shared/api.js';
 import { getUniquePhotoCount } from '../../shared/composite.js';
 
-export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
+export function createChooseTemplateScreen({ onSelectTemplate }) {
   let container = null;
   let gridContainer = null;
-  let cancelBtn = null;
 
   async function loadTemplates() {
     if (!gridContainer) return;
@@ -114,9 +113,6 @@ export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
             PILIH BINGKAI FOTO YANG KAMU SUKAI UNTUK MEMULAI SESI FOTO
           </p>
         </div>
-        <button id="btn-cancel-choose" class="btn-raw-destructive px-5 py-2.5 text-xs font-headline">
-          BATALKAN SESI
-        </button>
       </div>
 
       <!-- Templates Grid -->
@@ -136,25 +132,15 @@ export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
     parent.appendChild(container);
 
     gridContainer = container.querySelector('#templates-grid');
-    cancelBtn = container.querySelector('#btn-cancel-choose');
-
-    if (cancelBtn && onCancel) {
-      cancelBtn.addEventListener('click', onCancel);
-    }
-
     loadTemplates();
   }
 
   function unmount() {
-    if (cancelBtn && onCancel) {
-      cancelBtn.removeEventListener('click', onCancel);
-    }
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
     container = null;
     gridContainer = null;
-    cancelBtn = null;
   }
 
   return { mount, unmount };

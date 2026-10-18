@@ -79,9 +79,6 @@ function initChooseTemplateScreen(session) {
         console.error('[Kiosk] Gagal memperbarui status sesi:', err);
         initCaptureScreen(session, template);
       }
-    },
-    onCancel: async () => {
-      await cancelSession(session);
     }
   });
 
@@ -89,9 +86,20 @@ function initChooseTemplateScreen(session) {
 }
 
 // 3. Capture Screen (All Slots Sequence)
-function initCaptureScreen(session, template) {
+async function initCaptureScreen(session, template) {
+  let countdownSeconds = TIMEOUTS.COUNTDOWN_SECONDS || 3;
+  try {
+    const settingsRes = await api.getSettings();
+    if (settingsRes?.data?.countdown_seconds) {
+      countdownSeconds = parseInt(settingsRes.data.countdown_seconds, 10) || 3;
+    }
+  } catch (e) {
+    console.warn('[Kiosk] Menggunakan default countdown:', e.message);
+  }
+
   const captureScreen = createCaptureScreen({
     template,
+    countdownSeconds,
     onCaptureComplete: async (photos) => {
       console.log(`[Kiosk] Selesai mengambil ${photos.length} foto! Masuk ke review.`);
       try {
@@ -101,10 +109,7 @@ function initCaptureScreen(session, template) {
       } catch (err) {
         console.warn('[Kiosk] Status update warning:', err.message);
       }
-      initReviewScreen(session, template, photos, {});
-    },
-    onCancel: async () => {
-      await cancelSession(session);
+      initReviewScreen(session, template, photos, {}, countdownSeconds);
     }
   });
 
@@ -112,7 +117,7 @@ function initCaptureScreen(session, template) {
 }
 
 // 4. Review & Retake Screen
-function initReviewScreen(session, template, photos, retakeCounts = {}) {
+function initReviewScreen(session, template, photos, retakeCounts = {}, countdownSeconds = 3) {
   const reviewScreen = createReviewScreen({
     template,
     photos,
@@ -122,6 +127,7 @@ function initReviewScreen(session, template, photos, retakeCounts = {}) {
       // Open capture screen specifically for retaking slotIndex
       const retakeScreen = createCaptureScreen({
         template,
+        countdownSeconds,
         retakeSlotIndex: slotIndex,
         existingPhotos: photos,
         onCaptureComplete: (newPhoto) => {
@@ -130,11 +136,7 @@ function initReviewScreen(session, template, photos, retakeCounts = {}) {
           retakeCounts[slotIndex] = (retakeCounts[slotIndex] || 0) + 1;
           console.log(`[Kiosk] Foto slot #${slotIndex + 1} berhasil diperbarui.`);
           // Return to review screen with updated photo and retake counts
-          initReviewScreen(session, template, photos, retakeCounts);
-        },
-        onCancel: () => {
-          // If cancelled during retake, simply return to review screen
-          initReviewScreen(session, template, photos, retakeCounts);
+          initReviewScreen(session, template, photos, retakeCounts, countdownSeconds);
         }
       });
       renderScreen(retakeScreen);
@@ -173,9 +175,6 @@ function initReviewScreen(session, template, photos, retakeCounts = {}) {
 
       // 4. Masuk ke Layar Printing
       initPrintingScreen(session, compositeDataUrl, copies, sessionNo);
-    },
-    onCancel: async () => {
-      await cancelSession(session);
     }
   });
 
