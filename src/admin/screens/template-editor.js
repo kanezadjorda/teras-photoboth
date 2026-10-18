@@ -7,6 +7,7 @@
 import { api } from '../../shared/api.js';
 import { detectTransparentSlots } from '../../shared/slot-detector.js';
 import { CANVAS_SPECS } from '../../shared/constants.js';
+import { getUniquePhotoCount, getSlotPhotoIndex } from '../../shared/composite.js';
 
 export function createTemplateEditor({ onBack }) {
   let container = null;
@@ -39,6 +40,7 @@ export function createTemplateEditor({ onBack }) {
 
       galleryContainer.innerHTML = '';
       for (const tpl of templates) {
+        const uniqueTakes = getUniquePhotoCount(tpl.slots);
         const card = document.createElement('div');
         card.className = 'card-raw flex flex-col justify-between gap-4';
 
@@ -54,7 +56,7 @@ export function createTemplateEditor({ onBack }) {
               <img src="/templates/${tpl.file_png}" alt="${tpl.nama}" class="w-full h-full object-contain" />
             </div>
             <div class="font-mono text-xs text-black/80 space-y-1">
-              <div>SLOT FOTO: <strong class="text-black">${tpl.jumlah_slot} SLOT</strong></div>
+              <div>SLOT FOTO: <strong class="text-black">${tpl.jumlah_slot} SLOT</strong>${uniqueTakes < tpl.jumlah_slot ? ` <span class="text-black/60 font-bold">(${uniqueTakes}X FOTO)</span>` : ''}</div>
               <div>FILE: ${tpl.file_png}</div>
             </div>
           </div>
@@ -154,12 +156,14 @@ export function createTemplateEditor({ onBack }) {
       ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
 
       // Slot badge label
+      const photoNum = getSlotPhotoIndex(slot, i);
+      const badgeText = `SLOT ${i + 1} • FOTO ${photoNum}`;
       ctx.fillStyle = '#000000';
-      ctx.fillRect(slot.x, slot.y, 140, 40);
+      ctx.fillRect(slot.x, slot.y, 210, 42);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 20px "Archivo Black", sans-serif';
-      ctx.fillText(`SLOT ${i + 1}`, slot.x + 12, slot.y + 28);
+      ctx.font = 'bold 18px "Archivo Black", sans-serif';
+      ctx.fillText(badgeText, slot.x + 12, slot.y + 28);
     }
   }
 
@@ -177,19 +181,26 @@ export function createTemplateEditor({ onBack }) {
     }
 
     detectedSlots.forEach((slot, index) => {
+      const currentPhotoIdx = getSlotPhotoIndex(slot, index);
       const row = document.createElement('div');
       row.className = 'border-[3px] border-black bg-white p-3 space-y-2';
 
       row.innerHTML = `
         <div class="flex items-center justify-between pb-1 border-b-[2px] border-black">
-          <span class="font-headline text-xs uppercase text-black">SLOT #${index + 1}</span>
+          <span class="font-headline text-xs uppercase text-black">
+            SLOT #${index + 1} <span class="slot-title-photo font-mono text-[11px] text-black/60">(FOTO #${currentPhotoIdx})</span>
+          </span>
           <div class="flex gap-1">
             <button class="btn-move-up btn-raw-secondary px-2 py-1 text-xs" ${index === 0 ? 'disabled' : ''}>▲</button>
             <button class="btn-move-down btn-raw-secondary px-2 py-1 text-xs" ${index === detectedSlots.length - 1 ? 'disabled' : ''}>▼</button>
             <button class="btn-delete-slot btn-raw-destructive px-2 py-1 text-xs">✕</button>
           </div>
         </div>
-        <div class="grid grid-cols-4 gap-2 font-mono text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-black mb-0.5" title="Nomor jepretan foto yang akan mengisi slot ini">FOTO #</label>
+            <input type="number" min="1" class="slot-photo-idx input-raw p-1 text-xs bg-raw-sunken font-bold text-black" value="${currentPhotoIdx}" />
+          </div>
           <div>
             <label class="block text-[10px] uppercase font-bold text-black/60 mb-0.5">X</label>
             <input type="number" class="slot-x input-raw p-1 text-xs" value="${slot.x}" />
@@ -211,10 +222,17 @@ export function createTemplateEditor({ onBack }) {
 
       // Live update on input change
       const updateInputs = () => {
+        const photoInp = parseInt(row.querySelector('.slot-photo-idx').value, 10);
+        slot.photo_index = Number.isFinite(photoInp) && photoInp > 0 ? photoInp : index + 1;
         slot.x = Number(row.querySelector('.slot-x').value) || 0;
         slot.y = Number(row.querySelector('.slot-y').value) || 0;
         slot.w = Number(row.querySelector('.slot-w').value) || 100;
         slot.h = Number(row.querySelector('.slot-h').value) || 100;
+
+        const titlePhoto = row.querySelector('.slot-title-photo');
+        if (titlePhoto) {
+          titlePhoto.textContent = `(FOTO #${slot.photo_index})`;
+        }
         redrawCanvasWithSlots();
       };
 
@@ -281,7 +299,10 @@ export function createTemplateEditor({ onBack }) {
         const imgData = tempCtx.getImageData(0, 0, CANVAS_SPECS.WIDTH, CANVAS_SPECS.HEIGHT);
 
         // Run auto-detection algorithm
-        detectedSlots = detectTransparentSlots(imgData, { scale: 4, minAreaFraction: 0.02 });
+        detectedSlots = detectTransparentSlots(imgData, { scale: 4, minAreaFraction: 0.02 }).map((s, idx) => ({
+          ...s,
+          photo_index: idx + 1
+        }));
 
         if (!templateNameInput.value) {
           templateNameInput.value = file.name.replace(/\.[^/.]+$/, '').toUpperCase();
@@ -455,7 +476,13 @@ export function createTemplateEditor({ onBack }) {
     if (addSlotBtn) {
       addSlotBtn.addEventListener('click', () => {
         // Add a default centered slot
-        detectedSlots.push({ x: 100, y: 100 + detectedSlots.length * 200, w: 500, h: 380 });
+        detectedSlots.push({
+          x: 100,
+          y: 100 + detectedSlots.length * 200,
+          w: 500,
+          h: 380,
+          photo_index: detectedSlots.length + 1
+        });
         renderSlotsList();
         redrawCanvasWithSlots();
       });

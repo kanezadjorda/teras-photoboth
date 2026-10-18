@@ -6,6 +6,7 @@
 
 import { startCameraStream, stopCameraStream, captureFrame } from '../../shared/camera.js';
 import { TIMEOUTS } from '../../shared/constants.js';
+import { getUniquePhotoCount } from '../../shared/composite.js';
 
 export function createCaptureScreen({
   template,
@@ -32,7 +33,7 @@ export function createCaptureScreen({
   let isCapturing = false;
 
   const isRetakeMode = retakeSlotIndex !== undefined;
-  const totalSlots = template?.slots?.length || 3;
+  const totalPhotos = getUniquePhotoCount(template?.slots);
   let currentSlotIndex = isRetakeMode ? retakeSlotIndex : 0;
   const capturedPhotos = [...existingPhotos];
 
@@ -41,14 +42,14 @@ export function createCaptureScreen({
     if (isRetakeMode) {
       slotIndicator.textContent = `MENGULANG FOTO #${currentSlotIndex + 1}`;
     } else {
-      slotIndicator.textContent = `FOTO ${currentSlotIndex + 1} DARI ${totalSlots}`;
+      slotIndicator.textContent = `FOTO ${currentSlotIndex + 1} DARI ${totalPhotos}`;
     }
   }
 
   function renderThumbnails() {
     if (!thumbnailTray) return;
     thumbnailTray.innerHTML = '';
-    for (let i = 0; i < totalSlots; i++) {
+    for (let i = 0; i < totalPhotos; i++) {
       const thumb = document.createElement('div');
       thumb.className =
         'w-20 h-24 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden';
@@ -137,12 +138,12 @@ export function createCaptureScreen({
               }
             } else {
               currentSlotIndex++;
-              if (currentSlotIndex < totalSlots) {
+              if (currentSlotIndex < totalPhotos) {
                 updateSlotIndicator();
                 isCapturing = false;
                 if (triggerBtn) triggerBtn.disabled = false;
               } else {
-                // Selesai seluruh slot foto
+                // Selesai seluruh jepretan foto
                 cleanupCamera();
                 if (onCaptureComplete) {
                   onCaptureComplete(capturedPhotos);
@@ -197,7 +198,7 @@ export function createCaptureScreen({
       <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-4 mb-4">
         <div>
           <h1 id="slot-indicator" class="text-3xl md:text-4xl font-headline uppercase text-black">
-            ${isRetakeMode ? `MENGULANG FOTO #${retakeSlotIndex + 1}` : `FOTO 1 DARI ${totalSlots}`}
+            ${isRetakeMode ? `MENGULANG FOTO #${retakeSlotIndex + 1}` : `FOTO 1 DARI ${totalPhotos}`}
           </h1>
           <p class="font-body text-xs text-black/70">
             ${

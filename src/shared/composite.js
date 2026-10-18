@@ -41,12 +41,38 @@ export function calculateCoverFit(sourceWidth, sourceHeight, targetWidth, target
 }
 
 /**
+ * Gets the 1-based photo index assigned to a slot, falling back to its array position (1-based).
+ * @param {object} slot
+ * @param {number} fallbackIndex - 0-based array index of the slot
+ * @returns {number} 1-based photo index
+ */
+export function getSlotPhotoIndex(slot, fallbackIndex = 0) {
+  const idx = slot?.photo_index ?? slot?.photoIndex;
+  const num = parseInt(idx, 10);
+  return Number.isFinite(num) && num > 0 ? num : fallbackIndex + 1;
+}
+
+/**
+ * Calculates the total number of unique photo takes required by template slots.
+ * @param {Array<object>} slots
+ * @returns {number}
+ */
+export function getUniquePhotoCount(slots = []) {
+  if (!Array.isArray(slots) || slots.length === 0) return 3;
+  const uniqueIndices = new Set();
+  slots.forEach((s, idx) => {
+    uniqueIndices.add(getSlotPhotoIndex(s, idx));
+  });
+  return uniqueIndices.size;
+}
+
+/**
  * Composites photos into template slots and overlays the transparent template PNG.
  * @param {object} options
  * @param {number} [options.canvasWidth=1200]
  * @param {number} [options.canvasHeight=1800]
  * @param {HTMLImageElement|ImageBitmap|HTMLCanvasElement} [options.templateImage]
- * @param {Array<{ x: number, y: number, w: number, h: number }>} [options.slots=[]]
+ * @param {Array<{ x: number, y: number, w: number, h: number, photo_index?: number }>} [options.slots=[]]
  * @param {Array<HTMLImageElement|ImageBitmap|HTMLCanvasElement>} [options.photos=[]]
  * @param {HTMLCanvasElement} [options.targetCanvas] - Optional existing canvas to draw onto
  * @returns {HTMLCanvasElement}
@@ -77,9 +103,10 @@ export function renderComposite(options = {}) {
   // 2. Draw each photo into its designated slot with cover-fit
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
-    const photo = photos[i];
-
     if (!slot) continue;
+
+    const photoIdx = getSlotPhotoIndex(slot, i) - 1;
+    const photo = photos[photoIdx];
 
     if (photo) {
       const pWidth = photo.width || photo.videoWidth || canvasWidth;

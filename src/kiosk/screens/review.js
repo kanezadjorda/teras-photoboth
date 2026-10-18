@@ -4,7 +4,7 @@
  * PRD Reference: F-10, F-11
  */
 
-import { renderComposite, loadImage } from '../../shared/composite.js';
+import { renderComposite, loadImage, getSlotPhotoIndex } from '../../shared/composite.js';
 import { DEFAULTS, CANVAS_SPECS } from '../../shared/constants.js';
 import { preventDoubleClick } from '../../shared/ui.js';
 
@@ -77,7 +77,7 @@ export function createReviewScreen({
 
     const maxRetakes = DEFAULTS.MAX_RETAKES_PER_SLOT || 1;
 
-    for (let i = 0; i < (template?.slots?.length || photos.length); i++) {
+    for (let i = 0; i < photos.length; i++) {
       const slotCard = document.createElement('div');
       slotCard.className = 'border-[3px] border-black bg-white p-3 flex items-center justify-between gap-3';
 
@@ -85,9 +85,23 @@ export function createReviewScreen({
       const retakeCount = retakeCounts[i] || 0;
       const canRetake = retakeCount < maxRetakes;
 
+      // Find which slots use this photo
+      const matchingSlots = [];
+      (template?.slots || []).forEach((slot, sIdx) => {
+        if (getSlotPhotoIndex(slot, sIdx) === i + 1) {
+          matchingSlots.push(sIdx + 1);
+        }
+      });
+
+      const slotSubtext = matchingSlots.length > 1
+        ? `<span class="font-mono text-[11px] text-black/60 block mt-0.5">TERPASANG DI SLOT: ${matchingSlots.join(' & ')} (DUPLIKAT)</span>`
+        : matchingSlots.length === 1
+          ? `<span class="font-mono text-[11px] text-black/60 block mt-0.5">SLOT #${matchingSlots[0]}</span>`
+          : '';
+
       slotCard.innerHTML = `
         <div class="flex items-center gap-3">
-          <div class="w-16 h-20 border-[2px] border-black bg-raw-sunken overflow-hidden flex items-center justify-center">
+          <div class="w-16 h-20 border-[2px] border-black bg-raw-sunken overflow-hidden flex items-center justify-center shrink-0">
             ${
               photoSrc
                 ? `<img src="${photoSrc}" alt="Foto ${i + 1}" class="w-full h-full object-cover" />`
@@ -95,7 +109,8 @@ export function createReviewScreen({
             }
           </div>
           <div>
-            <h4 class="font-headline text-sm uppercase text-black">SLOT FOTO #${i + 1}</h4>
+            <h4 class="font-headline text-sm uppercase text-black">FOTO #${i + 1}</h4>
+            ${slotSubtext}
             <span class="chip-raw ${retakeCount > 0 ? 'chip-raw-warning' : 'chip-raw-default'} mt-1 text-[10px]">
               RETAKE: ${retakeCount}/${maxRetakes}
             </span>

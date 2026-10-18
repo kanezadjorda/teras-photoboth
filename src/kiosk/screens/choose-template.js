@@ -5,6 +5,7 @@
  */
 
 import { api } from '../../shared/api.js';
+import { getUniquePhotoCount } from '../../shared/composite.js';
 
 export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
   let container = null;
@@ -31,6 +32,11 @@ export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
 
       gridContainer.innerHTML = '';
       for (const tpl of templates) {
+        const uniqueTakes = getUniquePhotoCount(tpl.slots);
+        const photoBadgeText = uniqueTakes < tpl.jumlah_slot
+          ? `${uniqueTakes} FOTO (${tpl.jumlah_slot} SLOT)`
+          : `${tpl.jumlah_slot} FOTO`;
+
         const card = document.createElement('div');
         card.className =
           'card-raw flex flex-col justify-between cursor-pointer group hover:bg-black hover:text-white transition-none p-5 space-y-4';
@@ -42,7 +48,7 @@ export function createChooseTemplateScreen({ onSelectTemplate, onCancel }) {
                 ${tpl.nama}
               </h3>
               <span class="chip-raw chip-raw-default group-hover:border-white group-hover:text-white group-hover:bg-black">
-                ${tpl.jumlah_slot} FOTO
+                ${photoBadgeText}
               </span>
             </div>
 
