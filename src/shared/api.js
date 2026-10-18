@@ -74,6 +74,8 @@ export const api = {
     fetchApi('/events', { method: 'POST', body: JSON.stringify(data) }),
   activateEvent: (id) =>
     fetchApi(`/events/${id}/activate`, { method: 'PATCH' }),
+  deactivateEvent: (id) =>
+    fetchApi(`/events/${id}/deactivate`, { method: 'PATCH' }),
   deleteEvent: (id) =>
     fetchApi(`/events/${id}`, { method: 'DELETE' })
 };

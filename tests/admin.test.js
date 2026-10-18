@@ -319,5 +319,28 @@ describe('Admin Panel, Security, History & Reports (PRD F-13, F-14, F-15)', () =
       db.prepare('DELETE FROM payments WHERE session_id = ?').run(eventSessionId);
       db.prepare('DELETE FROM sessions WHERE id = ?').run(eventSessionId);
     });
+
+    it('deactivates an active event using deactivate endpoint', async () => {
+      // First ensure testEventId is activated
+      await fetch(`${baseUrl}/api/events/${testEventId}/activate`, { method: 'PATCH' });
+
+      // Call deactivate endpoint
+      const res = await fetch(`${baseUrl}/api/events/${testEventId}/deactivate`, {
+        method: 'PATCH'
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(body.data.id).toBe(testEventId);
+      expect(body.data.aktif).toBe(0);
+
+      // Verify active event endpoint returns null
+      const activeRes = await fetch(`${baseUrl}/api/events/active`);
+      const activeBody = await activeRes.json();
+      expect(activeRes.status).toBe(200);
+      expect(activeBody.data).toBeNull();
+    });
   });
 });
+

@@ -149,6 +149,45 @@ router.patch('/:id/activate', (req, res) => {
 });
 
 /**
+ * PATCH /api/events/:id/deactivate
+ * Menonaktifkan event operasional (sesi kiosk kembali ke mode default/standby)
+ */
+router.patch('/:id/deactivate', (req, res) => {
+  try {
+    const { id } = req.params;
+    const targetEvent = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
+
+    if (!targetEvent) {
+      return res.status(404).json({ success: false, error: 'Event tidak ditemukan' });
+    }
+
+    const defaultFolder = process.env.OUTPUT_FOLDER || './data/photos';
+
+    const deactivateTx = db.transaction(() => {
+      db.prepare('UPDATE events SET aktif = 0 WHERE id = ?').run(id);
+
+      db.prepare(`
+        INSERT INTO settings (key, value) VALUES ('output_folder', ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value
+      `).run(defaultFolder);
+    });
+
+    deactivateTx();
+
+    const updated = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
+    broadcastEvent('event_updated', updated);
+
+    res.json({
+      success: true,
+      data: updated,
+      message: `Event "${targetEvent.nama}" berhasil dinonaktifkan.`
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
  * DELETE /api/events/:id
  * Menghapus event (hanya jika belum memiliki sesi transaksi dan bukan event aktif)
  */

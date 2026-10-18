@@ -37,10 +37,10 @@ describe('Save Photos API (PRD F-17, F-18)', () => {
   });
 
   it('saves composite and raw photos to disk and records to SQLite', async () => {
-    // 1. Insert dummy session
+    // 1. Insert dummy session with explicit evt_default for test concurrency isolation
     db.prepare(`
-      INSERT INTO sessions (id, template_id, status, dibuat_pada)
-      VALUES (?, NULL, 'reviewing', ?)
+      INSERT INTO sessions (id, template_id, event_id, status, dibuat_pada)
+      VALUES (?, NULL, 'evt_default', 'reviewing', ?)
     `).run(testSessionId, new Date().toISOString());
 
     // Minimal 1x1 transparent png base64

@@ -125,9 +125,14 @@ async function renderAdminDashboard() {
             Folder: -
           </p>
         </div>
-        <span class="chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs">
-          SESI KIOSK TERSAMBUNG KE EVENT INI
-        </span>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <span id="active-event-chip" class="chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs">
+            SESI KIOSK TERSAMBUNG KE EVENT INI
+          </span>
+          <button id="btn-banner-deactivate" class="hidden btn-raw-destructive px-4 py-1.5 text-xs font-headline whitespace-nowrap">
+            NONAKTIFKAN EVENT
+          </button>
+        </div>
       </div>
 
       <!-- Tabel Daftar Event -->
@@ -623,6 +628,8 @@ async function renderAdminDashboard() {
     const tableBody = document.getElementById('events-table-body');
     const activeNameEl = document.getElementById('active-event-name');
     const activePathEl = document.getElementById('active-event-path');
+    const activeChipEl = document.getElementById('active-event-chip');
+    const btnBannerDeactivate = document.getElementById('btn-banner-deactivate');
 
     try {
       const res = await api.getEvents();
@@ -634,13 +641,30 @@ async function renderAdminDashboard() {
       }
 
       const events = res.data;
-      const activeEvent = events.find((e) => e.aktif === 1) || events[0];
+      const activeEvent = events.find((e) => e.aktif === 1) || null;
 
-      if (activeNameEl && activeEvent) {
-        activeNameEl.textContent = activeEvent.nama;
-      }
-      if (activePathEl && activeEvent) {
-        activePathEl.textContent = `Folder Sinkronisasi Drive: ${activeEvent.folder_path}`;
+      if (activeEvent) {
+        if (activeNameEl) activeNameEl.textContent = activeEvent.nama;
+        if (activePathEl) activePathEl.textContent = `Folder Sinkronisasi Drive: ${activeEvent.folder_path}`;
+        if (activeChipEl) {
+          activeChipEl.textContent = 'SESI KIOSK TERSAMBUNG KE EVENT INI';
+          activeChipEl.className = 'chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs';
+        }
+        if (btnBannerDeactivate) {
+          btnBannerDeactivate.classList.remove('hidden');
+          btnBannerDeactivate.setAttribute('data-event-id', activeEvent.id);
+          btnBannerDeactivate.setAttribute('data-event-name', activeEvent.nama);
+        }
+      } else {
+        if (activeNameEl) activeNameEl.textContent = 'TIDAK ADA EVENT AKTIF (STANDBY / REGULER)';
+        if (activePathEl) activePathEl.textContent = 'Folder Default: ./data/photos (Sesi foto baru tersimpan di folder default)';
+        if (activeChipEl) {
+          activeChipEl.textContent = 'STANDBY (TANPA EVENT KHUSUS)';
+          activeChipEl.className = 'chip-raw chip-raw-warning self-start md:self-auto px-3 py-1 font-headline text-xs';
+        }
+        if (btnBannerDeactivate) {
+          btnBannerDeactivate.classList.add('hidden');
+        }
       }
 
       // Update dropdowns options while preserving selection
@@ -678,8 +702,10 @@ async function renderAdminDashboard() {
               : '<span class="chip-raw text-black/50">NONAKTIF</span>';
 
             const actionBtn = isActive
-              ? '<span class="chip-raw bg-black/10 text-black/40 text-[10px]">DIGUNAKAN KIOSK</span>'
-              : `<button type="button" class="btn-raw-secondary text-xs px-3 py-1 font-headline btn-activate-event" data-event-id="${e.id}" data-event-name="${e.nama}">
+              ? `<button type="button" class="btn-raw-destructive text-xs px-3 py-1 font-headline btn-deactivate-event" data-event-id="${e.id}" data-event-name="${e.nama}">
+                  NONAKTIFKAN
+                </button>`
+              : `<button type="button" class="btn-raw-primary text-xs px-3 py-1 font-headline btn-activate-event" data-event-id="${e.id}" data-event-name="${e.nama}">
                   JADIKAN AKTIF
                 </button>`;
 
@@ -700,15 +726,52 @@ async function renderAdminDashboard() {
     }
   }
 
-  // Handle Event Activation
-  document.getElementById('events-table-body')?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.btn-activate-event');
+  // Handle Event Deactivation
+  async function handleDeactivateEvent(eventId, eventName, btn) {
+    if (!eventId) return;
+    if (!confirm(`Nonaktifkan event "${eventName}"? Sesi kiosk berikutnya akan beralih ke folder default tanpa event khusus.`)) {
+      return;
+    }
+    const origText = btn ? btn.textContent : '';
     if (btn) {
-      const eventId = btn.getAttribute('data-event-id');
-      const eventName = btn.getAttribute('data-event-name');
+      btn.disabled = true;
+      btn.textContent = 'MENONAKTIFKAN...';
+    }
+    try {
+      const res = await api.deactivateEvent(eventId);
+      if (!res.success) {
+        throw new Error(res.error || 'Gagal menonaktifkan event');
+      }
+      await loadEvents();
+      await loadDailyReport(selectReportEvent?.value);
+      await loadHistory(selectHistoryEvent?.value);
+      alert(`Event "${eventName}" telah dinonaktifkan. Kiosk sekarang berada di mode standby/reguler.`);
+    } catch (err) {
+      alert('Gagal menonaktifkan event: ' + err.message);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    }
+  }
+
+  // Handle Banner Deactivate Button
+  btnBannerDeactivate?.addEventListener('click', () => {
+    const eventId = btnBannerDeactivate.getAttribute('data-event-id');
+    const eventName = btnBannerDeactivate.getAttribute('data-event-name');
+    handleDeactivateEvent(eventId, eventName, btnBannerDeactivate);
+  });
+
+  // Handle Event Activation & Deactivation from table
+  document.getElementById('events-table-body')?.addEventListener('click', async (e) => {
+    const activateBtn = e.target.closest('.btn-activate-event');
+    if (activateBtn) {
+      const eventId = activateBtn.getAttribute('data-event-id');
+      const eventName = activateBtn.getAttribute('data-event-name');
       if (eventId && confirm(`Jadikan event "${eventName}" sebagai event operasional aktif? Sesi kiosk berikutnya akan menyimpan foto ke folder event ini.`)) {
-        btn.disabled = true;
-        btn.textContent = 'MENGAKTIFKAN...';
+        activateBtn.disabled = true;
+        activateBtn.textContent = 'MENGAKTIFKAN...';
         try {
           const res = await api.activateEvent(eventId);
           if (!res.success) {
@@ -722,6 +785,14 @@ async function renderAdminDashboard() {
           alert('Gagal mengaktifkan event: ' + err.message);
         }
       }
+      return;
+    }
+
+    const deactivateBtn = e.target.closest('.btn-deactivate-event');
+    if (deactivateBtn) {
+      const eventId = deactivateBtn.getAttribute('data-event-id');
+      const eventName = deactivateBtn.getAttribute('data-event-name');
+      handleDeactivateEvent(eventId, eventName, deactivateBtn);
     }
   });
 
