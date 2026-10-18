@@ -134,6 +134,17 @@ ipcMain.handle('dialog:select-folder', async (event, defaultPath) => {
   }
   return result.filePaths[0];
 });
+ipcMain.handle('printer:get-printers', async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || BrowserWindow.getAllWindows()[0];
+  if (!win) return [];
+  try {
+    return await win.webContents.getPrintersAsync();
+  } catch (err) {
+    console.error('[Electron] Gagal mengambil daftar printer sistem:', err);
+    return [];
+  }
+});
+
 ipcMain.handle('printer:print-silent', async (event, options = {}) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return { success: false, error: 'Window not found' };

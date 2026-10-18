@@ -2,6 +2,7 @@ import { api } from '../shared/api.js';
 import { createTemplateEditor } from './screens/template-editor.js';
 import { createPinModal } from './screens/pin-modal.js';
 import { preventDoubleClick, setupOfflineMonitor } from '../shared/ui.js';
+import { getCameraDevices } from '../shared/camera.js';
 
 const appRoot = document.getElementById('app');
 let currentScreen = null;
@@ -58,37 +59,43 @@ async function renderAdminDashboard() {
       </div>
     </header>
 
-    <!-- Status Perangkat -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 my-6">
-      <div class="card-raw flex flex-col justify-between">
-        <span class="label-raw text-xs text-black">KAMERA EKSTERNAL</span>
-        <div class="mt-4 flex items-center justify-between">
-          <span id="cam-status" class="font-mono text-base font-bold text-black">MENGECEK...</span>
-          <span class="chip-raw chip-raw-warning">STANDBY</span>
+    <!-- Status & Pemilihan Perangkat (PRD F-08, F-12, F-14) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+      <!-- Card Kamera -->
+      <div class="card-raw flex flex-col justify-between p-4 bg-white">
+        <div class="flex items-center justify-between pb-2 border-b-[2px] border-black">
+          <span class="label-raw text-xs text-black">PERANGKAT KAMERA (DSLR / WEBCAM)</span>
+          <span id="cam-chip" class="chip-raw chip-raw-warning text-xs">MEMINDAI...</span>
+        </div>
+        <div class="mt-3">
+          <label for="select-camera-device" class="block font-headline text-xs text-black mb-1">
+            PILIH SUMBER KAMERA:
+          </label>
+          <select id="select-camera-device" class="input-raw w-full text-xs font-mono font-bold bg-white cursor-pointer">
+            <option value="">MEMINDAI PERANGKAT KAMERA...</option>
+          </select>
+          <p id="cam-hint" class="font-mono text-[11px] text-black/75 mt-2">
+            Mendeteksi ketersediaan kamera eksternal dan bawaan laptop...
+          </p>
         </div>
       </div>
 
-      <div class="card-raw flex flex-col justify-between">
-        <span class="label-raw text-xs text-black">PRINTER DEFAULT</span>
-        <div class="mt-4 flex items-center justify-between">
-          <span id="printer-status" class="font-mono text-base font-bold text-black">DEFAULT 4R</span>
-          <span class="chip-raw chip-raw-active">TERHUBUNG</span>
+      <!-- Card Printer -->
+      <div class="card-raw flex flex-col justify-between p-4 bg-white">
+        <div class="flex items-center justify-between pb-2 border-b-[2px] border-black">
+          <span class="label-raw text-xs text-black">PERANGKAT PRINTER (4R / STRIP)</span>
+          <span id="printer-chip" class="chip-raw chip-raw-warning text-xs">MEMINDAI...</span>
         </div>
-      </div>
-
-      <div class="card-raw flex flex-col justify-between">
-        <span class="label-raw text-xs text-black">KONEKSI INTERNET</span>
-        <div class="mt-4 flex items-center justify-between">
-          <span id="net-status" class="font-mono text-base font-bold text-black">ONLINE</span>
-          <span class="chip-raw chip-raw-active">AKTIF</span>
-        </div>
-      </div>
-
-      <div class="card-raw flex flex-col justify-between">
-        <span class="label-raw text-xs text-black">SINKRON GOOGLE DRIVE</span>
-        <div class="mt-4 flex items-center justify-between">
-          <span id="drive-status" class="font-mono text-base font-bold text-black">MIRROR AKTIF</span>
-          <span class="chip-raw chip-raw-active">LOKAL</span>
+        <div class="mt-3">
+          <label for="select-printer-device" class="block font-headline text-xs text-black mb-1">
+            PILIH PRINTER TUJUAN:
+          </label>
+          <select id="select-printer-device" class="input-raw w-full text-xs font-mono font-bold bg-white cursor-pointer">
+            <option value="">MEMINDAI DAFTAR PRINTER...</option>
+          </select>
+          <p id="printer-hint" class="font-mono text-[11px] text-black/75 mt-2">
+            Mendeteksi printer sistem untuk cetak senyap otomatis...
+          </p>
         </div>
       </div>
     </div>
@@ -483,31 +490,188 @@ async function renderAdminDashboard() {
     console.error('Gagal memuat pengaturan:', err);
   }
 
-  // Monitor status koneksi internet di panel admin
-  const netStatus = document.getElementById('net-status');
-  const netCard = netStatus?.closest('.card-raw');
-  const netChip = netCard?.querySelector('.chip-raw');
+  // ==========================================
+  // Monitor & Pemilihan Perangkat (PRD F-08, F-12, F-14)
+  // ==========================================
+  const selectCamera = document.getElementById('select-camera-device');
+  const camChip = document.getElementById('cam-chip');
+  const camHint = document.getElementById('cam-hint');
 
-  function updateNetworkIndicator() {
-    if (!netStatus) return;
-    if (navigator.onLine) {
-      netStatus.textContent = 'ONLINE';
-      if (netChip) {
-        netChip.textContent = 'AKTIF';
-        netChip.className = 'chip-raw chip-raw-active';
+  const selectPrinter = document.getElementById('select-printer-device');
+  const printerChip = document.getElementById('printer-chip');
+  const printerHint = document.getElementById('printer-hint');
+
+  function updateCameraStatusUI(devices, activeId) {
+    const activeDev = devices.find((d) => d.deviceId === activeId);
+    if (!activeDev) return;
+
+    if (activeDev.isExternal) {
+      if (camChip) {
+        camChip.textContent = 'TERHUBUNG (EKSTERNAL)';
+        camChip.className = 'chip-raw chip-raw-active text-xs';
+      }
+      if (camHint) {
+        camHint.textContent = `Kamera eksternal (${activeDev.label}) aktif dan siap untuk sesi foto kiosk.`;
       }
     } else {
-      netStatus.textContent = 'TERPUTUS';
-      if (netChip) {
-        netChip.textContent = 'OFFLINE';
-        netChip.className = 'chip-raw chip-raw-destructive';
+      if (camChip) {
+        camChip.textContent = 'TERHUBUNG (LAPTOP)';
+        camChip.className = 'chip-raw chip-raw-active text-xs';
+      }
+      if (camHint) {
+        camHint.textContent = 'Kamera eksternal tidak ditemukan. Menggunakan kamera bawaan laptop sebagai default.';
       }
     }
   }
 
-  window.addEventListener('online', updateNetworkIndicator);
-  window.addEventListener('offline', updateNetworkIndicator);
-  updateNetworkIndicator();
+  async function updateCameraDevices() {
+    if (!selectCamera) return;
+    try {
+      const devices = await getCameraDevices();
+      selectCamera.innerHTML = '';
+
+      if (!devices || devices.length === 0) {
+        selectCamera.innerHTML = '<option value="">TIDAK ADA KAMERA TERHUBUNG</option>';
+        if (camChip) {
+          camChip.textContent = 'TIDAK TERHUBUNG';
+          camChip.className = 'chip-raw chip-raw-destructive text-xs';
+        }
+        if (camHint) {
+          camHint.textContent = 'Peringatan: Tidak ada kamera terdeteksi. Sambungkan DSLR/webcam ke port USB!';
+        }
+        return;
+      }
+
+      // Check previously saved selection
+      const savedCamId = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_camera_id') : null;
+      let selectedId = '';
+
+      devices.forEach((dev) => {
+        const opt = document.createElement('option');
+        opt.value = dev.deviceId;
+        const tag = dev.isExternal ? '[EKSTERNAL]' : '[INTERNAL / LAPTOP]';
+        opt.textContent = `${dev.label} ${tag}`;
+        selectCamera.appendChild(opt);
+      });
+
+      // Default strategy:
+      // 1. Saved camera if still available
+      // 2. First external camera if available
+      // 3. Fallback to laptop internal camera
+      if (savedCamId && devices.some((d) => d.deviceId === savedCamId)) {
+        selectedId = savedCamId;
+      } else {
+        const ext = devices.find((d) => d.isExternal);
+        selectedId = ext ? ext.deviceId : devices[0].deviceId;
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('selected_camera_id', selectedId);
+        }
+      }
+
+      selectCamera.value = selectedId;
+      updateCameraStatusUI(devices, selectedId);
+    } catch (err) {
+      console.warn('[Admin] Gagal memuat daftar kamera:', err);
+    }
+  }
+
+  selectCamera?.addEventListener('change', async (e) => {
+    const chosenId = e.target.value;
+    if (chosenId) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selected_camera_id', chosenId);
+      }
+      const devices = await getCameraDevices();
+      updateCameraStatusUI(devices, chosenId);
+    }
+  });
+
+  // Listen for USB camera plug / unplug
+  if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener('devicechange', () => {
+      updateCameraDevices();
+    });
+  }
+
+  async function updatePrinterDevices() {
+    if (!selectPrinter) return;
+    try {
+      let printers = [];
+      if (window.photobooth?.getPrinters) {
+        printers = await window.photobooth.getPrinters();
+      }
+
+      selectPrinter.innerHTML = '';
+
+      if (!printers || printers.length === 0) {
+        selectPrinter.innerHTML = '<option value="">TIDAK ADA PRINTER TERHUBUNG</option>';
+        if (printerChip) {
+          printerChip.textContent = 'TIDAK TERHUBUNG';
+          printerChip.className = 'chip-raw chip-raw-destructive text-xs';
+        }
+        if (printerHint) {
+          printerHint.textContent = 'Tidak ada printer terdeteksi pada sistem laptop. Pastikan kabel printer terpasang dan driver aktif.';
+        }
+        return;
+      }
+
+      const savedPrinter = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_printer_name') : null;
+      let chosenName = '';
+
+      printers.forEach((p) => {
+        const opt = document.createElement('option');
+        const pName = p.name || p.displayName;
+        opt.value = pName;
+        opt.textContent = p.isDefault ? `${pName} [DEFAULT SISTEM]` : pName;
+        selectPrinter.appendChild(opt);
+      });
+
+      // Default strategy:
+      // 1. Saved printer if in list
+      // 2. Default printer in system
+      // 3. First printer
+      if (savedPrinter && printers.some((p) => (p.name || p.displayName) === savedPrinter)) {
+        chosenName = savedPrinter;
+      } else {
+        const def = printers.find((p) => p.isDefault);
+        chosenName = def ? (def.name || def.displayName) : (printers[0].name || printers[0].displayName);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('selected_printer_name', chosenName);
+        }
+      }
+
+      selectPrinter.value = chosenName;
+      if (printerChip) {
+        printerChip.textContent = 'TERHUBUNG';
+        printerChip.className = 'chip-raw chip-raw-active text-xs';
+      }
+      if (printerHint) {
+        printerHint.textContent = `Printer "${chosenName}" siap digunakan untuk cetak senyap otomatis (silent print).`;
+      }
+    } catch (err) {
+      console.warn('[Admin] Gagal memuat daftar printer:', err);
+    }
+  }
+
+  selectPrinter?.addEventListener('change', (e) => {
+    const chosenName = e.target.value;
+    if (chosenName) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selected_printer_name', chosenName);
+      }
+      if (printerChip) {
+        printerChip.textContent = 'TERHUBUNG';
+        printerChip.className = 'chip-raw chip-raw-active text-xs';
+      }
+      if (printerHint) {
+        printerHint.textContent = `Printer "${chosenName}" siap digunakan untuk cetak senyap otomatis (silent print).`;
+      }
+    }
+  });
+
+  // Inisialisasi pemindaian perangkat
+  updateCameraDevices();
+  updatePrinterDevices();
 
   // Save settings event with double-click guard
   const saveBtn = document.getElementById('btn-save-settings');
@@ -968,7 +1132,11 @@ async function renderAdminDashboard() {
       document.body.appendChild(printContainer);
 
       if (window.photobooth?.printSilent) {
-        await window.photobooth.printSilent({ copies: 1 });
+        const selectedPrinter = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_printer_name') : null;
+        await window.photobooth.printSilent({
+          copies: 1,
+          deviceName: selectedPrinter || undefined
+        });
       } else {
         window.print();
       }

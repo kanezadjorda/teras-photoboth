@@ -80,15 +80,15 @@ Selesai → kembali ke Welcome (otomatis)
 | F-22 | Editor koreksi slot: geser, ubah ukuran, hapus/tambah slot, ubah urutan foto | P1 |
 | F-23 | Aktif/nonaktifkan template dan atur nama template (harga tidak per template) | P0 |
 | **Kamera** |  |  |
-| F-08 | Kamera eksternal terdeteksi otomatis (tanpa pemilihan manual; kamera bawaan laptop diabaikan jika ada kamera eksternal), live preview (mirror) | P0 |
+| F-08 | Kamera eksternal terdeteksi otomatis (prioritas kamera eksternal/DSLR, fallback otomatis ke kamera laptop jika tidak ada eksternal; sumber kamera dapat dipilih di panel admin), live preview (mirror) | P0 |
 | F-09 | Countdown + capture resolusi tertinggi yang didukung | P0 |
 | F-10 | Retake per foto | P1 |
 | **Cetak** |  |  |
 | F-11 | Komposit foto + template ke satu gambar siap cetak (300 DPI) | P0 |
-| F-12 | Cetak otomatis tanpa dialog ke printer default sistem (tanpa pemilihan printer; ukuran 4R diatur oleh aplikasi); jumlah salinan diterapkan di langkah cetak (N halaman pada CSS cetak), bukan di dialog printer | P0 |
+| F-12 | Cetak otomatis tanpa dialog ke printer default sistem atau printer terpilih (ukuran 4R diatur oleh aplikasi); jumlah salinan diterapkan di langkah cetak (N halaman pada CSS cetak), bukan di dialog printer | P0 |
 | F-13 | Cetak ulang dari riwayat (staff) | P1 |
 | **Staff** |  |  |
-| F-14 | Halaman admin (PIN): indikator status perangkat otomatis (kamera, printer, internet, sinkron Drive; hanya tampilan), atur harga sesi, atur jumlah cetak per sesi (default 1; bisa diubah admin, mis. 2 untuk dua orang) | P0 |
+| F-14 | Halaman admin (PIN): pemantauan status & pemilihan perangkat aktif (kamera eksternal/laptop dan printer terpasang), atur harga sesi, atur jumlah cetak per sesi (default 1; bisa diubah admin, mis. 2 untuk dua orang) | P0 |
 | F-15 | Laporan harian: jumlah sesi & total pendapatan, ekspor CSV | P1 |
 | F-16 | Tombol darurat: batalkan sesi / reset ke Welcome | P0 |
 | **Soft file** |  |  |

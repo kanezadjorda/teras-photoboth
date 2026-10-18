@@ -96,8 +96,10 @@ export function createPrintingScreen({
           console.log(`[Printing] Memulai pencetakan ${validCopies} salinan...`);
 
           if (window.photobooth?.printSilent) {
+            const selectedPrinter = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_printer_name') : null;
             const printResult = await window.photobooth.printSilent({
-              copies: validCopies
+              copies: validCopies,
+              deviceName: selectedPrinter || undefined
             });
             console.log('[Printing] Hasil silent print Electron:', printResult);
           } else {

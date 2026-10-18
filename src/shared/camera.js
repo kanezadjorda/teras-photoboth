@@ -4,17 +4,19 @@
  * PRD Reference: F-08, F-09
  */
 
+// Keywords that typically denote built-in/internal laptop webcams
+const INTERNAL_KEYWORDS = ['integrated', 'built-in', 'internal', 'facetime', 'bawaan'];
+
 /**
- * Detects available video input devices and returns the optimal device ID.
- * Prefers external webcam / HDMI capture card over built-in laptop cameras.
- * @returns {Promise<string|null>}
+ * Lists all available video input devices with external/internal classification.
+ * PRD Reference: F-08, F-14
+ * @returns {Promise<Array<{deviceId: string, label: string, isExternal: boolean, isInternal: boolean}>>}
  */
-export async function getOptimalCameraDeviceId() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-    throw new Error('Web MediaDevices API tidak didukung pada browser ini.');
+export async function getCameraDevices() {
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    return [];
   }
 
-  // Initial dummy stream request if permissions haven't been granted (to populate labels)
   let initialStream = null;
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -33,30 +35,47 @@ export async function getOptimalCameraDeviceId() {
   const allDevices = await navigator.mediaDevices.enumerateDevices();
   const videoDevices = allDevices.filter((d) => d.kind === 'videoinput');
 
-  if (videoDevices.length === 0) {
+  return videoDevices.map((device, index) => {
+    const label = device.label || `Kamera ${index + 1}`;
+    const isInternal = INTERNAL_KEYWORDS.some((keyword) => label.toLowerCase().includes(keyword));
+    return {
+      deviceId: device.deviceId,
+      label,
+      isExternal: !isInternal,
+      isInternal
+    };
+  });
+}
+
+/**
+ * Detects available video input devices and returns the optimal device ID.
+ * Priority: Manual selection from localStorage > External camera (DSLR/UVC) > Laptop internal camera.
+ * PRD Reference: F-08, F-14
+ * @returns {Promise<string|null>}
+ */
+export async function getOptimalCameraDeviceId() {
+  const devices = await getCameraDevices();
+  if (!devices || devices.length === 0) {
     return null;
   }
 
-  // If only one camera exists, return it
-  if (videoDevices.length === 1) {
-    return videoDevices[0].deviceId;
+  // 1. Check if user explicitly selected a camera in Admin Panel
+  const savedId = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_camera_id') : null;
+  if (savedId) {
+    const matched = devices.find((d) => d.deviceId === savedId);
+    if (matched) {
+      return matched.deviceId;
+    }
   }
 
-  // Keywords that typically denote built-in/internal laptop webcams
-  const internalKeywords = ['integrated', 'built-in', 'internal', 'facetime', 'bawaan'];
-
-  // Look for external camera (does NOT match internal keywords)
-  const externalDevice = videoDevices.find((device) => {
-    const label = (device.label || '').toLowerCase();
-    return !internalKeywords.some((keyword) => label.includes(keyword));
-  });
-
+  // 2. Prefer external camera (e.g. DSLR via capture card / UVC webcam)
+  const externalDevice = devices.find((d) => d.isExternal);
   if (externalDevice) {
     return externalDevice.deviceId;
   }
 
-  // Fallback to the second video device if no label matched internal keywords
-  return videoDevices[1].deviceId;
+  // 3. Fallback to default / laptop internal camera
+  return devices[0].deviceId;
 }
 
 /**

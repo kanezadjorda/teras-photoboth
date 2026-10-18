@@ -88,6 +88,7 @@ if (typeof window !== 'undefined' && !window.photobooth) {
       window.print();
       return { success: true };
     },
+    getPrinters: async () => [],
     quitApp: async () => {
       console.warn('[Photobooth] quitApp called in web mode (no-op)');
     },
