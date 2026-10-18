@@ -318,20 +318,20 @@ export function createTemplateEditor({ onBack }) {
 
     container.innerHTML = `
       <!-- Sub-header -->
-      <div class="flex items-center justify-between pb-4 border-b-[5px] border-black">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-[5px] border-black">
         <div>
-          <h2 class="text-2xl font-headline uppercase text-black">MANAJEMEN & EDITOR TEMPLATE</h2>
-          <p class="font-body text-xs text-black/70">UNGGAH PNG 4R (1200×1800 PX) &bull; DETEKSI LUBANG FOTO OTOMATIS &bull; KOREKSI SLOT</p>
+          <h2 class="text-xl sm:text-2xl font-headline uppercase text-black">MANAJEMEN & EDITOR TEMPLATE</h2>
+          <p class="font-body text-xs sm:text-sm text-black/70">UNGGAH PNG 4R (1200×1800 PX) &bull; DETEKSI LUBANG FOTO OTOMATIS &bull; KOREKSI SLOT</p>
         </div>
-        <button id="btn-back" class="btn-raw-secondary px-6 py-2.5 text-xs">
+        <button id="btn-back" class="btn-raw-secondary px-6 py-2.5 text-xs font-headline self-start sm:self-auto">
           KEMBALI KE DASHBOARD
         </button>
       </div>
 
       <!-- Upload & Editor Workspace -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         <!-- Left: Upload & Interactive Canvas Preview -->
-        <div class="lg:col-span-7 space-y-4">
+        <div class="lg:col-span-7 xl:col-span-8 space-y-4">
           <div class="card-raw flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <label class="label-raw text-xs">PILIH FILE TEMPLATE PNG</label>
@@ -347,8 +347,8 @@ export function createTemplateEditor({ onBack }) {
         </div>
 
         <!-- Right: Slot Controls & Form -->
-        <div class="lg:col-span-5 space-y-6">
-          <div class="card-raw-elevated space-y-4">
+        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+          <div class="card-raw-elevated space-y-4 p-4 sm:p-6">
             <h3 class="font-headline text-lg uppercase text-black pb-2 border-b-[3px] border-black">
               INFORMASI & SLOT FOTO
             </h3>
@@ -362,7 +362,7 @@ export function createTemplateEditor({ onBack }) {
             <div class="space-y-3">
               <div class="flex items-center justify-between">
                 <label class="label-raw text-xs mb-0">DAFTAR KOREKSI SLOT</label>
-                <button id="btn-add-slot" class="btn-raw-secondary px-3 py-1 text-xs">
+                <button id="btn-add-slot" class="btn-raw-secondary px-3 py-1 text-xs font-headline">
                   + TAMBAH SLOT MANUAL
                 </button>
               </div>
@@ -371,7 +371,7 @@ export function createTemplateEditor({ onBack }) {
             </div>
 
             <div class="pt-4 border-t-[3px] border-black">
-              <button id="btn-save-template" class="btn-raw-primary w-full py-4 text-base">
+              <button id="btn-save-template" class="btn-raw-primary w-full py-4 text-base font-headline">
                 SIMPAN TEMPLATE
               </button>
             </div>
@@ -381,11 +381,11 @@ export function createTemplateEditor({ onBack }) {
 
       <!-- Template Gallery Section -->
       <section class="space-y-4 pt-6 border-t-[5px] border-black">
-        <div class="flex items-center justify-between">
-          <h3 class="font-headline text-xl uppercase text-black">GALERI TEMPLATE TERSIMPAN</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h3 class="font-headline text-lg sm:text-xl uppercase text-black">GALERI TEMPLATE TERSIMPAN</h3>
           <span class="font-mono text-xs text-black/60">HANYA TEMPLATE AKTIF YANG MUNCUL DI KIOSK</span>
         </div>
-        <div id="template-gallery" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        <div id="template-gallery" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6"></div>
       </section>
     `;
 

@@ -374,34 +374,34 @@ export function createHomeScreen({ onStatusChange } = {}) {
           description: 'Pantau sesi yang sedang berjalan hari ini'
         })}
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="p-4 border-[3px] border-black bg-white">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
+          <div class="p-4 sm:p-6 border-[3px] border-black bg-white">
             <span class="label-raw text-xs text-black">SESI HARI INI</span>
             <div class="mt-2">
-              <span id="home-today-sessions" class="font-headline text-3xl text-black">0 SESI</span>
+              <span id="home-today-sessions" class="font-headline text-3xl sm:text-4xl text-black">0 SESI</span>
             </div>
           </div>
-          <div class="p-4 border-[3px] border-black bg-white">
+          <div class="p-4 sm:p-6 border-[3px] border-black bg-white">
             <span class="label-raw text-xs text-black">LUNAS</span>
             <div class="mt-2">
-              <span id="home-today-paid" class="font-headline text-3xl text-black">0 LUNAS</span>
+              <span id="home-today-paid" class="font-headline text-3xl sm:text-4xl text-black">0 LUNAS</span>
             </div>
           </div>
-          <div class="p-4 border-[3px] border-black bg-white">
+          <div class="p-4 sm:p-6 border-[3px] border-black bg-white sm:col-span-2 lg:col-span-1">
             <span class="label-raw text-xs text-black">OMSET HARI INI</span>
             <div class="mt-2">
-              <span id="home-today-revenue" class="font-headline text-3xl text-black">RP 0</span>
+              <span id="home-today-revenue" class="font-headline text-3xl sm:text-4xl text-black">RP 0</span>
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div class="lg:col-span-2">
-            <section id="waiting-payment-section" class="card-raw border-[5px] border-black bg-white h-full flex flex-col justify-between">
+            <section id="waiting-payment-section" class="card-raw border-[5px] border-black bg-white h-full flex flex-col justify-between p-4 sm:p-6">
               <div class="flex items-center justify-between pb-3 border-b-[3px] border-black">
                 <div class="flex items-center gap-2">
                   <span class="chip-raw bg-black text-white text-xs">F-04</span>
-                  <h2 class="text-lg font-headline uppercase tracking-tight text-black">
+                  <h2 class="text-base sm:text-lg font-headline uppercase tracking-tight text-black">
                     SESI MENUNGGU PEMBAYARAN (QRIS)
                   </h2>
                 </div>
@@ -415,11 +415,11 @@ export function createHomeScreen({ onStatusChange } = {}) {
           </div>
 
           <div>
-            <section class="card-raw border-[5px] border-black bg-white h-full flex flex-col justify-between">
+            <section class="card-raw border-[5px] border-black bg-white h-full flex flex-col justify-between p-4 sm:p-6">
               <div>
                 <div class="flex items-center gap-2 pb-3 border-b-[3px] border-black">
                   <span class="chip-raw bg-black text-white text-xs">F-16</span>
-                  <h3 class="text-lg font-headline uppercase text-black">TOMBOL DARURAT</h3>
+                  <h3 class="text-base sm:text-lg font-headline uppercase text-black">TOMBOL DARURAT</h3>
                 </div>
                 <p class="font-body text-xs text-black/80 mt-3">
                   Gunakan jika customer mengalami kendala dan ingin membatalkan sesi kembali ke layar Welcome.
@@ -437,14 +437,14 @@ export function createHomeScreen({ onStatusChange } = {}) {
         <div class="mb-6">
           <div class="flex items-center gap-2 pb-2 mb-4 border-b-[3px] border-black">
             <span class="chip-raw bg-black text-white text-xs">PERANGKAT</span>
-            <h2 class="text-lg font-headline uppercase tracking-tight text-black">
+            <h2 class="text-base sm:text-lg font-headline uppercase tracking-tight text-black">
               STATUS & PEMILIHAN PERANGKAT
             </h2>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
             <!-- Card Kamera -->
-            <div class="card-raw flex flex-col justify-between p-4 bg-white">
+            <div class="card-raw flex flex-col justify-between p-4 sm:p-6 bg-white">
               <div class="flex items-center justify-between pb-2 border-b-[2px] border-black">
                 <span class="label-raw text-xs text-black">PERANGKAT KAMERA (DSLR / WEBCAM)</span>
                 <span id="cam-chip" class="chip-raw chip-raw-warning text-xs">MEMINDAI...</span>
@@ -544,3 +544,4 @@ export function createHomeScreen({ onStatusChange } = {}) {
     }
   };
 }
+

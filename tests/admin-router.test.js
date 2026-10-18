@@ -24,3 +24,4 @@ describe('Admin Hash Router Helpers (PRD F-14)', () => {
     expect(toAdminHash('event')).toBe('#/event');
   });
 });
+

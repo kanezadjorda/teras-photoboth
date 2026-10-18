@@ -53,28 +53,28 @@ export function createSettingsScreen() {
           title: 'PENGATURAN',
           description: 'Harga sesi, jumlah cetak, dan PIN operator'
         })}
-        <section class="card-raw-elevated my-6 bg-white">
+        <section class="card-raw-elevated my-6 bg-white p-4 sm:p-6 lg:p-8">
           <h2 class="text-xl font-headline uppercase tracking-tight text-black pb-2 mb-6 border-b-[3px] border-black">
             PENGATURAN SESI & KEAMANAN
           </h2>
-          <div id="settings-form" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div id="settings-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label class="label-raw">HARGA PER SESI (RUPIAH)</label>
-              <input type="number" id="setting-price" class="input-raw" />
+              <input type="number" id="setting-price" class="input-raw w-full" />
               <p class="font-body text-xs text-black/70 mt-1">Nominal yang akan digenerate ke QRIS dinamis Midtrans</p>
             </div>
             <div>
               <label class="label-raw">JUMLAH CETAK PER SESI</label>
-              <input type="number" id="setting-copies" min="1" max="10" class="input-raw" />
+              <input type="number" id="setting-copies" min="1" max="10" class="input-raw w-full" />
               <p class="font-body text-xs text-black/70 mt-1">Jumlah lembar 4R yang dicetak otomatis per sesi</p>
             </div>
-            <div>
+            <div class="sm:col-span-2 lg:col-span-1">
               <label class="label-raw">PIN OPERATOR (4 DIGIT)</label>
-              <input type="password" id="setting-pin" maxlength="4" class="input-raw font-mono tracking-widest text-center" placeholder="1234" />
+              <input type="password" id="setting-pin" maxlength="4" class="input-raw font-mono tracking-widest text-center w-full" placeholder="1234" />
               <p class="font-body text-xs text-black/70 mt-1">PIN untuk membuka panel & konfirmasi manual (F-14)</p>
             </div>
-            <div class="md:col-span-3 flex justify-end pt-2">
-              <button id="btn-save-settings" class="btn-raw-primary px-8 py-3 text-sm">
+            <div class="sm:col-span-2 lg:col-span-3 flex justify-end pt-2">
+              <button id="btn-save-settings" class="btn-raw-primary px-8 py-3 text-sm font-headline">
                 SIMPAN PENGATURAN
               </button>
             </div>
@@ -92,3 +92,4 @@ export function createSettingsScreen() {
     }
   };
 }
+

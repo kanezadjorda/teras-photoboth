@@ -185,6 +185,33 @@ export function createAdminShell({ onLock }) {
       parent.appendChild(container);
       contentEl = container.querySelector('#admin-content');
 
+      const sidebar = container.querySelector('#admin-sidebar');
+      const backdrop = container.querySelector('#sidebar-backdrop');
+      const toggleBtn = container.querySelector('#btn-toggle-sidebar');
+      const closeBtn = container.querySelector('#btn-close-sidebar');
+
+      const openSidebar = () => {
+        sidebar?.classList.remove('-translate-x-full');
+        backdrop?.classList.remove('hidden');
+      };
+
+      const closeSidebar = () => {
+        sidebar?.classList.add('-translate-x-full');
+        backdrop?.classList.add('hidden');
+      };
+
+      toggleBtn?.addEventListener('click', openSidebar);
+      closeBtn?.addEventListener('click', closeSidebar);
+      backdrop?.addEventListener('click', closeSidebar);
+
+      container.querySelectorAll('[data-route]').forEach((link) => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 768) {
+            closeSidebar();
+          }
+        });
+      });
+
       container.querySelector('#btn-lock-panel').addEventListener('click', () => onLock?.());
       window.addEventListener('hashchange', renderRoute);
 
@@ -226,12 +253,19 @@ function renderLayout() {
   }).join('');
 
   return `
-    <aside class="w-64 shrink-0 bg-black text-white flex flex-col min-h-screen sticky top-0 h-screen">
-      <div class="p-6 border-b-[3px] border-white">
-        <p class="font-headline text-xl uppercase leading-tight">TERAS<br/>PHOTOBOOTH</p>
-        <p class="font-mono text-[11px] text-white/60 mt-1">PANEL OPERATOR</p>
+    <!-- Mobile Backdrop -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
+
+    <!-- Responsive Sidebar Drawer on mobile, static on md+ -->
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:static md:h-screen md:sticky md:top-0 md:shrink-0">
+      <div class="p-4 sm:p-6 border-b-[3px] border-white flex items-center justify-between">
+        <div>
+          <p class="font-headline text-lg sm:text-xl uppercase leading-tight">TERAS<br/>PHOTOBOOTH</p>
+          <p class="font-mono text-[10px] sm:text-[11px] text-white/60 mt-1">PANEL OPERATOR</p>
+        </div>
+        <button id="btn-close-sidebar" class="md:hidden text-white hover:text-raw-error p-1 font-headline text-lg" aria-label="Tutup menu">✕</button>
       </div>
-      <nav class="flex-1 py-4" aria-label="Menu admin">
+      <nav class="flex-1 py-4 overflow-y-auto" aria-label="Menu admin">
         ${navHtml}
       </nav>
       <div class="p-4 border-t-[3px] border-white">
@@ -239,13 +273,22 @@ function renderLayout() {
       </div>
     </aside>
 
-    <div class="flex-1 min-w-0 flex flex-col">
-      <header class="sticky top-0 z-40 bg-white border-b-[3px] border-black px-8 py-3 flex flex-wrap items-center gap-3">
-        <span id="topbar-camera" class="chip-raw chip-raw-default text-xs">KAMERA: ...</span>
-        <span id="topbar-printer" class="chip-raw chip-raw-default text-xs">PRINTER: ...</span>
-        <span id="topbar-event" class="chip-raw chip-raw-default text-xs">EVENT: ...</span>
+    <div class="flex-1 min-w-0 flex flex-col w-full">
+      <header class="sticky top-0 z-40 bg-white border-b-[3px] border-black px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <button id="btn-toggle-sidebar" class="md:hidden btn-raw-secondary px-3 py-1.5 text-xs font-headline flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
+            <span>☰</span>
+            <span>MENU</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span id="topbar-camera" class="chip-raw chip-raw-default text-xs">KAMERA: ...</span>
+          <span id="topbar-printer" class="chip-raw chip-raw-default text-xs">PRINTER: ...</span>
+          <span id="topbar-event" class="chip-raw chip-raw-default text-xs">EVENT: ...</span>
+        </div>
       </header>
-      <main id="admin-content" class="flex-1 p-8 max-w-6xl w-full"></main>
+      <main id="admin-content" class="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-none"></main>
     </div>
   `;
 }
+

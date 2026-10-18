@@ -14,3 +14,4 @@ export function parseAdminRoute(hash) {
 export function toAdminHash(route) {
   return `#/${route}`;
 }
+

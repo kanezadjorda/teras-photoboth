@@ -61,11 +61,11 @@ export function createEventsScreen({ onStatusChange } = {}) {
 
           return `
             <tr class="hover:bg-raw-sunken transition-colors">
-              <td class="p-3 border-r-[2px] border-black font-bold text-black font-headline uppercase">${e.nama}</td>
-              <td class="p-3 border-r-[2px] border-black text-black/80 font-mono text-[11px] break-all">${e.folder_path}</td>
-              <td class="p-3 border-r-[2px] border-black text-black font-bold font-mono">${e.total_sessions || 0} SESI</td>
-              <td class="p-3 border-r-[2px] border-black">${statusChip}</td>
-              <td class="p-3 text-center">${actionBtn}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black font-bold text-black font-headline uppercase text-xs sm:text-sm">${e.nama}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black/80 font-mono text-[11px] sm:text-xs break-all">${e.folder_path}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black font-bold font-mono text-xs sm:text-sm whitespace-nowrap">${e.total_sessions || 0} SESI</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black">${statusChip}</td>
+              <td class="p-3 sm:p-4 text-center whitespace-nowrap">${actionBtn}</td>
             </tr>
           `;
         })
@@ -215,17 +215,17 @@ export function createEventsScreen({ onStatusChange } = {}) {
         })}
 
         <!-- Banner Event Aktif -->
-        <div class="p-4 border-[3px] border-black bg-raw-sunken mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="p-4 sm:p-6 border-[3px] border-black bg-raw-sunken mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span class="label-raw text-xs text-black">EVENT OPERASIONAL AKTIF SAAT INI</span>
-            <h3 id="active-event-name" class="font-headline text-xl text-black uppercase mt-1">
+            <h3 id="active-event-name" class="font-headline text-xl sm:text-2xl text-black uppercase mt-1">
               MEMUAT EVENT...
             </h3>
-            <p id="active-event-path" class="font-mono text-xs text-black/80 mt-1 break-all">
+            <p id="active-event-path" class="font-mono text-xs sm:text-sm text-black/80 mt-1 break-all">
               Folder: -
             </p>
           </div>
-          <span id="active-event-chip" class="chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs">
+          <span id="active-event-chip" class="chip-raw chip-raw-active self-start md:self-auto px-4 py-2 font-headline text-xs sm:text-sm whitespace-nowrap">
             SESI KIOSK TERSAMBUNG KE EVENT INI
           </span>
         </div>
@@ -235,12 +235,12 @@ export function createEventsScreen({ onStatusChange } = {}) {
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse border-[3px] border-black text-sm">
               <thead>
-                <tr class="bg-black text-white font-headline text-xs uppercase">
-                  <th class="p-3 border-r-[2px] border-white/20">NAMA EVENT</th>
-                  <th class="p-3 border-r-[2px] border-white/20">FOLDER DRIVE / LOKAL</th>
-                  <th class="p-3 border-r-[2px] border-white/20">TOTAL SESI</th>
-                  <th class="p-3 border-r-[2px] border-white/20">STATUS</th>
-                  <th class="p-3 text-center">AKSI</th>
+                <tr class="bg-black text-white font-headline text-xs sm:text-sm uppercase">
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-1/4 min-w-[160px]">NAMA EVENT</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 min-w-[200px]">FOLDER DRIVE / LOKAL</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-28 sm:w-36 min-w-[100px]">TOTAL SESI</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-36 sm:w-44 min-w-[130px]">STATUS</th>
+                  <th class="p-3 sm:p-4 text-center w-36 sm:w-44 min-w-[130px]">AKSI</th>
                 </tr>
               </thead>
               <tbody id="events-table-body" class="font-mono text-xs divide-y-[2px] divide-black">
@@ -331,3 +331,4 @@ export function createEventsScreen({ onStatusChange } = {}) {
     }
   };
 }
+

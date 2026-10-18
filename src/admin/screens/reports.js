@@ -120,18 +120,18 @@ export function createReportsScreen() {
 
           return `
             <tr class="hover:bg-raw-sunken transition-colors">
-              <td class="p-3 border-r-[2px] border-black font-bold text-black">${sessionNo}</td>
-              <td class="p-3 border-r-[2px] border-black text-black/80 font-mono text-[11px]">${eventName}</td>
-              <td class="p-3 border-r-[2px] border-black text-black/80 font-mono text-[11px]">${dateStr}</td>
-              <td class="p-3 border-r-[2px] border-black text-black">${templateName}</td>
-              <td class="p-3 border-r-[2px] border-black font-mono font-bold">${nominalStr}</td>
-              <td class="p-3 border-r-[2px] border-black">
+              <td class="p-3 sm:p-4 border-r-[2px] border-black font-bold text-black font-mono text-xs sm:text-sm whitespace-nowrap">${sessionNo}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black/80 font-mono text-[11px] sm:text-xs">${eventName}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black/80 font-mono text-[11px] sm:text-xs whitespace-nowrap">${dateStr}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black font-headline text-xs sm:text-sm">${templateName}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black font-mono font-bold text-xs sm:text-sm whitespace-nowrap">${nominalStr}</td>
+              <td class="p-3 sm:p-4 border-r-[2px] border-black whitespace-nowrap">
                 <span class="chip-raw ${sessionBadge} uppercase">${r.session_status || '-'}</span>
               </td>
-              <td class="p-3 border-r-[2px] border-black">
+              <td class="p-3 sm:p-4 border-r-[2px] border-black whitespace-nowrap">
                 <span class="chip-raw ${payBadge} uppercase">${r.payment_status || '-'}</span>
               </td>
-              <td class="p-3 text-center">${reprintBtn}</td>
+              <td class="p-3 sm:p-4 text-center whitespace-nowrap">${reprintBtn}</td>
             </tr>
           `;
         })
@@ -271,35 +271,35 @@ export function createReportsScreen() {
         })}
 
         <!-- 4 Kartu Ringkasan -->
-        <div class="card-raw-elevated mb-6 bg-white">
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="p-4 border-[3px] border-black bg-raw-sunken">
+        <div class="card-raw-elevated mb-6 bg-white p-4 sm:p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+            <div class="p-4 sm:p-5 border-[3px] border-black bg-raw-sunken">
               <span class="label-raw text-xs text-black">TOTAL SESI HARI INI</span>
               <div class="mt-2 flex items-baseline justify-between">
-                <span id="report-today-sessions" class="font-headline text-2xl text-black">0 SESI</span>
-                <span id="report-today-paid" class="font-mono text-xs text-black/70">0 LUNAS</span>
+                <span id="report-today-sessions" class="font-headline text-2xl sm:text-3xl text-black">0 SESI</span>
+                <span id="report-today-paid" class="font-mono text-xs sm:text-sm text-black/70">0 LUNAS</span>
               </div>
             </div>
 
-            <div class="p-4 border-[3px] border-black bg-white">
+            <div class="p-4 sm:p-5 border-[3px] border-black bg-white">
               <span class="label-raw text-xs text-black">OMSET HARI INI</span>
               <div class="mt-2">
-                <span id="report-today-revenue" class="font-headline text-2xl text-black">RP 0</span>
+                <span id="report-today-revenue" class="font-headline text-2xl sm:text-3xl text-black">RP 0</span>
               </div>
             </div>
 
-            <div class="p-4 border-[3px] border-black bg-raw-sunken">
+            <div class="p-4 sm:p-5 border-[3px] border-black bg-raw-sunken">
               <span class="label-raw text-xs text-black">TOTAL SESI (AKUMULASI)</span>
               <div class="mt-2 flex items-baseline justify-between">
-                <span id="report-alltime-sessions" class="font-headline text-2xl text-black">0 SESI</span>
-                <span id="report-alltime-paid" class="font-mono text-xs text-black/70">0 LUNAS</span>
+                <span id="report-alltime-sessions" class="font-headline text-2xl sm:text-3xl text-black">0 SESI</span>
+                <span id="report-alltime-paid" class="font-mono text-xs sm:text-sm text-black/70">0 LUNAS</span>
               </div>
             </div>
 
-            <div class="p-4 border-[3px] border-black bg-white">
+            <div class="p-4 sm:p-5 border-[3px] border-black bg-white">
               <span class="label-raw text-xs text-black">TOTAL OMSET (AKUMULASI)</span>
               <div class="mt-2">
-                <span id="report-alltime-revenue" class="font-headline text-2xl text-black">RP 0</span>
+                <span id="report-alltime-revenue" class="font-headline text-2xl sm:text-3xl text-black">RP 0</span>
               </div>
             </div>
           </div>
@@ -310,15 +310,15 @@ export function createReportsScreen() {
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse border-[3px] border-black text-sm">
               <thead>
-                <tr class="bg-black text-white font-headline text-xs uppercase">
-                  <th class="p-3 border-r-[2px] border-white/20">NO SESI</th>
-                  <th class="p-3 border-r-[2px] border-white/20">EVENT</th>
-                  <th class="p-3 border-r-[2px] border-white/20">WAKTU (WIB)</th>
-                  <th class="p-3 border-r-[2px] border-white/20">TEMPLATE</th>
-                  <th class="p-3 border-r-[2px] border-white/20">NOMINAL</th>
-                  <th class="p-3 border-r-[2px] border-white/20">STATUS SESI</th>
-                  <th class="p-3 border-r-[2px] border-white/20">PEMBAYARAN</th>
-                  <th class="p-3 text-center">AKSI REPRINT</th>
+                <tr class="bg-black text-white font-headline text-xs sm:text-sm uppercase">
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-24 sm:w-28 min-w-[90px]">NO SESI</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 min-w-[140px]">EVENT</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-36 sm:w-44 min-w-[140px]">WAKTU (WIB)</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 min-w-[140px]">TEMPLATE</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-32 sm:w-36 min-w-[110px]">NOMINAL</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-32 sm:w-36 min-w-[120px]">STATUS SESI</th>
+                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-32 sm:w-36 min-w-[120px]">PEMBAYARAN</th>
+                  <th class="p-3 sm:p-4 text-center w-36 sm:w-40 min-w-[130px]">AKSI REPRINT</th>
                 </tr>
               </thead>
               <tbody id="history-table-body" class="font-mono text-xs divide-y-[2px] divide-black">
@@ -348,3 +348,4 @@ export function createReportsScreen() {
     }
   };
 }
+
