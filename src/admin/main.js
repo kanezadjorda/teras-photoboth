@@ -125,14 +125,9 @@ async function renderAdminDashboard() {
             Folder: -
           </p>
         </div>
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <span id="active-event-chip" class="chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs">
-            SESI KIOSK TERSAMBUNG KE EVENT INI
-          </span>
-          <button id="btn-banner-deactivate" class="hidden btn-raw-destructive px-4 py-1.5 text-xs font-headline whitespace-nowrap">
-            NONAKTIFKAN EVENT
-          </button>
-        </div>
+        <span id="active-event-chip" class="chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs">
+          SESI KIOSK TERSAMBUNG KE EVENT INI
+        </span>
       </div>
 
       <!-- Tabel Daftar Event -->
@@ -547,7 +542,6 @@ async function renderAdminDashboard() {
   const btnBrowseFolder = document.getElementById('btn-browse-event-folder');
   const selectReportEvent = document.getElementById('select-report-event');
   const selectHistoryEvent = document.getElementById('select-history-event');
-  const btnBannerDeactivate = document.getElementById('btn-banner-deactivate');
   const activeNameEl = document.getElementById('active-event-name');
   const activePathEl = document.getElementById('active-event-path');
   const activeChipEl = document.getElementById('active-event-chip');
@@ -651,20 +645,12 @@ async function renderAdminDashboard() {
           activeChipEl.textContent = 'SESI KIOSK TERSAMBUNG KE EVENT INI';
           activeChipEl.className = 'chip-raw chip-raw-active self-start md:self-auto px-3 py-1 font-headline text-xs';
         }
-        if (btnBannerDeactivate) {
-          btnBannerDeactivate.classList.remove('hidden');
-          btnBannerDeactivate.setAttribute('data-event-id', activeEvent.id);
-          btnBannerDeactivate.setAttribute('data-event-name', activeEvent.nama);
-        }
       } else {
         if (activeNameEl) activeNameEl.textContent = 'TIDAK ADA EVENT AKTIF (STANDBY / REGULER)';
         if (activePathEl) activePathEl.textContent = 'Folder Default: ./data/photos (Sesi foto baru tersimpan di folder default)';
         if (activeChipEl) {
           activeChipEl.textContent = 'STANDBY (TANPA EVENT KHUSUS)';
           activeChipEl.className = 'chip-raw chip-raw-warning self-start md:self-auto px-3 py-1 font-headline text-xs';
-        }
-        if (btnBannerDeactivate) {
-          btnBannerDeactivate.classList.add('hidden');
         }
       }
 
@@ -756,13 +742,6 @@ async function renderAdminDashboard() {
       }
     }
   }
-
-  // Handle Banner Deactivate Button
-  btnBannerDeactivate?.addEventListener('click', () => {
-    const eventId = btnBannerDeactivate.getAttribute('data-event-id');
-    const eventName = btnBannerDeactivate.getAttribute('data-event-name');
-    handleDeactivateEvent(eventId, eventName, btnBannerDeactivate);
-  });
 
   // Handle Event Activation & Deactivation from table
   document.getElementById('events-table-body')?.addEventListener('click', async (e) => {
