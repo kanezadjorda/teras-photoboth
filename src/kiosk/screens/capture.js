@@ -284,7 +284,6 @@ export function createCaptureScreen({
     container = null;
     videoElement = null;
     triggerBtn = null;
-    cancelBtn = null;
   }
 
   return { mount, unmount };

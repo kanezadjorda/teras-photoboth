@@ -240,7 +240,7 @@ function renderLayout() {
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
 
     <!-- Responsive Sidebar Drawer on mobile, static on md+ -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:static md:h-screen md:top-0 md:shrink-0">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:h-screen md:sticky md:top-0 md:shrink-0">
       <div class="p-4 sm:p-6 border-b-thick border-white flex items-center justify-between">
         <div>
           <p class="font-headline text-lg sm:text-xl uppercase leading-tight">TERAS<br/>PHOTOBOOTH</p>

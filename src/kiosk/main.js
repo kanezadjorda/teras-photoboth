@@ -13,6 +13,10 @@ import { SESSION_STATES, DEFAULTS } from '../shared/constants.js';
 const appRoot = document.getElementById('app');
 let currentScreen = null;
 
+function isRealSession(session) {
+  return Boolean(session?.id && !session.id.includes('demo'));
+}
+
 function renderScreen(screen) {
   if (currentScreen && currentScreen.unmount) {
     currentScreen.unmount();
@@ -71,13 +75,13 @@ function initChooseTemplateScreen(session) {
     onSelectTemplate: async (template) => {
       try {
         console.log(`[Kiosk] Template dipilih: ${template.nama} (${template.jumlah_slot} slot)`);
-        if (session.id && !session.id.startsWith('demo_')) {
+        if (isRealSession(session)) {
           await api.updateSessionStatus(session.id, SESSION_STATES.CAPTURING, template.id);
         }
-        initCaptureScreen(session, template);
+        await initCaptureScreen(session, template);
       } catch (err) {
         console.error('[Kiosk] Gagal memperbarui status sesi:', err);
-        initCaptureScreen(session, template);
+        await initCaptureScreen(session, template);
       }
     }
   });
@@ -103,7 +107,7 @@ async function initCaptureScreen(session, template) {
     onCaptureComplete: async (photos) => {
       console.log(`[Kiosk] Selesai mengambil ${photos.length} foto! Masuk ke review.`);
       try {
-        if (session.id && !session.id.startsWith('demo_')) {
+        if (isRealSession(session)) {
           await api.updateSessionStatus(session.id, SESSION_STATES.REVIEWING);
         }
       } catch (err) {
@@ -146,7 +150,7 @@ function initReviewScreen(session, template, photos, retakeCounts = {}, countdow
 
       let sessionNo = '0001';
       try {
-        if (session.id && !session.id.startsWith('demo_')) {
+        if (isRealSession(session)) {
           // 1. Simpan foto ke disk & database sebelum cetak (PRD F-17, Non-Functional)
           const saveResult = await api.savePhotos(session.id, {
             composite: compositeDataUrl,
@@ -189,7 +193,7 @@ function initPrintingScreen(session, compositeUrl, copies, sessionNo) {
     onPrinted: async () => {
       console.log('[Kiosk] Perintah print terkirim! Masuk ke Layar Selesai.');
       try {
-        if (session.id && !session.id.startsWith('demo_')) {
+        if (isRealSession(session)) {
           await api.updateSessionStatus(session.id, SESSION_STATES.DONE);
         }
       } catch (err) {
@@ -218,7 +222,7 @@ function initDoneScreen(sessionNo) {
 // Helper to cancel session and return to welcome screen
 async function cancelSession(session) {
   try {
-    if (session?.id && !session.id.startsWith('demo_')) {
+    if (isRealSession(session)) {
       await api.updateSessionStatus(session.id, SESSION_STATES.CANCELLED);
     }
   } catch (err) {

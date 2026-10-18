@@ -27,6 +27,12 @@ describe('Session State Machine', () => {
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.EXPIRED)).toBe(true);
   });
 
+  it('allows idempotent self-transitions', () => {
+    expect(isValidTransition(SESSION_STATES.CAPTURING, SESSION_STATES.CAPTURING)).toBe(true);
+    expect(isValidTransition(SESSION_STATES.CHOOSING_TEMPLATE, SESSION_STATES.CHOOSING_TEMPLATE)).toBe(true);
+    expect(transitionSessionState(SESSION_STATES.CAPTURING, SESSION_STATES.CAPTURING)).toBe(SESSION_STATES.CAPTURING);
+  });
+
   it('rejects invalid state transitions', () => {
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.DONE)).toBe(false);
     expect(isValidTransition(SESSION_STATES.DONE, SESSION_STATES.WAITING_PAYMENT)).toBe(false);

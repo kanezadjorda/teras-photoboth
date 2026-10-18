@@ -62,13 +62,27 @@ export function createChooseTemplateScreen({ onSelectTemplate }) {
           </button>
         `;
 
-        // Select template event with double-click guard
+        // Select template event with double-click guard and recovery
         let isSelecting = false;
-        const triggerSelect = () => {
+        const triggerSelect = async () => {
           if (isSelecting) return;
           isSelecting = true;
-          if (onSelectTemplate) {
-            onSelectTemplate(tpl);
+          const btn = card.querySelector('.btn-select');
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'MEMPROSES...';
+          }
+          try {
+            if (onSelectTemplate) {
+              await onSelectTemplate(tpl);
+            }
+          } catch (err) {
+            console.error('[ChooseTemplate] Gagal melanjutkan ke sesi foto:', err);
+            isSelecting = false;
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = 'PILIH TEMPLATE INI';
+            }
           }
         };
 

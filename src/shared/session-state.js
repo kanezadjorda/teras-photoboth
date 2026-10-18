@@ -35,6 +35,9 @@ const ALLOWED_TRANSITIONS = Object.freeze({
  * @returns {boolean}
  */
 export function isValidTransition(currentState, targetState) {
+  if (currentState && currentState === targetState) {
+    return true;
+  }
   const allowed = ALLOWED_TRANSITIONS[currentState];
   if (!allowed) {
     return false;
