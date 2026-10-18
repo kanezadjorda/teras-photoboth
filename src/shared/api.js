@@ -43,6 +43,8 @@ export const api = {
   getPayment: (sessionId) => fetchApi(`/payments/${sessionId}`),
   createPaymentCharge: (sessionId) =>
     fetchApi('/payments/charge', { method: 'POST', body: JSON.stringify({ sessionId }) }),
+  cancelPayment: (sessionId) =>
+    fetchApi(`/payments/${sessionId}/cancel`, { method: 'POST' }),
   confirmPaymentManual: (sessionId) =>
     fetchApi(`/payments/${sessionId}/confirm-manual`, { method: 'POST' }),
   simulatePayment: (orderId) =>

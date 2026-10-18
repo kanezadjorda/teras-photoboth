@@ -6,6 +6,7 @@ import {
   isSandboxMode,
   createQrisCharge,
   checkTransactionStatus,
+  cancelTransaction,
   simulateMockPayment
 } from '../server/payment/midtrans.js';
 import { PAYMENT_STATES } from '../src/shared/constants.js';
@@ -55,13 +56,16 @@ describe('Midtrans Payment Gateway Logic', () => {
       expect(mapMidtransStatusToPaymentState(null)).toBe('menunggu');
     });
 
-    it('maps expire, deny, and cancel to gagal', () => {
+    it('maps expire and deny to gagal', () => {
       expect(mapMidtransStatusToPaymentState('expire')).toBe('gagal');
       expect(mapMidtransStatusToPaymentState('expired')).toBe('gagal');
       expect(mapMidtransStatusToPaymentState('deny')).toBe('gagal');
-      expect(mapMidtransStatusToPaymentState('cancel')).toBe('gagal');
-      expect(mapMidtransStatusToPaymentState('cancelled')).toBe('gagal');
       expect(mapMidtransStatusToPaymentState('failure')).toBe(PAYMENT_STATES.GAGAL);
+    });
+
+    it('maps cancel and cancelled to batal', () => {
+      expect(mapMidtransStatusToPaymentState('cancel')).toBe('batal');
+      expect(mapMidtransStatusToPaymentState('cancelled')).toBe(PAYMENT_STATES.BATAL);
     });
   });
 
@@ -237,6 +241,78 @@ describe('Midtrans Payment Gateway Logic', () => {
 
       const status2 = await checkTransactionStatus(orderId);
       expect(status2.internalStatus).toBe('lunas');
+    });
+
+    it('cancels mock transaction immediately when cancelTransaction is called', async () => {
+      const orderId = 'test_order_cancel_1';
+      await createQrisCharge({ orderId, amount: 25000 });
+
+      const cancelRes = await cancelTransaction(orderId);
+      expect(cancelRes.success).toBe(true);
+      expect(cancelRes.status).toBe('cancel');
+      expect(cancelRes.internalStatus).toBe('batal');
+
+      const statusAfter = await checkTransactionStatus(orderId);
+      expect(statusAfter.status).toBe('cancel');
+      expect(statusAfter.internalStatus).toBe('batal');
+    });
+  });
+
+  describe('Instant Session & Payment Cancellation (PRD F-01, F-16)', () => {
+    it('cancels pending payment immediately when session is cancelled via PATCH /status', async () => {
+      const sId = `test_sess_cancel_${Date.now()}`;
+      testSessions.push(sId);
+
+      // Create session
+      db.prepare(`
+        INSERT INTO sessions (id, template_id, status, dibuat_pada)
+        VALUES (?, NULL, 'waiting_payment', ?)
+      `).run(sId, new Date().toISOString());
+
+      // Create pending payment
+      db.prepare(`
+        INSERT INTO payments (id, session_id, order_id, nominal, status)
+        VALUES (?, ?, ?, 25000, 'menunggu')
+      `).run(`pay_${sId}`, sId, sId);
+
+      // Cancel session via PATCH
+      const res = await fetch(`${baseUrl}/api/sessions/${sId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' })
+      });
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.data.status).toBe('cancelled');
+
+      // Check payment status is now immediately 'batal'
+      const paymentRow = db.prepare('SELECT status FROM payments WHERE session_id = ?').get(sId);
+      expect(paymentRow.status).toBe('batal');
+    });
+
+    it('cancels payment via POST /api/payments/:sessionId/cancel', async () => {
+      const sId = `test_sess_cancel2_${Date.now()}`;
+      testSessions.push(sId);
+
+      db.prepare(`
+        INSERT INTO sessions (id, template_id, status, dibuat_pada)
+        VALUES (?, NULL, 'waiting_payment', ?)
+      `).run(sId, new Date().toISOString());
+
+      db.prepare(`
+        INSERT INTO payments (id, session_id, order_id, nominal, status)
+        VALUES (?, ?, ?, 25000, 'menunggu')
+      `).run(`pay_${sId}`, sId, sId);
+
+      const res = await fetch(`${baseUrl}/api/payments/${sId}/cancel`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.data.status).toBe('batal');
+
+      const paymentRow = db.prepare('SELECT status FROM payments WHERE session_id = ?').get(sId);
+      expect(paymentRow.status).toBe('batal');
     });
   });
 });

@@ -106,3 +106,4 @@ describe('Camera Device Detection & Selection Logic (PRD F-08, F-14)', () => {
     expect(optimalId).toBe('cam-dslr');
   });
 });
+

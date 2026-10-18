@@ -1037,6 +1037,7 @@ async function renderAdminDashboard() {
           if (r.payment_status === 'lunas' || r.payment_status === 'paid') {
             payBadge = 'chip-raw-active';
           } else if (
+            r.payment_status === 'batal' ||
             r.payment_status === 'gagal' ||
             r.payment_status === 'failed' ||
             r.payment_status === 'expired' ||

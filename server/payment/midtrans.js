@@ -67,12 +67,11 @@ export function mapMidtransStatusToPaymentState(status) {
   const s = String(status).trim().toLowerCase();
   if (s === 'settlement' || s === 'capture') return PAYMENT_STATES.LUNAS;
   if (s === 'pending') return PAYMENT_STATES.MENUNGGU;
+  if (s === 'cancel' || s === 'cancelled') return PAYMENT_STATES.BATAL;
   if (
     s === 'expire' ||
     s === 'expired' ||
     s === 'deny' ||
-    s === 'cancel' ||
-    s === 'cancelled' ||
     s === 'failure'
   ) {
     return PAYMENT_STATES.GAGAL;
@@ -263,4 +262,52 @@ export function simulateMockPayment(orderId) {
   }
   return false;
 }
+
+/**
+ * Cancel Transaction in Midtrans Gateway (PRD F-01, F-16)
+ * Endpoint: POST https://api.[sandbox.]midtrans.com/v2/:order_id/cancel
+ * @param {string} orderId
+ * @returns {Promise<Object>}
+ */
+export async function cancelTransaction(orderId) {
+  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+
+  // Mock Store Cancel
+  if (!serverKey || serverKey.trim() === '') {
+    const mock = mockStore.get(orderId);
+    if (mock) {
+      mock.transaction_status = 'cancel';
+      return { success: true, status: 'cancel', internalStatus: PAYMENT_STATES.BATAL, isMock: true };
+    }
+    return { success: true, status: 'cancel', internalStatus: PAYMENT_STATES.BATAL, isMock: true };
+  }
+
+  const url = `${getMidtransBaseUrl()}/${encodeURIComponent(orderId)}/cancel`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': getAuthHeader()
+      }
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.warn(`[Midtrans] Gagal membatalkan transaksi ${orderId}:`, data.status_message || response.status);
+      return { success: false, error: data.status_message || `HTTP ${response.status}` };
+    }
+
+    return {
+      success: true,
+      orderId,
+      status: data.transaction_status || 'cancel',
+      internalStatus: PAYMENT_STATES.BATAL
+    };
+  } catch (err) {
+    console.warn(`[Midtrans] Error saat membatalkan transaksi ${orderId}:`, err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 

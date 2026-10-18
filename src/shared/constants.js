@@ -18,11 +18,12 @@ export const PAYMENT_STATES = Object.freeze({
   PENDING: 'menunggu',
   PAID: 'lunas',
   EXPIRED: 'gagal',
-  CANCELLED: 'gagal',
+  CANCELLED: 'batal',
   FAILED: 'gagal',
   MENUNGGU: 'menunggu',
   LUNAS: 'lunas',
-  GAGAL: 'gagal'
+  GAGAL: 'gagal',
+  BATAL: 'batal'
 });
 
 export const CANVAS_SPECS = Object.freeze({

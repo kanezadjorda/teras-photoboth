@@ -5,6 +5,7 @@ import { broadcastEvent } from '../events.js';
 import {
   createQrisCharge,
   checkTransactionStatus,
+  cancelTransaction,
   simulateMockPayment,
   isSandboxMode
 } from '../payment/midtrans.js';
@@ -13,6 +14,45 @@ const router = Router();
 
 // Store active polling intervals per session
 const activePollers = new Map();
+
+/**
+ * Stop active polling worker for a session
+ */
+export function stopPollingWorker(sessionId) {
+  if (activePollers.has(sessionId)) {
+    clearInterval(activePollers.get(sessionId));
+    activePollers.delete(sessionId);
+  }
+}
+
+/**
+ * Cancel session payment instantly in local DB and Midtrans (PRD F-01, F-16)
+ * @param {string} sessionId
+ */
+export async function cancelSessionPayment(sessionId) {
+  stopPollingWorker(sessionId);
+
+  const pendingPayment = db.prepare('SELECT * FROM payments WHERE session_id = ? AND status = ?')
+    .get(sessionId, PAYMENT_STATES.MENUNGGU);
+
+  if (pendingPayment) {
+    db.prepare('UPDATE payments SET status = ? WHERE id = ?')
+      .run(PAYMENT_STATES.BATAL, pendingPayment.id);
+
+    const orderId = pendingPayment.order_id || sessionId;
+    try {
+      await cancelTransaction(orderId);
+    } catch (e) {
+      console.warn(`[Payment] Gagal membatalkan transaksi Midtrans ${orderId}:`, e.message);
+    }
+
+    broadcastEvent('payment_failed', { sessionId, orderId, reason: 'cancel' });
+    broadcastEvent('payment_cancelled', { sessionId, orderId });
+    return { success: true, paymentId: pendingPayment.id, status: PAYMENT_STATES.BATAL };
+  }
+
+  return { success: true, message: 'Tidak ada pembayaran tertunda' };
+}
 
 /**
  * Start Server-Side Polling for Payment Status (F-02)
@@ -69,12 +109,15 @@ function startPollingWorker(sessionId, orderId) {
         console.log(`[Payment] Sesi ${sessionId} terbayar lunas via QRIS!`);
         broadcastEvent('payment_paid', { sessionId, orderId });
         broadcastEvent('session_updated', { id: sessionId, status: SESSION_STATES.CHOOSING_TEMPLATE });
-      } else if (statusRes.internalStatus === PAYMENT_STATES.GAGAL) {
+      } else if (
+        statusRes.internalStatus === PAYMENT_STATES.GAGAL ||
+        statusRes.internalStatus === PAYMENT_STATES.BATAL
+      ) {
         clearInterval(intervalId);
         activePollers.delete(sessionId);
 
         db.prepare('UPDATE payments SET status = ? WHERE session_id = ?')
-          .run(PAYMENT_STATES.GAGAL, sessionId);
+          .run(statusRes.internalStatus, sessionId);
 
         const nextSessionState =
           statusRes.status === 'cancel' || statusRes.status === 'cancelled'
@@ -84,7 +127,7 @@ function startPollingWorker(sessionId, orderId) {
         db.prepare('UPDATE sessions SET status = ? WHERE id = ? AND status = ?')
           .run(nextSessionState, sessionId, SESSION_STATES.WAITING_PAYMENT);
 
-        console.log(`[Payment] Pembayaran sesi ${sessionId} gagal (${statusRes.status}).`);
+        console.log(`[Payment] Pembayaran sesi ${sessionId} status: ${statusRes.status}.`);
         broadcastEvent('payment_failed', { sessionId, orderId, reason: statusRes.status });
         broadcastEvent('payment_expired', { sessionId, orderId, reason: statusRes.status });
         broadcastEvent('session_updated', { id: sessionId, status: nextSessionState });
@@ -286,6 +329,20 @@ router.post('/:orderId/simulate-pay', (req, res) => {
       simulated: true,
       message: `Status transaksi ${orderId} berhasil diubah menjadi lunas (settlement).`
     });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /api/payments/:sessionId/cancel
+ * Membatalkan pembayaran sesi secara instan (PRD F-01, F-16)
+ */
+router.post('/:sessionId/cancel', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const result = await cancelSessionPayment(sessionId);
+    res.json({ success: true, data: result });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

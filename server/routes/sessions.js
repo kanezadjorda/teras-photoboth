@@ -3,6 +3,7 @@ import { db } from '../db.js';
 import { SESSION_STATES } from '../../src/shared/constants.js';
 import { transitionSessionState } from '../../src/shared/session-state.js';
 import { broadcastEvent } from '../events.js';
+import { cancelSessionPayment } from './payments.js';
 
 const router = Router();
 
@@ -53,7 +54,7 @@ router.post('/', (req, res) => {
 });
 
 // UPDATE session status with state machine enforcement
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status: targetStatus, template_id } = req.body;
@@ -70,6 +71,15 @@ router.patch('/:id/status', (req, res) => {
         .run(nextState, template_id, id);
     } else {
       db.prepare('UPDATE sessions SET status = ? WHERE id = ?').run(nextState, id);
+    }
+
+    // Jika sesi dibatalkan (CANCELLED), sinkronkan pembatalan ke pembayaran & Midtrans (PRD F-01, F-16)
+    if (nextState === SESSION_STATES.CANCELLED) {
+      try {
+        await cancelSessionPayment(id);
+      } catch (payErr) {
+        console.warn(`[Sessions] Gagal membatalkan pembayaran untuk sesi ${id}:`, payErr.message);
+      }
     }
 
     const updatedSession = db.prepare('SELECT * FROM sessions WHERE id = ?').get(id);
