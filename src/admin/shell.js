@@ -258,8 +258,8 @@ function renderLayout() {
 
     <div class="flex-1 min-w-0 flex flex-col w-full">
       <header class="sticky top-0 z-40 bg-white border-b-[3px] border-black px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <button id="btn-toggle-sidebar" class="md:hidden btn-raw-secondary px-3 py-1.5 text-xs font-headline flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
+        <div class="flex items-center gap-3 md:hidden">
+          <button id="btn-toggle-sidebar" class="md:!hidden btn-raw-secondary px-3 py-1.5 text-xs font-headline flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
             <span>☰</span>
             <span>MENU</span>
           </button>
