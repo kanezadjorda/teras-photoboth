@@ -547,6 +547,11 @@ async function renderAdminDashboard() {
   const btnBrowseFolder = document.getElementById('btn-browse-event-folder');
   const selectReportEvent = document.getElementById('select-report-event');
   const selectHistoryEvent = document.getElementById('select-history-event');
+  const btnBannerDeactivate = document.getElementById('btn-banner-deactivate');
+  const activeNameEl = document.getElementById('active-event-name');
+  const activePathEl = document.getElementById('active-event-path');
+  const activeChipEl = document.getElementById('active-event-chip');
+  const eventsTableBody = document.getElementById('events-table-body');
 
   // Open & Close Event Modal
   btnCreateEventModal?.addEventListener('click', () => {
@@ -625,11 +630,7 @@ async function renderAdminDashboard() {
 
   // Load Events List & Update Dropdowns
   async function loadEvents() {
-    const tableBody = document.getElementById('events-table-body');
-    const activeNameEl = document.getElementById('active-event-name');
-    const activePathEl = document.getElementById('active-event-path');
-    const activeChipEl = document.getElementById('active-event-chip');
-    const btnBannerDeactivate = document.getElementById('btn-banner-deactivate');
+    const tableBody = eventsTableBody || document.getElementById('events-table-body');
 
     try {
       const res = await api.getEvents();
