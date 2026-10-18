@@ -49,3 +49,11 @@ export const DEFAULTS = Object.freeze({
   MAX_RETAKES_PER_SLOT: 1
 });
 
+export const ADMIN_ROUTES = Object.freeze({
+  HOME: 'beranda',
+  EVENTS: 'event',
+  REPORTS: 'laporan',
+  TEMPLATES: 'template',
+  SETTINGS: 'pengaturan'
+});
+
