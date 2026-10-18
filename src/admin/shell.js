@@ -143,7 +143,6 @@ export function createAdminShell({ onLock }) {
     try {
       const res = await api.getCurrentSession();
       const waitingId = res.data?.status === 'waiting_payment' ? res.data.id : null;
-      setHomeBadge(Boolean(waitingId));
       if (waitingId !== lastWaitingSessionId) {
         lastWaitingSessionId = waitingId;
         currentScreen?.refresh?.();
@@ -153,16 +152,6 @@ export function createAdminShell({ onLock }) {
     }
   }
 
-  function setHomeBadge(visible) {
-    if (!container) return;
-    const badge = container.querySelector('#nav-badge-home');
-    if (!badge) return;
-    if (visible) {
-      badge.classList.remove('hidden');
-    } else {
-      badge.classList.add('hidden');
-    }
-  }
 
   function connectServerEvents() {
     try {
@@ -237,20 +226,14 @@ export function createAdminShell({ onLock }) {
 }
 
 function renderLayout() {
-  const navHtml = NAV_ITEMS.map((item) => {
-    const isHome = item.route === ADMIN_ROUTES.HOME;
-    const badgeHtml = isHome
-      ? '<span id="nav-badge-home" class="hidden chip-raw chip-raw-error text-[10px]">BAYAR</span>'
-      : '';
-    return `
+  const navHtml = NAV_ITEMS.map((item) => `
       <a href="#/${item.route}" data-route="${item.route}"
-         class="flex items-center justify-between h-14 px-6 font-headline text-sm uppercase text-white hover:bg-white/10 transition-colors
+         class="flex items-center h-14 px-6 font-headline text-sm uppercase text-white hover:bg-white/10 transition-colors
                 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-white">
         <span>${item.label}</span>
-        ${badgeHtml}
       </a>
-    `;
-  }).join('');
+    `).join('');
+
 
   return `
     <!-- Mobile Backdrop -->
