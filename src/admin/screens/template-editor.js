@@ -98,8 +98,41 @@ export function createTemplateEditor({ onBack }) {
     }
   }
 
+  function drawEmptyPlaceholder() {
+    if (!previewCanvas) return;
+    const ctx = previewCanvas.getContext('2d');
+    const width = previewCanvas.width || CANVAS_SPECS.WIDTH;
+    const height = previewCanvas.height || CANVAS_SPECS.HEIGHT;
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 6;
+    ctx.setLineDash([20, 14]);
+    ctx.strokeRect(24, 24, width - 48, height - 48);
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 44px "Archivo Black", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TEMPLATE 4R', width / 2, height / 2 - 40);
+
+    ctx.font = 'bold 22px "Space Mono", monospace';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillText('1200 × 1800 PX • 300 DPI', width / 2, height / 2 + 15);
+
+    ctx.font = '20px "Work Sans", sans-serif';
+    ctx.fillText('PILIH FILE PNG UNTUK MEMULAI', width / 2, height / 2 + 65);
+  }
+
   function redrawCanvasWithSlots() {
-    if (!previewCanvas || !currentImage) return;
+    if (!previewCanvas) return;
+    if (!currentImage) {
+      drawEmptyPlaceholder();
+      return;
+    }
     const ctx = previewCanvas.getContext('2d');
     const width = previewCanvas.width;
     const height = previewCanvas.height;
@@ -295,9 +328,7 @@ export function createTemplateEditor({ onBack }) {
       currentImage = null;
       detectedSlots = [];
       templateNameInput.value = '';
-      if (fileInput) fileInput.value = '';
-      const ctx = previewCanvas.getContext('2d');
-      ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+      drawEmptyPlaceholder();
       renderSlotsList();
 
       // Refresh gallery
@@ -329,49 +360,58 @@ export function createTemplateEditor({ onBack }) {
       </div>
 
       <!-- Upload & Editor Workspace -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-        <!-- Left: Upload & Interactive Canvas Preview -->
-        <div class="lg:col-span-7 xl:col-span-8 space-y-4">
-          <div class="card-raw flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <!-- Left: Upload & Interactive Canvas Preview 4R Full -->
+        <div class="lg:col-span-5 xl:col-span-5 space-y-4">
+          <div class="card-raw flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white">
+            <div class="flex-1 min-w-0">
               <label class="label-raw text-xs">PILIH FILE TEMPLATE PNG</label>
-              <input type="file" id="file-upload" accept="image/png" class="font-mono text-xs cursor-pointer" />
+              <input type="file" id="file-upload" accept="image/png" class="font-mono text-xs cursor-pointer w-full mt-1" />
             </div>
-            <span class="chip-raw chip-raw-warning text-[10px]">4R (1200×1800 PX)</span>
+            <span class="chip-raw chip-raw-warning text-[10px] self-start md:self-auto shrink-0">4R (1200×1800 PX)</span>
           </div>
 
-          <!-- Canvas Preview -->
-          <div class="border-[5px] border-black bg-raw-sunken p-4 flex items-center justify-center overflow-auto max-h-[700px]">
-            <canvas id="canvas-preview" width="1200" height="1800" class="max-w-full h-auto border-[2px] border-black bg-white shadow-none"></canvas>
+          <!-- Canvas Preview 4R Full tanpa scroll -->
+          <div class="border-[5px] border-black bg-raw-sunken p-4 sm:p-6 flex flex-col items-center justify-center">
+            <canvas
+              id="canvas-preview"
+              width="1200"
+              height="1800"
+              class="aspect-[2/3] h-[520px] sm:h-[560px] lg:h-[600px] max-h-[calc(100vh-280px)] w-auto max-w-full border-[3px] border-black bg-white shadow-none block"
+            ></canvas>
+            <div class="mt-3 flex items-center justify-between w-full max-w-[400px] text-[11px] font-mono text-black/70">
+              <span>FORMAT 4R (2:3)</span>
+              <span>1200 × 1800 PX &bull; 300 DPI</span>
+            </div>
           </div>
         </div>
 
         <!-- Right: Slot Controls & Form -->
-        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
-          <div class="card-raw-elevated space-y-4 p-4 sm:p-6">
+        <div class="lg:col-span-7 xl:col-span-7 space-y-6">
+          <div class="card-raw-elevated space-y-4 p-4 sm:p-6 bg-white">
             <h3 class="font-headline text-lg uppercase text-black pb-2 border-b-[3px] border-black">
               INFORMASI & SLOT FOTO
             </h3>
 
             <div>
               <label class="label-raw">NAMA TEMPLATE</label>
-              <input type="text" id="template-name" placeholder="CONTOH: STRIP 4 FOTO RETRO" class="input-raw" />
+              <input type="text" id="template-name" placeholder="CONTOH: STRIP 4 FOTO RETRO" class="input-raw w-full" />
             </div>
 
             <!-- Slots list -->
             <div class="space-y-3">
               <div class="flex items-center justify-between">
                 <label class="label-raw text-xs mb-0">DAFTAR KOREKSI SLOT</label>
-                <button id="btn-add-slot" class="btn-raw-secondary px-3 py-1 text-xs font-headline">
+                <button id="btn-add-slot" class="btn-raw-secondary px-3 py-1 text-xs font-headline cursor-pointer">
                   + TAMBAH SLOT MANUAL
                 </button>
               </div>
 
-              <div id="slots-list" class="space-y-2 max-h-[360px] overflow-y-auto pr-1"></div>
+              <div id="slots-list" class="space-y-2 max-h-[400px] overflow-y-auto pr-1"></div>
             </div>
 
             <div class="pt-4 border-t-[3px] border-black">
-              <button id="btn-save-template" class="btn-raw-primary w-full py-4 text-base font-headline">
+              <button id="btn-save-template" class="btn-raw-primary w-full py-4 text-base font-headline cursor-pointer">
                 SIMPAN TEMPLATE
               </button>
             </div>
@@ -421,6 +461,7 @@ export function createTemplateEditor({ onBack }) {
       });
     }
 
+    drawEmptyPlaceholder();
     renderSlotsList();
     loadTemplateGallery();
   }
