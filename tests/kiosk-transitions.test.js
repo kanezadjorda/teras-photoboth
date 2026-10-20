@@ -96,4 +96,52 @@ describe('Kiosk Choose Template -> Capture Transitions (PRD F-06, F-08)', () => 
 
     vi.unstubAllGlobals();
   });
+
+  it('imports main.js without ReferenceError for TIMEOUTS or other constants', async () => {
+    const mockApp = { innerHTML: '', appendChild: vi.fn(), removeChild: vi.fn() };
+    const mockDocument = {
+      getElementById: vi.fn((id) => (id === 'app' ? mockApp : null)),
+      createElement: vi.fn(() => ({
+        style: {},
+        classList: { add: vi.fn(), remove: vi.fn() },
+        appendChild: vi.fn(),
+        querySelector: vi.fn()
+      })),
+      body: {
+        appendChild: vi.fn(),
+        removeChild: vi.fn()
+      }
+    };
+
+    vi.stubGlobal('document', mockDocument);
+    vi.stubGlobal('window', {
+      photobooth: {},
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      fetch: vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ success: true, data: null })
+      }))
+    });
+    vi.stubGlobal('navigator', {
+      onLine: true,
+      mediaDevices: {
+        enumerateDevices: vi.fn(async () => []),
+        getUserMedia: vi.fn(async () => ({
+          getTracks: () => [{ stop: vi.fn() }]
+        }))
+      }
+    });
+
+    let importError = null;
+    try {
+      await import('../src/kiosk/main.js');
+    } catch (e) {
+      importError = e;
+    }
+
+    expect(importError).toBeNull();
+    vi.unstubAllGlobals();
+  });
 });
+

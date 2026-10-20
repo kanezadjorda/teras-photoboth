@@ -8,7 +8,7 @@ import { createDoneScreen } from './screens/done.js';
 import { createRecoveryModal } from './screens/recovery-modal.js';
 import { setupOfflineMonitor } from '../shared/ui.js';
 import { api } from '../shared/api.js';
-import { SESSION_STATES, DEFAULTS } from '../shared/constants.js';
+import { SESSION_STATES, DEFAULTS, TIMEOUTS } from '../shared/constants.js';
 
 const appRoot = document.getElementById('app');
 let currentScreen = null;
