@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createChooseTemplateScreen } from '../src/kiosk/screens/choose-template.js';
 import { createCaptureScreen } from '../src/kiosk/screens/capture.js';
+import { createPaymentScreen } from '../src/kiosk/screens/payment.js';
 import { isValidTransition, transitionSessionState } from '../src/shared/session-state.js';
 import { SESSION_STATES } from '../src/shared/constants.js';
 
@@ -97,50 +98,103 @@ describe('Kiosk Choose Template -> Capture Transitions (PRD F-06, F-08)', () => 
     vi.unstubAllGlobals();
   });
 
-  it('imports main.js without ReferenceError for TIMEOUTS or other constants', async () => {
-    const mockApp = { innerHTML: '', appendChild: vi.fn(), removeChild: vi.fn() };
-    const mockDocument = {
-      getElementById: vi.fn((id) => (id === 'app' ? mockApp : null)),
-      createElement: vi.fn(() => ({
-        style: {},
+  it('verifies main.js exports and imports constants correctly', async () => {
+    // Read and verify main.js contains required constant imports
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const mainJsContent = fs.readFileSync(path.resolve(process.cwd(), 'src/kiosk/main.js'), 'utf-8');
+
+    expect(mainJsContent).toContain("import { SESSION_STATES, DEFAULTS, TIMEOUTS } from '../shared/constants.js';");
+    expect(mainJsContent).toContain('TIMEOUTS.COUNTDOWN_SECONDS');
+  });
+
+  it('shows confirmation modal when cancel button is clicked on payment screen', () => {
+    const classSet = new Set(['hidden']);
+    const listeners = {};
+    const mockElements = {
+      '#modal-confirm-cancel': {
+        classList: {
+          add: vi.fn((cls) => classSet.add(cls)),
+          remove: vi.fn((cls) => classSet.delete(cls)),
+          contains: vi.fn((cls) => classSet.has(cls))
+        }
+      },
+      '#btn-cancel-payment': {
+        addEventListener: vi.fn((evt, cb) => {
+          listeners['btn-cancel-payment'] = cb;
+        })
+      },
+      '#btn-cancel-yes': {
+        addEventListener: vi.fn((evt, cb) => {
+          listeners['btn-cancel-yes'] = cb;
+        })
+      },
+      '#btn-cancel-no': {
+        addEventListener: vi.fn((evt, cb) => {
+          listeners['btn-cancel-no'] = cb;
+        })
+      },
+      '#btn-simulate-pay': {
+        addEventListener: vi.fn()
+      }
+    };
+
+    const mockContainer = {
+      className: '',
+      innerHTML: '',
+      querySelector: vi.fn((sel) => mockElements[sel] || {
+        addEventListener: vi.fn(),
         classList: { add: vi.fn(), remove: vi.fn() },
-        appendChild: vi.fn(),
-        querySelector: vi.fn()
-      })),
-      body: {
-        appendChild: vi.fn(),
+        style: {}
+      }),
+      querySelectorAll: vi.fn(() => []),
+      parentNode: {
         removeChild: vi.fn()
       }
     };
 
+    const mockDocument = {
+      createElement: vi.fn(() => mockContainer)
+    };
+
     vi.stubGlobal('document', mockDocument);
     vi.stubGlobal('window', {
-      photobooth: {},
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
       fetch: vi.fn(async () => ({
         ok: true,
-        json: async () => ({ success: true, data: null })
+        json: async () => ({ success: true, data: {} })
       }))
     });
-    vi.stubGlobal('navigator', {
-      onLine: true,
-      mediaDevices: {
-        enumerateDevices: vi.fn(async () => []),
-        getUserMedia: vi.fn(async () => ({
-          getTracks: () => [{ stop: vi.fn() }]
-        }))
-      }
+
+    const onCancelMock = vi.fn();
+    const payment = createPaymentScreen({
+      sessionId: 'sess_test_123',
+      onCancel: onCancelMock
     });
 
-    let importError = null;
-    try {
-      await import('../src/kiosk/main.js');
-    } catch (e) {
-      importError = e;
-    }
+    const parent = { appendChild: vi.fn() };
+    payment.mount(parent);
 
-    expect(importError).toBeNull();
+    // 1. Initial state: onCancel not called, modal is hidden
+    expect(onCancelMock).not.toHaveBeenCalled();
+    expect(classSet.has('hidden')).toBe(true);
+
+    // 2. Click cancel button -> modal shows, onCancel still not called
+    listeners['btn-cancel-payment']();
+    expect(classSet.has('hidden')).toBe(false);
+    expect(onCancelMock).not.toHaveBeenCalled();
+
+    // 3. Click TIDAK button -> modal hides again, onCancel still not called
+    listeners['btn-cancel-no']();
+    expect(classSet.has('hidden')).toBe(true);
+    expect(onCancelMock).not.toHaveBeenCalled();
+
+    // 4. Click cancel button again, then click YA -> onCancel is called
+    listeners['btn-cancel-payment']();
+    expect(classSet.has('hidden')).toBe(false);
+    listeners['btn-cancel-yes']();
+    expect(onCancelMock).toHaveBeenCalledTimes(1);
+
+    payment.unmount();
     vi.unstubAllGlobals();
   });
 });

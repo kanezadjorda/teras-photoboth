@@ -155,6 +155,34 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           </div>
         </div>
       </div>
+
+      <!-- Confirmation Modal for Cancellation -->
+      <div id="modal-confirm-cancel" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-6 select-none">
+        <div class="card-raw border-[5px] border-black bg-white max-w-md w-full p-6 sm:p-8 space-y-6 shadow-none">
+          <!-- Header -->
+          <div class="border-b-[3px] border-black pb-3 space-y-2">
+            <span class="chip-raw bg-black text-white text-xs font-mono font-bold tracking-widest uppercase">
+              KONFIRMASI
+            </span>
+            <h2 class="text-xl sm:text-2xl font-headline uppercase text-black tracking-tight mt-2">
+              APAKAH ANDA YAKIN INGIN MEMBATALKAN SESI INI?
+            </h2>
+            <p class="font-body text-xs text-black/70">
+              Sesi foto akan diakhiri dan transaksi pembayaran ini akan dibatalkan.
+            </p>
+          </div>
+
+          <!-- Pilihan Tombol YA / TIDAK -->
+          <div class="flex flex-row gap-4 pt-2">
+            <button id="btn-cancel-yes" type="button" class="btn-raw-destructive flex-1 py-4 text-base font-headline cursor-pointer">
+              YA
+            </button>
+            <button id="btn-cancel-no" type="button" class="btn-raw-secondary flex-1 py-4 text-base font-headline cursor-pointer">
+              TIDAK
+            </button>
+          </div>
+        </div>
+      </div>
     `;
 
     parent.appendChild(container);
@@ -166,12 +194,35 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     const statusBox = container.querySelector('#payment-status-box');
     const statusText = container.querySelector('#payment-status-text');
     const cancelBtn = container.querySelector('#btn-cancel-payment');
+    const cancelModal = container.querySelector('#modal-confirm-cancel');
+    const cancelYesBtn = container.querySelector('#btn-cancel-yes');
+    const cancelNoBtn = container.querySelector('#btn-cancel-no');
     const simPayBtn = container.querySelector('#btn-simulate-pay');
 
     cancelBtn.addEventListener('click', () => {
-      cleanup();
-      if (onCancel) onCancel();
+      if (cancelModal) {
+        cancelModal.classList.remove('hidden');
+      } else {
+        cleanup();
+        if (onCancel) onCancel();
+      }
     });
+
+    if (cancelNoBtn && cancelModal) {
+      cancelNoBtn.addEventListener('click', () => {
+        cancelModal.classList.add('hidden');
+      });
+    }
+
+    if (cancelYesBtn) {
+      cancelYesBtn.addEventListener('click', () => {
+        if (cancelModal) {
+          cancelModal.classList.add('hidden');
+        }
+        cleanup();
+        if (onCancel) onCancel();
+      });
+    }
 
     simPayBtn.addEventListener('click', async () => {
       try {
