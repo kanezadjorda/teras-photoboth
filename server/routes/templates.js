@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { resolve } from 'node:path';
-import { writeFileSync, unlinkSync, existsSync } from 'node:fs';
+import { writeFileSync, unlinkSync, existsSync, mkdirSync } from 'node:fs';
 import { db } from '../db.js';
+import { UPLOADED_TEMPLATES_DIR } from '../paths.js';
 
 const router = Router();
 
@@ -61,14 +62,15 @@ router.post('/', (req, res) => {
     // Sanitize id for filename
     const cleanId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
     const fileName = `${cleanId}.png`;
-    const targetFilePath = resolve(process.cwd(), 'templates', fileName);
+    const targetFilePath = resolve(UPLOADED_TEMPLATES_DIR, fileName);
 
-    // Save base64 image data to templates directory
+    // Save base64 image data to the writable uploaded-templates directory
     let base64Data = file_png;
     if (base64Data.includes(';base64,')) {
       base64Data = base64Data.split(';base64,').pop();
     }
     const buffer = Buffer.from(base64Data, 'base64');
+    mkdirSync(UPLOADED_TEMPLATES_DIR, { recursive: true });
     writeFileSync(targetFilePath, buffer);
 
     const jumlahSlot = Array.isArray(slots) ? slots.length : 0;
@@ -151,9 +153,9 @@ router.delete('/:id', (req, res) => {
 
     db.prepare('DELETE FROM templates WHERE id = ?').run(id);
 
-    // Delete file if exists
+    // Only uploaded templates are deletable; bundled templates are read-only
     if (existing.file_png) {
-      const filePath = resolve(process.cwd(), 'templates', existing.file_png);
+      const filePath = resolve(UPLOADED_TEMPLATES_DIR, existing.file_png);
       if (existsSync(filePath)) {
         try {
           unlinkSync(filePath);

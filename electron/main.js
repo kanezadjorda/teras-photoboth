@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { startServer } from '../server/index.js';
+import { mkdirSync } from 'node:fs';
 import { DEFAULTS } from '../src/shared/constants.js';
 
 const require = createRequire(import.meta.url);
@@ -168,15 +168,15 @@ ipcMain.handle('printer:print-silent', async (event, options = {}) => {
 });
 
 app.whenReady().then(async () => {
-  // Pastikan data persisten SQLite dan foto tersimpan di userData saat produksi (PRD 8.1)
-  if (!isDev && app) {
-    const userData = app.getPath('userData');
-    if (!process.env.DATABASE_PATH) {
-      process.env.DATABASE_PATH = resolve(userData, 'data/photobooth.db');
-    }
-    if (!process.env.OUTPUT_FOLDER) {
-      process.env.OUTPUT_FOLDER = resolve(userData, 'data/photos');
-    }
+  // All writes go to DATA_DIR; the app folder (app.asar) is read-only when packaged (PRD 8.1)
+  if (!process.env.DATA_DIR) {
+    process.env.DATA_DIR = app.isPackaged
+      ? resolve(app.getPath('userData'), 'data')
+      : resolve(__dirname, '../data');
+  }
+  mkdirSync(process.env.DATA_DIR, { recursive: true });
+  if (app.isPackaged) {
+    process.env.BUNDLED_TEMPLATES_DIR = resolve(process.resourcesPath, 'templates');
   }
 
   // Batasi izin hanya untuk media (kamera/webcam untuk fitur capture)
@@ -185,6 +185,8 @@ app.whenReady().then(async () => {
     callback(allowed.includes(permission));
   });
 
+  // Dynamic import: server modules resolve DATA_DIR at load time, so it must be set first
+  const { startServer } = await import('../server/index.js');
   await startServer();
   await createWindows();
 

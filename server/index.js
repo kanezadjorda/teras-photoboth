@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { resolve, dirname } from 'node:path';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initDb } from './db.js';
 import { sseHandler } from './events.js';
@@ -18,9 +18,14 @@ dotenv.config();
 import eventsRouter from './routes/events.js';
 import { existsSync } from 'node:fs';
 import { db } from './db.js';
+import {
+  DEFAULT_PHOTOS_FOLDER,
+  UPLOADED_TEMPLATES_DIR,
+  BUNDLED_TEMPLATES_DIR,
+  resolveStoredPath
+} from './paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export const app = express();
 const PORT = process.env.PORT || DEFAULTS.SERVER_PORT;
@@ -46,7 +51,7 @@ app.get('/photos/:filename', (req, res, next) => {
     `).get(filename);
 
     if (photoRow && photoRow.folder_path) {
-      const fullPath = resolve(process.cwd(), photoRow.folder_path, filename);
+      const fullPath = resolve(resolveStoredPath(photoRow.folder_path), filename);
       if (existsSync(fullPath)) {
         return res.sendFile(fullPath);
       }
@@ -59,7 +64,7 @@ app.get('/photos/:filename', (req, res, next) => {
   try {
     const activeEvent = db.prepare('SELECT folder_path FROM events WHERE aktif = 1 LIMIT 1').get();
     if (activeEvent && activeEvent.folder_path) {
-      const activePath = resolve(process.cwd(), activeEvent.folder_path, filename);
+      const activePath = resolve(resolveStoredPath(activeEvent.folder_path), filename);
       if (existsSync(activePath)) {
         return res.sendFile(activePath);
       }
@@ -70,8 +75,8 @@ app.get('/photos/:filename', (req, res, next) => {
 
   // 3. Fallback to default output folder
   const setting = db.prepare("SELECT value FROM settings WHERE key = 'output_folder'").get();
-  const defaultFolder = setting?.value || process.env.OUTPUT_FOLDER || './data/photos';
-  const defaultFullPath = resolve(process.cwd(), defaultFolder, filename);
+  const defaultFolder = setting?.value || DEFAULT_PHOTOS_FOLDER;
+  const defaultFullPath = resolve(resolveStoredPath(defaultFolder), filename);
   if (existsSync(defaultFullPath)) {
     return res.sendFile(defaultFullPath);
   }
@@ -79,9 +84,10 @@ app.get('/photos/:filename', (req, res, next) => {
   next();
 });
 
-// Serve templates and default photos folder statically
-app.use('/templates', express.static(resolve(__dirname, '../templates')));
-app.use('/photos', express.static(resolve(process.cwd(), process.env.OUTPUT_FOLDER || './data/photos')));
+// Serve templates (uploaded first, then bundled read-only) and default photos folder
+app.use('/templates', express.static(UPLOADED_TEMPLATES_DIR));
+app.use('/templates', express.static(BUNDLED_TEMPLATES_DIR));
+app.use('/photos', express.static(resolveStoredPath(DEFAULT_PHOTOS_FOLDER)));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

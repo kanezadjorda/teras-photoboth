@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { mkdirSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { db } from '../db.js';
 import { broadcastEvent } from '../events.js';
+import { DEFAULT_PHOTOS_FOLDER, ensureStoredDir } from '../paths.js';
 
 const router = Router();
 
@@ -68,10 +67,7 @@ router.post('/', (req, res) => {
     const targetFolder = (folder_path && folder_path.trim()) || `./data/photos/${slug || 'event'}`;
 
     // Pastikan folder lokal ada di disk (siap sinkron Google Drive)
-    const fullFolderPath = resolve(process.cwd(), targetFolder);
-    if (!existsSync(fullFolderPath)) {
-      mkdirSync(fullFolderPath, { recursive: true });
-    }
+    ensureStoredDir(targetFolder);
 
     const shouldSetActive = Boolean(set_active);
 
@@ -130,10 +126,7 @@ router.patch('/:id/activate', (req, res) => {
     activateTx();
 
     // Pastikan folder fisiknya ada di disk
-    const fullFolderPath = resolve(process.cwd(), targetEvent.folder_path);
-    if (!existsSync(fullFolderPath)) {
-      mkdirSync(fullFolderPath, { recursive: true });
-    }
+    ensureStoredDir(targetEvent.folder_path);
 
     const updated = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
     broadcastEvent('event_updated', updated);
@@ -161,7 +154,7 @@ router.patch('/:id/deactivate', (req, res) => {
       return res.status(404).json({ success: false, error: 'Event tidak ditemukan' });
     }
 
-    const defaultFolder = process.env.OUTPUT_FOLDER || './data/photos';
+    const defaultFolder = DEFAULT_PHOTOS_FOLDER;
 
     const deactivateTx = db.transaction(() => {
       db.prepare('UPDATE events SET aktif = 0 WHERE id = ?').run(id);

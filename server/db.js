@@ -1,18 +1,21 @@
 import Database from 'better-sqlite3';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import dotenv from 'dotenv';
 import { DEFAULTS, TIMEOUTS } from '../src/shared/constants.js';
+import {
+  DATA_DIR,
+  DEFAULT_PHOTOS_FOLDER,
+  UPLOADED_TEMPLATES_DIR,
+  BUNDLED_TEMPLATES_DIR,
+  resolveStoredPath
+} from './paths.js';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 const dbPath = process.env.DATABASE_PATH
-  ? resolve(process.cwd(), process.env.DATABASE_PATH)
-  : resolve(__dirname, '../data/photobooth.db');
+  ? resolveStoredPath(process.env.DATABASE_PATH)
+  : resolve(DATA_DIR, 'photobooth.db');
 
 mkdirSync(dirname(dbPath), { recursive: true });
 
@@ -98,7 +101,7 @@ export function initDb() {
   // Seed default event if empty
   const eventCount = db.prepare('SELECT count(*) as count FROM events').get();
   if (eventCount.count === 0) {
-    const defaultFolder = process.env.OUTPUT_FOLDER || './data/photos';
+    const defaultFolder = DEFAULT_PHOTOS_FOLDER;
     const nowIso = new Date().toISOString();
     db.prepare(`
       INSERT INTO events (id, nama, folder_path, aktif, dibuat_pada)
@@ -119,7 +122,7 @@ export function initDb() {
     ['copies_per_session', String(DEFAULTS.COPIES_PER_SESSION)],
     ['countdown_seconds', String(TIMEOUTS.COUNTDOWN_SECONDS || 3)],
     ['admin_pin', process.env.ADMIN_PIN || DEFAULTS.ADMIN_PIN],
-    ['output_folder', process.env.OUTPUT_FOLDER || './data/photos']
+    ['output_folder', DEFAULT_PHOTOS_FOLDER]
   ];
 
   const transaction = db.transaction((settingsList) => {
@@ -151,15 +154,17 @@ export function initDb() {
       JSON.stringify(defaultSlots)
     );
 
-    // Ensure dummy template file exists
-    const tplFile = resolve(process.cwd(), 'templates', 'strip-3.png');
-    if (!existsSync(tplFile)) {
+    // Ensure a template file exists; bundled dir is read-only, so fallback goes to DATA_DIR
+    const bundledFile = resolve(BUNDLED_TEMPLATES_DIR, 'strip-3.png');
+    const uploadedFile = resolve(UPLOADED_TEMPLATES_DIR, 'strip-3.png');
+    if (!existsSync(bundledFile) && !existsSync(uploadedFile)) {
       const dummyPng = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAAElFTkSuQmCC',
         'base64'
       );
       try {
-        writeFileSync(tplFile, dummyPng);
+        mkdirSync(UPLOADED_TEMPLATES_DIR, { recursive: true });
+        writeFileSync(uploadedFile, dummyPng);
       } catch (e) {
         console.warn('[DB] Gagal menulis dummy template PNG:', e.message);
       }

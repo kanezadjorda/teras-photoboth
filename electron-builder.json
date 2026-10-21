@@ -9,7 +9,6 @@
     "dist/**/*",
     "electron/**/*",
     "server/**/*",
-    "templates/**/*",
     "src/shared/**/*",
     "package.json"
   ],

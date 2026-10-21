@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { db } from '../db.js';
+import { DEFAULT_PHOTOS_FOLDER, ensureStoredDir } from '../paths.js';
 import { generatePhotoFilename, formatSessionNumber } from '../../src/shared/filename.js';
 
 const router = Router();
@@ -17,11 +18,7 @@ function getOutputDir(sessionId) {
       if (session && session.event_id) {
         const eventRow = db.prepare('SELECT folder_path FROM events WHERE id = ?').get(session.event_id);
         if (eventRow && eventRow.folder_path) {
-          const fullEventPath = resolve(process.cwd(), eventRow.folder_path);
-          if (!existsSync(fullEventPath)) {
-            mkdirSync(fullEventPath, { recursive: true });
-          }
-          return fullEventPath;
+          return ensureStoredDir(eventRow.folder_path);
         }
       }
     } catch (e) {
@@ -33,23 +30,14 @@ function getOutputDir(sessionId) {
   try {
     const activeEvent = db.prepare('SELECT folder_path FROM events WHERE aktif = 1 LIMIT 1').get();
     if (activeEvent && activeEvent.folder_path) {
-      const fullActivePath = resolve(process.cwd(), activeEvent.folder_path);
-      if (!existsSync(fullActivePath)) {
-        mkdirSync(fullActivePath, { recursive: true });
-      }
-      return fullActivePath;
+      return ensureStoredDir(activeEvent.folder_path);
     }
   } catch (e) {
     // fallback
   }
 
   const setting = db.prepare("SELECT value FROM settings WHERE key = 'output_folder'").get();
-  const folder = setting?.value || process.env.OUTPUT_FOLDER || './data/photos';
-  const fullPath = resolve(process.cwd(), folder);
-  if (!existsSync(fullPath)) {
-    mkdirSync(fullPath, { recursive: true });
-  }
-  return fullPath;
+  return ensureStoredDir(setting?.value || DEFAULT_PHOTOS_FOLDER);
 }
 
 /**

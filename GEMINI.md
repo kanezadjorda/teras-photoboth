@@ -57,6 +57,7 @@ templates/  data/  (photobooth.db, photos/)  .env
 - UI code never touches `fs`/DB directly; it calls the HTTP API or the preload-exposed API.
 - **Electron security:** `contextIsolation: true`, `nodeIntegration: false`, sandbox where possible, minimal validated preload API, no remote content, strict CSP.
 - Never commit secrets; never expose them to the renderer.
+- **Storage & Data path:** Jangan menulis di dalam folder aplikasi (`app.asar` bersifat read-only saat packaged). Semua operasi penulisan (database SQLite, foto, template unggahan, logs) WAJIB menggunakan `process.env.DATA_DIR` (`app.getPath('userData')/data` saat packaged, `./data` saat development). File bawaan hanya-baca (dist frontend, template default) ditaruh di `extraResources` / `BUNDLED_TEMPLATES_DIR`.
 - File names: `YYYYMMDD-HHMMSS-<session-no>.jpg`.
 
 ## 5. Frontend rules
@@ -82,3 +83,4 @@ templates/  data/  (photobooth.db, photos/)  .env
 - Don't over-engineer or build for hypothetical future features.
 - Don't silently change behavior defined in the PRD.
 - Don't log customer photos or personal data, and don't hardcode secrets.
+- Jangan menulis di dalam folder aplikasi; semua tulis ke DATA_DIR.
