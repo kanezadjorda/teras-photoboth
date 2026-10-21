@@ -48,6 +48,15 @@ function applySecurityHandlers(win) {
 
   // 3. Nonaktifkan menu bar default pada kiosk dan mode fullscreen
   win.removeMenu();
+
+  // 4. Log pesan dan kegagalan load dari renderer untuk kemudahan diagnosis
+  win.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
+    console.log(`[Renderer] [${win.getTitle()}] ${message} (${sourceId}:${line})`);
+  });
+
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    console.error(`[Renderer Fail] [${win.getTitle()}] ${validatedURL}: ${errorDescription} (${errorCode})`);
+  });
 }
 
 async function createWindows() {

@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron/renderer');
+const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose minimal, secure API to renderer
 contextBridge.exposeInMainWorld('photobooth', {
