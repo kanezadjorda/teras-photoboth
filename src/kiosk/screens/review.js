@@ -1,10 +1,11 @@
 /**
- * Review Screen for Kiosk (RawBlock Design System)
- * Displays composite print preview and provides 1x retake per slot.
- * PRD Reference: F-10, F-11
+ * Review & Effect Screen for Kiosk (RawBlock Design System)
+ * Displays composite print preview, 7 photo effect presets, and provides 1x retake per slot.
+ * PRD Reference: F-10, F-11, F-27, F-28
  */
 
-import { renderComposite, loadImage, getSlotPhotoIndex } from '../../shared/composite.js';
+import { composeSession, renderComposite, loadImage, getSlotPhotoIndex } from '../../shared/composite.js';
+import { EFFECT_LIST, getEffect } from '../../shared/effects.js';
 import { DEFAULTS, CANVAS_SPECS, TIMEOUTS } from '../../shared/constants.js';
 import { preventDoubleClick, createIdleTimer } from '../../shared/ui.js';
 
@@ -12,6 +13,7 @@ export function createReviewScreen({
   template,
   photos = [],
   retakeCounts = {},
+  initialEffectId = 'normal',
   onConfirm,
   onRetakeSlot,
   onTimeout
@@ -19,9 +21,14 @@ export function createReviewScreen({
   let container = null;
   let canvasContainer = null;
   let slotsContainer = null;
+  let effectsContainer = null;
   let confirmBtn = null;
   let compositeCanvas = null;
   let idleTimer = null;
+  let selectedEffectId = initialEffectId || 'normal';
+
+  // Cached template overlay image
+  let cachedTemplateImg = null;
 
   async function generateCompositePreview() {
     if (!canvasContainer) return;
@@ -32,10 +39,9 @@ export function createReviewScreen({
         </div>
       `;
 
-      // Load template overlay PNG
-      let templateImg = null;
-      if (template?.file_png) {
-        templateImg = await loadImage(`/templates/${template.file_png}`).catch((err) => {
+      // Load template overlay PNG if not yet cached
+      if (template?.file_png && !cachedTemplateImg) {
+        cachedTemplateImg = await loadImage(`/templates/${template.file_png}`).catch((err) => {
           console.warn('[Review] Gagal memuat overlay PNG template:', err);
           return null;
         });
@@ -46,16 +52,18 @@ export function createReviewScreen({
         photos.map((src) => (src ? loadImage(src) : null))
       );
 
-      compositeCanvas = renderComposite({
+      // Render composite with selected effect applied strictly to photos (PRD F-28)
+      compositeCanvas = composeSession({
+        template,
+        photos: loadedPhotos,
+        effectId: selectedEffectId,
+        templateImage: cachedTemplateImg,
         canvasWidth: CANVAS_SPECS.WIDTH,
-        canvasHeight: CANVAS_SPECS.HEIGHT,
-        templateImage: templateImg,
-        slots: template?.slots || [],
-        photos: loadedPhotos
+        canvasHeight: CANVAS_SPECS.HEIGHT
       });
 
       compositeCanvas.className =
-        'max-h-[68vh] w-auto border-[5px] border-black bg-white shadow-none object-contain';
+        'max-h-[64vh] w-auto border-[5px] border-black bg-white shadow-none object-contain';
 
       canvasContainer.innerHTML = '';
       canvasContainer.appendChild(compositeCanvas);
@@ -69,6 +77,45 @@ export function createReviewScreen({
         `;
       }
     }
+  }
+
+  function renderEffectChips() {
+    if (!effectsContainer) return;
+    effectsContainer.innerHTML = '';
+
+    const samplePhotoSrc = photos[0] || '';
+
+    EFFECT_LIST.forEach((preset) => {
+      const isSelected = preset.id === selectedEffectId;
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.dataset.effectId = preset.id;
+      chip.className = `effect-chip flex items-center gap-2 px-3 py-2 border-[3px] border-black font-headline text-xs uppercase cursor-pointer select-none transition-none ${
+        isSelected
+          ? 'bg-black text-white shadow-[2px_2px_0px_0px_#000]'
+          : 'bg-white text-black hover:bg-neutral-100'
+      }`;
+
+      chip.innerHTML = `
+        <span class="w-6 h-6 border-[2px] border-black overflow-hidden inline-block shrink-0 bg-raw-sunken">
+          ${
+            samplePhotoSrc
+              ? `<img src="${samplePhotoSrc}" alt="${preset.label}" class="w-full h-full object-cover" style="filter: ${preset.filter};" />`
+              : `<span class="block w-full h-full bg-neutral-300"></span>`
+          }
+        </span>
+        <span class="tracking-wider">${preset.label}</span>
+      `;
+
+      chip.addEventListener('click', () => {
+        if (selectedEffectId === preset.id) return;
+        selectedEffectId = preset.id;
+        renderEffectChips();
+        generateCompositePreview();
+      });
+
+      effectsContainer.appendChild(chip);
+    });
   }
 
   function renderSlotsList() {
@@ -167,16 +214,28 @@ export function createReviewScreen({
           </span>
         </div>
 
-        <!-- Slot Retake Controls -->
+        <!-- Slot & Effect Controls (Right) -->
         <div class="lg:col-span-5 space-y-4">
-          <div class="card-raw-elevated space-y-4">
-            <h3 class="font-headline text-base uppercase text-black pb-2 border-b-[3px] border-black">
+          <!-- 1. Photo Effect Presets (PRD F-27) -->
+          <div class="card-raw-elevated space-y-3 p-4 border-[4px] border-black bg-white shadow-[4px_4px_0px_0px_#000]">
+            <div class="flex items-center justify-between pb-2 border-b-[3px] border-black">
+              <h3 class="font-headline text-sm uppercase text-black">
+                PILIH EFEK / FILTER FOTO
+              </h3>
+              <span class="font-mono text-[11px] text-black/60 uppercase">7 PRESET</span>
+            </div>
+            <div id="effects-selection-tray" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- 2. Slot Retake Controls -->
+          <div class="card-raw-elevated space-y-3 p-4 border-[4px] border-black bg-white shadow-[4px_4px_0px_0px_#000]">
+            <h3 class="font-headline text-sm uppercase text-black pb-2 border-b-[3px] border-black">
               KOREKSI FOTO PER SLOT
             </h3>
             <p class="font-body text-xs text-black/70">
-              Jika ada foto yang kurang pas, tekan tombol di bawah untuk mengambil foto ulang pada slot tersebut.
+              Ulang foto jika belum pas (maksimal 1x per slot).
             </p>
-            <div id="slots-review-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
+            <div id="slots-review-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
           </div>
         </div>
       </div>
@@ -184,7 +243,7 @@ export function createReviewScreen({
       <!-- Footer Action -->
       <div class="mt-6 pt-4 border-t-[5px] border-black flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="font-mono text-xs text-black/80">
-          PASTIKAN SEMUA FOTO SUDAH SESUAI KEINGINANMU SEBELUM MENCETAK.
+          PASTIKAN EFEK & FOTO SUDAH SESUAI KEINGINANMU SEBELUM MENCETAK.
         </div>
         <button id="btn-confirm-print" class="btn-raw-primary min-h-[64px] px-12 text-xl font-headline w-full md:w-auto">
           LANJUT & CETAK FOTO
@@ -196,16 +255,18 @@ export function createReviewScreen({
 
     canvasContainer = container.querySelector('#composite-canvas-container');
     slotsContainer = container.querySelector('#slots-review-list');
+    effectsContainer = container.querySelector('#effects-selection-tray');
     confirmBtn = container.querySelector('#btn-confirm-print');
 
     if (confirmBtn && onConfirm) {
       const clickHandler = preventDoubleClick(confirmBtn, async () => {
         const compositeDataUrl = compositeCanvas ? compositeCanvas.toDataURL('image/jpeg', 0.95) : null;
-        await onConfirm({ photos, compositeDataUrl });
+        await onConfirm({ photos, compositeDataUrl, effectId: selectedEffectId });
       }, 'MENYIAPKAN CETAKAN...');
       confirmBtn.addEventListener('click', clickHandler);
     }
 
+    renderEffectChips();
     renderSlotsList();
     generateCompositePreview();
 
@@ -234,6 +295,7 @@ export function createReviewScreen({
     container = null;
     canvasContainer = null;
     slotsContainer = null;
+    effectsContainer = null;
     confirmBtn = null;
   }
 

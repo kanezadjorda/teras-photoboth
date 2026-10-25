@@ -35,10 +35,10 @@ export const api = {
   deleteTemplate: (id) => fetchApi(`/templates/${id}`, { method: 'DELETE' }),
   getCurrentSession: () => fetchApi('/sessions/current'),
   createSession: () => fetchApi('/sessions', { method: 'POST' }),
-  updateSessionStatus: (id, status, template_id) =>
+  updateSessionStatus: (id, status, template_id, effect_id) =>
     fetchApi(`/sessions/${id}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status, template_id })
+      body: JSON.stringify({ status, template_id, effect_id })
     }),
   getPayment: (sessionId) => fetchApi(`/payments/${sessionId}`),
   createPaymentCharge: (sessionId) =>

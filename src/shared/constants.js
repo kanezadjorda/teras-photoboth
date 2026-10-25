@@ -8,6 +8,7 @@ export const SESSION_STATES = Object.freeze({
   WAITING_PAYMENT: 'waiting_payment',
   CHOOSING_TEMPLATE: 'choosing_template',
   CAPTURING: 'capturing',
+  CHOOSING_EFFECT: 'choosing_effect',
   REVIEWING: 'reviewing',
   PRINTING: 'printing',
   DONE: 'done',

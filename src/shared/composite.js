@@ -5,6 +5,7 @@
  */
 
 import { CANVAS_SPECS } from './constants.js';
+import { getEffect } from './effects.js';
 
 /**
  * Calculates cover-fit source crop coordinates to prevent photo distortion.
@@ -84,6 +85,7 @@ export function renderComposite(options = {}) {
     templateImage = null,
     slots = [],
     photos = [],
+    filter = 'none',
     targetCanvas = null
   } = options;
 
@@ -115,6 +117,10 @@ export function renderComposite(options = {}) {
       const { sx, sy, sw, sh } = calculateCoverFit(pWidth, pHeight, slot.w, slot.h);
 
       ctx.save();
+      // Apply effect filter strictly to photos, NOT overlay (PRD F-28)
+      if (filter && filter !== 'none') {
+        ctx.filter = filter;
+      }
       // Clip to slot boundary
       ctx.beginPath();
       ctx.rect(slot.x, slot.y, slot.w, slot.h);
@@ -129,12 +135,46 @@ export function renderComposite(options = {}) {
     }
   }
 
-  // 3. Draw template overlay PNG on top of all photos
+  // 3. Draw template overlay PNG on top of all photos (unfiltered)
   if (templateImage) {
     ctx.drawImage(templateImage, 0, 0, canvasWidth, canvasHeight);
   }
 
   return canvas;
+}
+
+/**
+ * High-level session composite generator applying chosen photo effect.
+ * PRD Reference: F-27, F-28
+ * @param {object} options
+ * @param {object} options.template - Template object with slots
+ * @param {Array<HTMLImageElement|ImageBitmap|HTMLCanvasElement>} options.photos - Array of captured photo images
+ * @param {string} [options.effectId='normal'] - ID of the effect preset
+ * @param {HTMLImageElement|ImageBitmap|HTMLCanvasElement} [options.templateImage] - Preloaded template overlay image
+ * @param {HTMLCanvasElement} [options.targetCanvas] - Optional existing canvas to draw onto
+ * @returns {HTMLCanvasElement}
+ */
+export function composeSession({
+  template,
+  photos = [],
+  effectId = 'normal',
+  templateImage = null,
+  canvasWidth = CANVAS_SPECS.WIDTH,
+  canvasHeight = CANVAS_SPECS.HEIGHT,
+  targetCanvas = null
+} = {}) {
+  const effect = getEffect(effectId);
+  const slots = template?.slots || [];
+
+  return renderComposite({
+    canvasWidth,
+    canvasHeight,
+    templateImage,
+    slots,
+    photos,
+    filter: effect.filter,
+    targetCanvas
+  });
 }
 
 /**

@@ -51,6 +51,7 @@ export function initDb() {
       template_id TEXT,
       event_id TEXT,
       status TEXT NOT NULL,
+      effect_id TEXT DEFAULT 'normal',
       dibuat_pada TEXT NOT NULL,
       FOREIGN KEY(template_id) REFERENCES templates(id),
       FOREIGN KEY(event_id) REFERENCES events(id)
@@ -83,10 +84,13 @@ export function initDb() {
     );
   `);
 
-  // Safe migration for existing sessions table (event_id column)
+  // Safe migration for existing sessions table (event_id, effect_id columns)
   const sessionCols = db.prepare('PRAGMA table_info(sessions)').all().map((c) => c.name);
   if (!sessionCols.includes('event_id')) {
     db.exec('ALTER TABLE sessions ADD COLUMN event_id TEXT');
+  }
+  if (!sessionCols.includes('effect_id')) {
+    db.exec("ALTER TABLE sessions ADD COLUMN effect_id TEXT DEFAULT 'normal'");
   }
 
   // Safe migration for existing payments table

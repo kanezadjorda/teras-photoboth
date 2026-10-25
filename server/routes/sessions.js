@@ -29,6 +29,7 @@ router.post('/', (req, res) => {
     const id = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date().toISOString();
     const initialStatus = req.body?.status || SESSION_STATES.WAITING_PAYMENT;
+    const effectId = req.body?.effect_id || 'normal';
 
     // Ambil event yang sedang aktif jika ada
     let eventId = null;
@@ -40,11 +41,11 @@ router.post('/', (req, res) => {
     }
 
     db.prepare(`
-      INSERT INTO sessions (id, template_id, event_id, status, dibuat_pada)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(id, null, eventId, initialStatus, now);
+      INSERT INTO sessions (id, template_id, event_id, status, effect_id, dibuat_pada)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, null, eventId, initialStatus, effectId, now);
 
-    const session = { id, template_id: null, event_id: eventId, status: initialStatus, dibuat_pada: now };
+    const session = { id, template_id: null, event_id: eventId, status: initialStatus, effect_id: effectId, dibuat_pada: now };
     broadcastEvent('session_created', session);
 
     res.status(201).json({ success: true, data: session });
@@ -57,7 +58,7 @@ router.post('/', (req, res) => {
 router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status: targetStatus, template_id } = req.body;
+    const { status: targetStatus, template_id, effect_id } = req.body;
 
     const currentSession = db.prepare('SELECT * FROM sessions WHERE id = ?').get(id);
     if (!currentSession) {
@@ -66,12 +67,20 @@ router.patch('/:id/status', async (req, res) => {
 
     const nextState = transitionSessionState(currentSession.status, targetStatus);
 
-    if (template_id) {
-      db.prepare('UPDATE sessions SET status = ?, template_id = ? WHERE id = ?')
-        .run(nextState, template_id, id);
-    } else {
-      db.prepare('UPDATE sessions SET status = ? WHERE id = ?').run(nextState, id);
+    const updates = ['status = ?'];
+    const params = [nextState];
+
+    if (template_id !== undefined && template_id !== null) {
+      updates.push('template_id = ?');
+      params.push(template_id);
     }
+    if (effect_id !== undefined && effect_id !== null) {
+      updates.push('effect_id = ?');
+      params.push(effect_id);
+    }
+    params.push(id);
+
+    db.prepare(`UPDATE sessions SET ${updates.join(', ')} WHERE id = ?`).run(...params);
 
     // Jika sesi dibatalkan (CANCELLED), sinkronkan pembatalan ke pembayaran & Midtrans (PRD F-01, F-16)
     if (nextState === SESSION_STATES.CANCELLED) {

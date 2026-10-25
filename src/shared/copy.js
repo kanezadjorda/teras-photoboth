@@ -35,3 +35,4 @@ export const INSTRUCTIONS_COPY = Object.freeze({
     }
   ]
 });
+

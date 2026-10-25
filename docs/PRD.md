@@ -1,6 +1,6 @@
 # PRD — Aplikasi Photobooth (QRIS + Template + Kamera & Printer Eksternal)
 
-**Versi:** 0.9.1 (Draft MVP) · **Tanggal:** 4 Oktober 2026
+**Versi:** 0.10 (Draft MVP) · **Tanggal:** 4 Oktober 2026
 
 ---
 
@@ -10,12 +10,12 @@ Aplikasi web lokal yang berjalan di laptop staff untuk mengoperasikan photobooth
 
 ## 2. Tujuan & Metrik Sukses
 
-| Tujuan | Metrik |
-| --- | --- |
-| Transaksi mandiri tanpa bantuan staff | ≥ 90% sesi selesai tanpa intervensi |
-| Alur cepat | Bayar → cetak selesai ≤ 3 menit |
-| Andal di venue (event/mall) | Tetap berjalan saat internet putus (kecuali verifikasi pembayaran) |
-| Tidak ada foto hilang | 100% foto tersimpan lokal sebelum dicetak |
+| Tujuan                                | Metrik                                                             |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| Transaksi mandiri tanpa bantuan staff | ≥ 90% sesi selesai tanpa intervensi                                |
+| Alur cepat                            | Bayar → cetak selesai ≤ 3 menit                                    |
+| Andal di venue (event/mall)           | Tetap berjalan saat internet putus (kecuali verifikasi pembayaran) |
+| Tidak ada foto hilang                 | 100% foto tersimpan lokal sebelum dicetak                          |
 
 ## 3. Pengguna
 
@@ -46,17 +46,18 @@ Aplikasi web lokal yang berjalan di laptop staff untuk mengoperasikan photobooth
 ```
 [Staff] Sambung kamera + printer + monitor → buka /admin → tes perangkat → Mulai Sesi
    │
-[Customer] Layar Welcome ("Sentuh untuk mulai")
+[Customer] Layar Welcome  → kamera aktif sebagai latar, tombol "Mulai"
    │
    ▼
-1. Bayar QRIS            → harga sesi (diatur admin); QR dinamis + countdown 3 menit
+1. Tata cara             → 4 langkah bergambar; Lanjut / Kembali
+2. Bayar QRIS            → harga sesi (diatur admin); QR dinamis + countdown 3 menit
       ├─ Lunas      → lanjut
       └─ Expired    → kembali ke Welcome
-2. Pilih template        → bebas memilih template yang diaktifkan admin
-3. Foto                  → preview live → countdown 3-2-1 → ambil N foto (N = jumlah slot template)
-4. Review                → pilih/ulang foto (maks 1× retake per slot)
-5. Cetak                 → komposit → print → "Ambil hasil cetakmu"
-6. Soft file             → layar akhir: "Scan QR di cetakanmu untuk unduh soft file" (foto sudah tersimpan di folder Drive)
+3. Pilih template        → bebas memilih template yang diaktifkan admin
+4. Foto                  → preview live → countdown 3-2-1 → ambil N foto (N = jumlah slot template)
+5. Pilih efek & review   → pratinjau hasil, pilih efek, (opsional) ulang foto maks 1× per slot
+6. Cetak                 → komposit (dengan efek) → print → "Ambil hasil cetakmu"
+7. Soft file             → layar akhir: "Scan QR di cetakanmu untuk unduh soft file" (foto sudah tersimpan di folder Drive)
    │
    ▼
 Selesai → kembali ke Welcome (otomatis)
@@ -66,41 +67,43 @@ Selesai → kembali ke Welcome (otomatis)
 
 ## 6. Kebutuhan Fungsional
 
-| ID | Kebutuhan | Prioritas |
-| --- | --- | --- |
-| **Pembayaran** |  |  |
-| F-01 | Generate QRIS dinamis sesuai nominal via payment gateway | P0 |
-| F-02 | Deteksi status bayar otomatis (polling/webhook), timeout 3 menit | P0 |
-| F-03 | Catat transaksi (id, nominal, status, waktu) | P0 |
-| F-04 | Konfirmasi manual oleh staff (cadangan jika gateway bermasalah) | P1 |
-| **Template** |  |  |
-| F-05 | Galeri template dari folder + file konfigurasi JSON | P0 |
-| F-06 | Template = satu PNG; area foto berupa lubang transparan. Jumlah foto per sesi = jumlah slot template | P0 |
-| F-07 | Upload template dari panel admin: **slot terdeteksi otomatis** dari area transparan, tampil sebagai kotak bernomor | P0 |
-| F-22 | Editor koreksi slot: geser, ubah ukuran, hapus/tambah slot, ubah urutan foto | P1 |
-| F-23 | Aktif/nonaktifkan template dan atur nama template (harga tidak per template) | P0 |
-| **Kamera** |  |  |
-| F-08 | Kamera eksternal terdeteksi otomatis (prioritas kamera eksternal/DSLR, fallback otomatis ke kamera laptop jika tidak ada eksternal; sumber kamera dapat dipilih di panel admin), live preview (mirror) | P0 |
-| F-09 | Countdown + capture resolusi tertinggi yang didukung | P0 |
-| F-10 | Retake per foto | P1 |
-| **Cetak** |  |  |
-| F-11 | Komposit foto + template ke satu gambar siap cetak (300 DPI) | P0 |
-| F-12 | Cetak otomatis tanpa dialog ke printer default sistem atau printer terpilih (ukuran 4R diatur oleh aplikasi); jumlah salinan diterapkan di langkah cetak (N halaman pada CSS cetak), bukan di dialog printer | P0 |
-| F-13 | Cetak ulang dari riwayat (staff) | P1 |
-| **Staff** |  |  |
-| F-14 | Halaman admin (PIN): pemantauan status & pemilihan perangkat aktif (kamera eksternal/laptop dan printer terpasang), atur harga sesi, atur jumlah cetak per sesi (default 1; bisa diubah admin, mis. 2 untuk dua orang) | P0 |
-| F-15 | Laporan harian: jumlah sesi & total pendapatan, ekspor CSV | P1 |
-| F-16 | Tombol darurat: batalkan sesi / reset ke Welcome | P0 |
-| **Pengalaman customer** |  |  |
-| F-24 | Layar Welcome menampilkan preview kamera aktif sebagai latar fullscreen (dimirror, lapisan gelap agar teks terbaca) dan tombol Mulai; fallback gambar statis jika kamera tidak tersedia | P0 |
-| F-25 | Satu layanan kamera memegang stream dan dipakai ulang di layar foto (tanpa buka-tutup kamera); kamera dideteksi ulang saat dicolok/dilepas | P0 |
-| F-26 | Layar Tata Cara: 4 langkah bergambar + tombol Lanjut/Kembali; teks disimpan di satu berkas konfigurasi | P0 |
-| F-29 | Tanpa aktivitas 60 detik di layar tata cara, pilih template, atau pilih efek → kembali ke Welcome | P1 |
-| **Soft file** |  |  |
-| F-17 | Simpan foto final (dan foto asli, opsional) ke folder output; nama file `YYYYMMDD-HHMMSS-<no sesi>.jpg` | P0 |
-| F-18 | Admin memilih folder output lewat dialog pilih folder (folder yang disinkronkan Google Drive for desktop) | P0 |
-| F-19 | Nomor sesi dicetak kecil di hasil cetak (opsional, bisa diatur) agar customer mudah menemukan fotonya di folder | P1 |
-| F-20 | Template boleh memuat QR/teks statis (bagian dari PNG, tidak transparan); aplikasi tidak membuat QR | P0 |
+| ID                      | Kebutuhan                                                                                                                                                                                                               | Prioritas |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| **Pembayaran**          |                                                                                                                                                                                                                         |           |
+| F-01                    | Generate QRIS dinamis sesuai nominal via payment gateway                                                                                                                                                                | P0        |
+| F-02                    | Deteksi status bayar otomatis (polling/webhook), timeout 3 menit                                                                                                                                                        | P0        |
+| F-03                    | Catat transaksi (id, nominal, status, waktu)                                                                                                                                                                            | P0        |
+| F-04                    | Konfirmasi manual oleh staff (cadangan jika gateway bermasalah)                                                                                                                                                         | P1        |
+| **Template**            |                                                                                                                                                                                                                         |           |
+| F-05                    | Galeri template dari folder + file konfigurasi JSON                                                                                                                                                                     | P0        |
+| F-06                    | Template = satu PNG; area foto berupa lubang transparan. Jumlah foto per sesi = jumlah slot template                                                                                                                    | P0        |
+| F-07                    | Upload template dari panel admin: **slot terdeteksi otomatis** dari area transparan, tampil sebagai kotak bernomor                                                                                                      | P0        |
+| F-22                    | Editor koreksi slot: geser, ubah ukuran, hapus/tambah slot, ubah urutan foto                                                                                                                                            | P1        |
+| F-23                    | Aktif/nonaktifkan template dan atur nama template (harga tidak per template)                                                                                                                                            | P0        |
+| **Kamera**              |                                                                                                                                                                                                                         |           |
+| F-08                    | Kamera eksternal terdeteksi otomatis (tanpa pemilihan manual; kamera bawaan laptop diabaikan jika ada kamera eksternal), live preview (mirror)                                                                          | P0        |
+| F-09                    | Countdown + capture resolusi tertinggi yang didukung                                                                                                                                                                    | P0        |
+| F-10                    | Retake per foto                                                                                                                                                                                                         | P1        |
+| **Cetak**               |                                                                                                                                                                                                                         |           |
+| F-11                    | Komposit foto + template ke satu gambar siap cetak (300 DPI)                                                                                                                                                            | P0        |
+| F-12                    | Cetak otomatis tanpa dialog ke printer default sistem (tanpa pemilihan printer; ukuran 4R diatur oleh aplikasi); jumlah salinan diterapkan di langkah cetak (N halaman pada CSS cetak), bukan di dialog printer         | P0        |
+| F-13                    | Cetak ulang dari riwayat (staff)                                                                                                                                                                                        | P1        |
+| **Staff**               |                                                                                                                                                                                                                         |           |
+| F-14                    | Halaman admin (PIN): indikator status perangkat otomatis (kamera, printer, internet, sinkron Drive; hanya tampilan), atur harga sesi, atur jumlah cetak per sesi (default 1; bisa diubah admin, mis. 2 untuk dua orang) | P0        |
+| F-15                    | Laporan harian: jumlah sesi & total pendapatan, ekspor CSV                                                                                                                                                              | P1        |
+| F-16                    | Tombol darurat: batalkan sesi / reset ke Welcome                                                                                                                                                                        | P0        |
+| **Pengalaman customer** |                                                                                                                                                                                                                         |           |
+| F-24                    | Layar Welcome menampilkan preview kamera aktif sebagai latar fullscreen (dimirror, lapisan gelap agar teks terbaca) dan tombol Mulai; fallback gambar statis jika kamera tidak tersedia                                 | P0        |
+| F-25                    | Satu layanan kamera memegang stream dan dipakai ulang di layar foto (tanpa buka-tutup kamera); kamera dideteksi ulang saat dicolok/dilepas                                                                              | P0        |
+| F-26                    | Layar Tata Cara: 4 langkah bergambar + tombol Lanjut/Kembali; teks disimpan di satu berkas konfigurasi                                                                                                                  | P0        |
+| F-27                    | Layar Pilih Efek setelah foto: pratinjau hasil + 7 preset (Normal, Hitam Putih, Sepia, Vintage, Cerah, Hangat, Dingin)                                                                                                  | P0        |
+| F-28                    | Efek diterapkan hanya pada foto (bukan overlay template), sama untuk semua foto dalam satu sesi; hasil cetak = pratinjau; foto asli tetap tanpa efek; efek terpilih disimpan di sesi                                    | P0        |
+| F-29                    | Tanpa aktivitas 60 detik di layar tata cara, pilih template, atau pilih efek → kembali ke Welcome                                                                                                                       | P1        |
+| **Soft file**           |                                                                                                                                                                                                                         |           |
+| F-17                    | Simpan foto final (dan foto asli, opsional) ke folder output; nama file `YYYYMMDD-HHMMSS-<no sesi>.jpg`                                                                                                                 | P0        |
+| F-18                    | Admin memilih folder output lewat dialog pilih folder (folder yang disinkronkan Google Drive for desktop)                                                                                                               | P0        |
+| F-19                    | Nomor sesi dicetak kecil di hasil cetak (opsional, bisa diatur) agar customer mudah menemukan fotonya di folder                                                                                                         | P1        |
+| F-20                    | Template boleh memuat QR/teks statis (bagian dari PNG, tidak transparan); aplikasi tidak membuat QR                                                                                                                     | P0        |
 
 ## 7. Kebutuhan Non-Fungsional
 
@@ -116,29 +119,31 @@ Selesai → kembali ke Welcome (otomatis)
 
 Prinsip: **sesederhana mungkin, tanpa framework frontend**.
 
-| Lapisan | Pilihan | Alasan |
-| --- | --- | --- |
-| Frontend | **HTML + JavaScript (vanilla, ES Modules)** | Tanpa framework UI, mudah di-debug |
-| Bundler | **Vite** (template vanilla, multi-page) | Dev server cepat (HMR), build produksi ringkas; satu proyek untuk halaman kiosk dan admin |
-| Styling | **Tailwind CSS (plugin Vite)** | Tanpa langkah CLI terpisah; CSS statis hasil build, jalan offline (tanpa CDN di produksi) |
-| Kamera | **Web API `getUserMedia` + `ImageCapture`** | Native browser, mendukung webcam/UVC |
-| Komposit gambar | **Canvas API** | Native, cukup untuk overlay template + foto |
-| Backend lokal | **Node.js + Express** | Satu bahasa (JS), ringan, simpan rahasia API |
-| Database | **SQLite (`better-sqlite3`)** | Tanpa server DB, satu file, mudah backup |
-| Real-time | **Server-Sent Events (SSE)** | Sinkron layar staff ↔ customer, lebih simpel dari WebSocket |
-| Pembayaran | **Midtrans Core API** (QRIS dinamis, sandbox & simulator tersedia) | Deteksi bayar via polling status order_id (tanpa webhook/tunnel); biaya flat/standar industri |
-| Soft file | **Folder lokal + Google Drive for desktop** (sinkron otomatis) | Tanpa kode upload/server; sinkron menunggu sendiri saat offline |
-| QR code | **Statis di desain template (PNG)** | Link folder Drive publik dijadikan QR di Canva/Photoshop; aplikasi tidak perlu generate QR |
-| Cetak | **`window.print()` + CSS `@page` + Chrome `--kiosk-printing`** | Cetak tanpa dialog, ukuran kertas presisi |
-| Distribusi | **Electron + electron-builder** (installer `.exe` Windows / `.dmg` macOS) | Staff cukup klik ikon aplikasi, tanpa terminal/Node/Chrome terpisah; cetak senyap bawaan |
+| Lapisan         | Pilihan                                                                   | Alasan                                                                                                    |
+| --------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Frontend        | **HTML + JavaScript (vanilla, ES Modules)**                               | Tanpa framework UI, mudah di-debug                                                                        |
+| Bundler         | **Vite** (template vanilla, multi-page)                                   | Dev server cepat (HMR), build produksi ringkas; satu proyek untuk halaman kiosk dan admin                 |
+| Styling         | **Tailwind CSS (plugin Vite)**                                            | Tanpa langkah CLI terpisah; CSS statis hasil build, jalan offline (tanpa CDN di produksi)                 |
+| Kamera          | **Web API `getUserMedia` + `ImageCapture`**                               | Native browser, mendukung webcam/UVC                                                                      |
+| Komposit gambar | **Canvas API**                                                            | Native, cukup untuk overlay template + foto                                                               |
+| Backend lokal   | **Node.js + Express**                                                     | Satu bahasa (JS), ringan, simpan rahasia API                                                              |
+| Database        | **SQLite (`better-sqlite3`)**                                             | Tanpa server DB, satu file, mudah backup                                                                  |
+| Real-time       | **Server-Sent Events (SSE)**                                              | Sinkron layar staff ↔ customer, lebih simpel dari WebSocket                                               |
+| Pembayaran      | **Mayar.id** (QRIS dinamis, sandbox tersedia)                             | Deteksi bayar via polling transaksi paid (webhook opsional via Cloudflare Tunnel); cek biaya di dashboard |
+| Soft file       | **Folder lokal + Google Drive for desktop** (sinkron otomatis)            | Tanpa kode upload/server; sinkron menunggu sendiri saat offline                                           |
+| QR code         | **Statis di desain template (PNG)**                                       | Link folder Drive publik dijadikan QR di Canva/Photoshop; aplikasi tidak perlu generate QR                |
+| Cetak           | **`window.print()` + CSS `@page` + Chrome `--kiosk-printing`**            | Cetak tanpa dialog, ukuran kertas presisi                                                                 |
+| Distribusi      | **Electron + electron-builder** (installer `.exe` Windows / `.dmg` macOS) | Staff cukup klik ikon aplikasi, tanpa terminal/Node/Chrome terpisah; cetak senyap bawaan                  |
 
 **Catatan teknis penting**
 
-1. **Kamera Canon DSLR:** browser hanya mengenali perangkat UVC. Gunakan **Canon EOS Webcam Utility** (cek dukungan tipe kamera) atau *HDMI capture card*. **Di MacBook M1:** versi lama EOS Webcam Utility pernah bermasalah di Apple Silicon (kamera tidak muncul di aplikasi); versi terbaru dilaporkan sudah membaik tetapi wajib diuji dengan model kamera dan macOS yang dipakai, termasuk di dalam aplikasi Electron kita. Jalur paling aman: *HDMI capture card* (terbaca sebagai kamera UVC tanpa driver di macOS), butuh kamera dengan *clean HDMI out*. Pasang *dummy battery* dan matikan auto power off. Resolusi ±1080p cukup untuk 4R. Aplikasi **tidak mengontrol kamera**; pengaturan (pencahayaan, fokus, white balance, dll.) dilakukan staff langsung di kamera sebelum sesi, aplikasi hanya menampilkan preview dan mengambil gambar.
+1. **Kamera Canon DSLR:** browser hanya mengenali perangkat UVC. Gunakan **Canon EOS Webcam Utility** (cek dukungan tipe kamera) atau _HDMI capture card_. **Di MacBook M1:** versi lama EOS Webcam Utility pernah bermasalah di Apple Silicon (kamera tidak muncul di aplikasi); versi terbaru dilaporkan sudah membaik tetapi wajib diuji dengan model kamera dan macOS yang dipakai, termasuk di dalam aplikasi Electron kita. Jalur paling aman: _HDMI capture card_ (terbaca sebagai kamera UVC tanpa driver di macOS), butuh kamera dengan _clean HDMI out_. Pasang _dummy battery_ dan matikan auto power off. Resolusi ±1080p cukup untuk 4R. Aplikasi **tidak mengontrol kamera**; pengaturan (pencahayaan, fokus, white balance, dll.) dilakukan staff langsung di kamera sebelum sesi, aplikasi hanya menampilkan preview dan mengambil gambar.
 2. **QRIS tidak bisa dibuat langsung dari frontend.** QRIS statis tidak bisa mendeteksi pembayaran. Wajib QRIS dinamis via gateway, dan itu butuh backend. Untuk laptop tanpa IP publik, gunakan **polling status** (server menanyakan status ke gateway tiap 2–3 detik) sehingga tidak perlu webhook/tunnel.
 3. **Printer Epson, kertas 4R (4×6 inci):** atur ukuran kertas default di driver ke 4R borderless agar sama dengan `@page`. Jumlah cetak dirender sebagai N halaman di CSS cetak. Opsi hemat kertas: dua strip 2×6 berdampingan di satu lembar 4R, lalu dipotong.
-4. **Midtrans Core API:** Endpoint charge mengembalikan `actions` berisi URL gambar QR code dan `qr_string` beserta `transaction_id`. Server melakukan polling `GET /v2/:order_id/status` setiap 2–3 detik hingga status berubah menjadi `settlement`. Tersedia Midtrans QRIS Simulator untuk pengujian di mode sandbox.
-5. **Soft file via Google Drive:** aplikasi hanya menulis file ke folder output; Google Drive for desktop yang menyinkronkan. Atur folder tersebut ke mode *Mirror* (bukan Stream) agar file tetap tersimpan lokal. Bagikan folder dengan akses "Anyone with the link – Viewer", lalu jadikan link itu QR di desain template. **Privasi:** pemegang link dapat melihat semua foto di folder; folder Drive dibuat per event; ganti link/QR di template setiap event baru. Pantau sisa kuota Drive.
+4. **Mayar:** respons QRIS dinamis hanya berisi URL gambar QR dan nominal (tanpa ID transaksi), sehingga pembayaran dicocokkan lewat nominal + waktu. Uji juga API payment request di sandbox untuk opsi yang mengembalikan ID.
+5. **Soft file via Google Drive:** aplikasi hanya menulis file ke folder output; Google Drive for desktop yang menyinkronkan. Atur folder tersebut ke mode _Mirror_ (bukan Stream) agar file tetap tersimpan lokal. Bagikan folder dengan akses "Anyone with the link – Viewer", lalu jadikan link itu QR di desain template. **Privasi:** pemegang link dapat melihat semua foto di folder; folder Drive dibuat per event; ganti link/QR di template setiap event baru. Pantau sisa kuota Drive.
+
+6. **Kamera latar & efek:** `cameraService` (singleton) memegang `MediaStream` dan memilih kamera eksternal otomatis; Welcome dan layar foto memakai stream yang sama. Di macOS, tambahkan `NSCameraUsageDescription` (electron-builder `mac.extendInfo`) agar izin kamera bisa diminta pada aplikasi yang dikemas. Efek = daftar preset `{id, label, filter}` (string filter CSS); pratinjau memakai komposit Canvas dengan `ctx.filter` pada foto saja, sehingga pratinjau sama persis dengan hasil cetak.
 
 ### 8.1 Distribusi & Cara Menjalankan
 
@@ -151,13 +156,13 @@ Prinsip: **sesederhana mungkin, tanpa framework frontend**.
 
 ### 8.2 Penyimpanan: Lokal vs Online
 
-| Data | Lokasi | Perlu internet? |
-| --- | --- | --- |
-| Database (transaksi, sesi, pengaturan) | SQLite, file lokal | Tidak |
-| Foto asli & hasil komposit | Folder lokal `data/photos` | Tidak |
-| Template | Folder lokal `templates/` | Tidak |
-| Foto untuk soft file | Folder lokal yang disinkronkan Google Drive for desktop | Sinkron otomatis saat online |
-| Pembayaran QRIS (Mayar) | Server Mayar | Ya |
+| Data                                   | Lokasi                                                  | Perlu internet?              |
+| -------------------------------------- | ------------------------------------------------------- | ---------------------------- |
+| Database (transaksi, sesi, pengaturan) | SQLite, file lokal                                      | Tidak                        |
+| Foto asli & hasil komposit             | Folder lokal `data/photos`                              | Tidak                        |
+| Template                               | Folder lokal `templates/`                               | Tidak                        |
+| Foto untuk soft file                   | Folder lokal yang disinkronkan Google Drive for desktop | Sinkron otomatis saat online |
+| Pembayaran QRIS (Mayar)                | Server Mayar                                            | Ya                           |
 
 Booth tetap bisa memfoto dan mencetak saat offline; sinkron ke Drive menyusul otomatis saat internet kembali. Backup: salin folder `data/` secara berkala (fitur backup otomatis di fase berikutnya).
 
@@ -194,13 +199,13 @@ photobooth/
 
 ## 10. Model Data (SQLite)
 
-| Tabel | Kolom utama |
-| --- | --- |
-| `templates` | id, nama, file_png, jumlah_slot, aktif |
-| `sessions` | id, template_id, status (`menunggu_bayar`/`foto`/`cetak`/`selesai`/`batal`), dibuat_pada |
-| `payments` | id, session_id, order_id, nominal, status, qris_string, dibayar_pada |
-| `photos` | id, session_id, urutan, path_file |
-| `settings` | key, value (harga sesi, jumlah cetak, PIN, folder output) |
+| Tabel       | Kolom utama                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| `templates` | id, nama, file_png, jumlah_slot, aktif                                                   |
+| `sessions`  | id, template_id, status (`menunggu_bayar`/`foto`/`cetak`/`selesai`/`batal`), dibuat_pada |
+| `payments`  | id, session_id, order_id, nominal, status, qris_string, dibayar_pada                     |
+| `photos`    | id, session_id, urutan, path_file                                                        |
+| `settings`  | key, value (harga sesi, jumlah cetak, PIN, folder output)                                |
 
 ## 11. Spesifikasi Template
 
@@ -212,9 +217,9 @@ photobooth/
   "canvas": { "width": 600, "height": 1800 },
   "paper": "2x6in",
   "slots": [
-    { "x": 50, "y": 60,   "w": 500, "h": 380 },
-    { "x": 50, "y": 470,  "w": 500, "h": 380 },
-    { "x": 50, "y": 880,  "w": 500, "h": 380 },
+    { "x": 50, "y": 60, "w": 500, "h": 380 },
+    { "x": 50, "y": 470, "w": 500, "h": 380 },
+    { "x": 50, "y": 880, "w": 500, "h": 380 },
     { "x": 50, "y": 1290, "w": 500, "h": 380 }
   ]
 }
@@ -228,7 +233,7 @@ Agar admin bisa membuat template dengan jumlah foto berbeda (2, 3, 4, dst.) tanp
 
 1. Admin mendesain template di Canva/Photoshop berukuran **4R 300 DPI (1200×1800 px)**. Latar dan dekorasi **tidak transparan**; hanya area foto yang dilubangi (transparan).
 2. Di panel admin: **Tambah Template** → pilih PNG.
-3. Aplikasi membaca channel alpha lewat Canvas, mencari area transparan yang terpisah (connected components), mengabaikan area kecil (\< 2% kanvas), lalu mengambil bounding box tiap area.
+3. Aplikasi membaca channel alpha lewat Canvas, mencari area transparan yang terpisah (connected components), mengabaikan area kecil (< 2% kanvas), lalu mengambil bounding box tiap area.
 4. Slot diurutkan atas → bawah, kiri → kanan, dan ditampilkan sebagai kotak bernomor di atas pratinjau.
 5. Admin memeriksa/mengoreksi (F-22), mengisi nama, lalu **Simpan**. Hasil disimpan sebagai JSON (`slots`, `overlay`).
 6. Di kiosk: jumlah pengambilan foto = jumlah slot ("Foto 1 dari 3"). Hasil dikomposit sesuai koordinat slot.
@@ -237,25 +242,25 @@ Batasan: lubang yang saling menyentuh terbaca satu slot (beri jarak antar-lubang
 
 ## 12. Risiko & Mitigasi
 
-| Risiko | Dampak | Mitigasi |
-| --- | --- | --- |
-| Internet venue lemah saat bayar | Transaksi macet | Tombol konfirmasi manual staff (F-04); hotspot cadangan |
-| Kamera DSLR tidak terdeteksi | Booth tidak bisa dipakai | Di MacBook M1 utamakan HDMI capture card (webcam utility Canon bisa bermasalah di Apple Silicon); siapkan webcam cadangan |
-| Printer macet/kertas habis | Customer sudah bayar tapi tidak dapat cetakan | Cetak ulang dari riwayat (F-13) + indikator di panel staff |
-| Dialog print muncul | Alur terhenti | Wajib flag `--kiosk-printing` + printer default benar |
-| Sinkron Drive tertunda/gagal (internet lemah, kuota penuh) | Customer belum bisa unduh | Drive sinkron otomatis saat online; cek status & sisa kuota Drive sebelum event |
-| Link folder publik bocor | Foto semua customer bisa dilihat | Folder per event; QR di template diganti tiap event |
-| Listrik/laptop mati | Sesi hilang | Foto & status sesi disimpan per langkah ke disk |
+| Risiko                                                     | Dampak                                        | Mitigasi                                                                                                                  |
+| ---------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Internet venue lemah saat bayar                            | Transaksi macet                               | Tombol konfirmasi manual staff (F-04); hotspot cadangan                                                                   |
+| Kamera DSLR tidak terdeteksi                               | Booth tidak bisa dipakai                      | Di MacBook M1 utamakan HDMI capture card (webcam utility Canon bisa bermasalah di Apple Silicon); siapkan webcam cadangan |
+| Printer macet/kertas habis                                 | Customer sudah bayar tapi tidak dapat cetakan | Cetak ulang dari riwayat (F-13) + indikator di panel staff                                                                |
+| Dialog print muncul                                        | Alur terhenti                                 | Wajib flag `--kiosk-printing` + printer default benar                                                                     |
+| Sinkron Drive tertunda/gagal (internet lemah, kuota penuh) | Customer belum bisa unduh                     | Drive sinkron otomatis saat online; cek status & sisa kuota Drive sebelum event                                           |
+| Link folder publik bocor                                   | Foto semua customer bisa dilihat              | Folder per event; QR di template diganti tiap event                                                                       |
+| Listrik/laptop mati                                        | Sesi hilang                                   | Foto & status sesi disimpan per langkah ke disk                                                                           |
 
 ## 13. Milestone
 
-| Fase | Isi | Estimasi |
-| --- | --- | --- |
-| 1 | Setup proyek, kamera live + capture, komposit Canvas | 1 minggu |
-| 2 | Template (JSON) + cetak otomatis ke printer | 1 minggu |
-| 3 | Integrasi QRIS (mode sandbox → produksi) | 1–2 minggu |
-| 4 | Panel admin, riwayat, laporan, penanganan error | 1 minggu |
-| 5 | Uji lapangan 1–2 event, perbaikan | 1 minggu |
+| Fase | Isi                                                  | Estimasi   |
+| ---- | ---------------------------------------------------- | ---------- |
+| 1    | Setup proyek, kamera live + capture, komposit Canvas | 1 minggu   |
+| 2    | Template (JSON) + cetak otomatis ke printer          | 1 minggu   |
+| 3    | Integrasi QRIS (mode sandbox → produksi)             | 1–2 minggu |
+| 4    | Panel admin, riwayat, laporan, penanganan error      | 1 minggu   |
+| 5    | Uji lapangan 1–2 event, perbaikan                    | 1 minggu   |
 
 ## 14. Kriteria Penerimaan MVP
 

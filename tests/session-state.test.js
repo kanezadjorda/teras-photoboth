@@ -7,12 +7,15 @@ describe('Session State Machine', () => {
     expect(isValidTransition(SESSION_STATES.VIEWING_INSTRUCTIONS, SESSION_STATES.WAITING_PAYMENT)).toBe(true);
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.CHOOSING_TEMPLATE)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CHOOSING_TEMPLATE, SESSION_STATES.CAPTURING)).toBe(true);
+    expect(isValidTransition(SESSION_STATES.CAPTURING, SESSION_STATES.CHOOSING_EFFECT)).toBe(true);
+    expect(isValidTransition(SESSION_STATES.CHOOSING_EFFECT, SESSION_STATES.PRINTING)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CAPTURING, SESSION_STATES.REVIEWING)).toBe(true);
     expect(isValidTransition(SESSION_STATES.REVIEWING, SESSION_STATES.PRINTING)).toBe(true);
     expect(isValidTransition(SESSION_STATES.PRINTING, SESSION_STATES.DONE)).toBe(true);
   });
 
-  it('allows retake transition from reviewing to capturing', () => {
+  it('allows retake transition from choosing_effect or reviewing to capturing', () => {
+    expect(isValidTransition(SESSION_STATES.CHOOSING_EFFECT, SESSION_STATES.CAPTURING)).toBe(true);
     expect(isValidTransition(SESSION_STATES.REVIEWING, SESSION_STATES.CAPTURING)).toBe(true);
   });
 
@@ -21,6 +24,7 @@ describe('Session State Machine', () => {
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CHOOSING_TEMPLATE, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CAPTURING, SESSION_STATES.CANCELLED)).toBe(true);
+    expect(isValidTransition(SESSION_STATES.CHOOSING_EFFECT, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.REVIEWING, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.PRINTING, SESSION_STATES.CANCELLED)).toBe(true);
   });
