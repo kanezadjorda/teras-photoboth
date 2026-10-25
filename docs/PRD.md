@@ -91,6 +91,9 @@ Selesai → kembali ke Welcome (otomatis)
 | F-14 | Halaman admin (PIN): pemantauan status & pemilihan perangkat aktif (kamera eksternal/laptop dan printer terpasang), atur harga sesi, atur jumlah cetak per sesi (default 1; bisa diubah admin, mis. 2 untuk dua orang) | P0 |
 | F-15 | Laporan harian: jumlah sesi & total pendapatan, ekspor CSV | P1 |
 | F-16 | Tombol darurat: batalkan sesi / reset ke Welcome | P0 |
+| **Pengalaman customer** |  |  |
+| F-24 | Layar Welcome menampilkan preview kamera aktif sebagai latar fullscreen (dimirror, lapisan gelap agar teks terbaca) dan tombol Mulai; fallback gambar statis jika kamera tidak tersedia | P0 |
+| F-25 | Satu layanan kamera memegang stream dan dipakai ulang di layar foto (tanpa buka-tutup kamera); kamera dideteksi ulang saat dicolok/dilepas | P0 |
 | **Soft file** |  |  |
 | F-17 | Simpan foto final (dan foto asli, opsional) ke folder output; nama file `YYYYMMDD-HHMMSS-<no sesi>.jpg` | P0 |
 | F-18 | Admin memilih folder output lewat dialog pilih folder (folder yang disinkronkan Google Drive for desktop) | P0 |

@@ -47,6 +47,9 @@
         "arch": ["arm64"]
       }
     ],
-    "category": "public.app-category.photography"
+    "category": "public.app-category.photography",
+    "extendInfo": {
+      "NSCameraUsageDescription": "Aplikasi Teras Photobooth memerlukan akses kamera untuk pratinjau live dan pengambilan foto."
+    }
   }
 }

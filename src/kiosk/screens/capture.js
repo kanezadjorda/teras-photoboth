@@ -4,7 +4,7 @@
  * PRD Reference: F-08, F-09, F-06, F-10
  */
 
-import { startCameraStream, stopCameraStream, captureFrame } from '../../shared/camera.js';
+import { cameraService, captureFrame } from '../../shared/camera.js';
 import { TIMEOUTS } from '../../shared/constants.js';
 import { getUniquePhotoCount } from '../../shared/composite.js';
 
@@ -161,10 +161,11 @@ export function createCaptureScreen({
 
   async function initCamera() {
     try {
-      stream = await startCameraStream();
-      if (videoElement) {
+      // Reuses the singleton MediaStream already active from Welcome (PRD F-25)
+      stream = await cameraService.start();
+      if (videoElement && stream) {
         videoElement.srcObject = stream;
-        await videoElement.play();
+        await videoElement.play().catch(() => {});
       }
     } catch (err) {
       console.error('[Capture] Gagal menginisialisasi kamera:', err);
@@ -183,7 +184,10 @@ export function createCaptureScreen({
       clearInterval(countdownTimer);
       countdownTimer = null;
     }
-    stopCameraStream(stream);
+    // Do NOT stop singleton stream tracks, detach element srcObject only (PRD F-25)
+    if (videoElement) {
+      videoElement.srcObject = null;
+    }
     stream = null;
   }
 

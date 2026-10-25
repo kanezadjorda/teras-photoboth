@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { DEFAULTS } from '../src/shared/constants.js';
 
 const require = createRequire(import.meta.url);
-const { app, BrowserWindow, screen, ipcMain, session, dialog } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, session, dialog, systemPreferences } = require('electron');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -193,6 +193,20 @@ app.whenReady().then(async () => {
     const allowed = ['media'];
     callback(allowed.includes(permission));
   });
+
+  session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
+    const allowed = ['media'];
+    return allowed.includes(permission);
+  });
+
+  // Minta izin kamera pada macOS bila belum diberikan (PRD F-25)
+  if (process.platform === 'darwin' && systemPreferences?.askForMediaAccess) {
+    try {
+      await systemPreferences.askForMediaAccess('camera');
+    } catch (err) {
+      console.warn('[Electron] Gagal meminta izin kamera macOS:', err.message);
+    }
+  }
 
   // Dynamic import: server modules resolve DATA_DIR at load time, so it must be set first
   const { startServer } = await import('../server/index.js');

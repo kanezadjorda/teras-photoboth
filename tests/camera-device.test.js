@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getCameraDevices, getOptimalCameraDeviceId } from '../src/shared/camera.js';
+import { getCameraDevices, getOptimalCameraDeviceId, cameraService } from '../src/shared/camera.js';
 
 describe('Camera Device Detection & Selection Logic (PRD F-08, F-14)', () => {
   let mockDevices = [];
@@ -104,6 +104,127 @@ describe('Camera Device Detection & Selection Logic (PRD F-08, F-14)', () => {
 
     const optimalId = await getOptimalCameraDeviceId();
     expect(optimalId).toBe('cam-dslr');
+  });
+});
+
+describe('cameraService Singleton & Stream Reuse (PRD F-24, F-25)', () => {
+  let mockDevices = [];
+  let getUserMediaSpy;
+  let deviceChangeCallback = null;
+  let mockTrack;
+
+  beforeEach(() => {
+    mockTrack = {
+      stop: vi.fn(),
+      readyState: 'live'
+    };
+
+    const createMockStream = () => ({
+      getTracks: () => [mockTrack],
+      getVideoTracks: () => [mockTrack]
+    });
+
+    getUserMediaSpy = vi.fn(async () => createMockStream());
+
+    mockDevices = [
+      { kind: 'videoinput', deviceId: 'cam-laptop', label: 'Integrated Webcam (Built-in)' },
+      { kind: 'videoinput', deviceId: 'cam-dslr', label: 'Canon EOS Webcam Utility' }
+    ];
+
+    deviceChangeCallback = null;
+    const mockNavigator = {
+      mediaDevices: {
+        enumerateDevices: vi.fn(async () => mockDevices),
+        getUserMedia: getUserMediaSpy,
+        addEventListener: vi.fn((event, cb) => {
+          if (event === 'devicechange') deviceChangeCallback = cb;
+        }),
+        removeEventListener: vi.fn((event, cb) => {
+          if (event === 'devicechange' && deviceChangeCallback === cb) {
+            deviceChangeCallback = null;
+          }
+        })
+      }
+    };
+
+    vi.stubGlobal('navigator', mockNavigator);
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn()
+    });
+
+    cameraService.stop();
+  });
+
+  afterEach(() => {
+    cameraService.stop();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('starts and selects external camera automatically', async () => {
+    const stream = await cameraService.start();
+    expect(stream).toBeDefined();
+    expect(cameraService.isActive()).toBe(true);
+    expect(cameraService.getStream()).toBe(stream);
+    expect(getUserMediaSpy).toHaveBeenCalledTimes(1);
+
+    // Verify constraints used optimal external camera
+    const callArgs = getUserMediaSpy.mock.calls[0][0];
+    expect(callArgs.video.deviceId.exact).toBe('cam-dslr');
+  });
+
+  it('reuses active stream without requesting getUserMedia again (F-25)', async () => {
+    const stream1 = await cameraService.start();
+    expect(getUserMediaSpy).toHaveBeenCalledTimes(1);
+
+    // Second call (e.g. Capture screen after Welcome screen)
+    const stream2 = await cameraService.start();
+    expect(getUserMediaSpy).toHaveBeenCalledTimes(1); // Not called again!
+    expect(stream2).toBe(stream1);
+  });
+
+  it('stops stream cleanly and resets state', async () => {
+    await cameraService.start();
+    expect(cameraService.isActive()).toBe(true);
+
+    cameraService.stop();
+    expect(mockTrack.stop).toHaveBeenCalled();
+    expect(cameraService.isActive()).toBe(false);
+    expect(cameraService.getStream()).toBeNull();
+  });
+
+  it('handles devicechange event and updates stream when camera changes (F-25)', async () => {
+    await cameraService.start();
+    expect(cameraService.currentDeviceId).toBe('cam-dslr');
+
+    // Simulate external camera unplugged -> now only laptop webcam remains
+    mockDevices = [
+      { kind: 'videoinput', deviceId: 'cam-laptop', label: 'Integrated Webcam (Built-in)' }
+    ];
+
+    expect(deviceChangeCallback).toBeTypeOf('function');
+    await deviceChangeCallback();
+
+    // Switched to cam-laptop
+    expect(cameraService.currentDeviceId).toBe('cam-laptop');
+  });
+
+  it('notifies subscribers on stream change', async () => {
+    const listener = vi.fn();
+    const unsubscribe = cameraService.onStreamChange(listener);
+
+    await cameraService.start();
+    expect(listener).toHaveBeenCalledWith(expect.anything());
+
+    cameraService.stop();
+    expect(listener).toHaveBeenCalledWith(null);
+
+    unsubscribe();
+    cameraService.start();
+    // After unsubscribe, listener is not called again for the new start
+    expect(listener).toHaveBeenCalledTimes(2);
   });
 });
 

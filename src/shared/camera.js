@@ -115,10 +115,177 @@ export async function startCameraStream(options = {}) {
  */
 export function stopCameraStream(stream) {
   if (!stream) return;
-  stream.getTracks().forEach((track) => {
-    track.stop();
-  });
+  try {
+    const tracks = typeof stream.getTracks === 'function' ? stream.getTracks() : [];
+    tracks.forEach((track) => {
+      if (typeof track.stop === 'function') {
+        track.stop();
+      }
+    });
+  } catch (err) {
+    console.warn('[Camera] Error saat menghentikan track kamera:', err);
+  }
 }
+
+/**
+ * Camera Service (Singleton)
+ * PRD Reference: F-24, F-25
+ * Holds a single active MediaStream reused across Welcome and Capture screens.
+ * Auto-selects external camera, listens for devicechange, and provides start/getStream/stop.
+ */
+class CameraService {
+  constructor() {
+    this.stream = null;
+    this.currentDeviceId = null;
+    this.listeners = new Set();
+    this.deviceChangeListener = null;
+    this.isStarting = false;
+  }
+
+  /**
+   * Checks whether the current stream is active with live video tracks.
+   * @returns {boolean}
+   */
+  isActive() {
+    if (!this.stream) return false;
+    try {
+      const tracks = typeof this.stream.getVideoTracks === 'function' ? this.stream.getVideoTracks() : [];
+      return tracks.length > 0 && tracks.some((t) => t.readyState === 'live');
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Returns the currently active MediaStream or null.
+   * @returns {MediaStream|null}
+   */
+  getStream() {
+    return this.isActive() ? this.stream : null;
+  }
+
+  /**
+   * Starts or reuses the camera stream from the optimal camera.
+   * If already active and not forced, reuses the existing stream (PRD F-25).
+   * @param {object} [options]
+   * @param {string} [options.deviceId] - Specific device ID override
+   * @param {boolean} [options.forceRestart=false] - Force re-acquire new stream
+   * @returns {Promise<MediaStream>}
+   */
+  async start(options = {}) {
+    // If stream is already healthy and active, reuse it (F-25)
+    if (this.isActive() && !options.forceRestart) {
+      this._setupDeviceChangeListener();
+      return this.stream;
+    }
+
+    if (this.isStarting) {
+      while (this.isStarting) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      if (this.isActive() && !options.forceRestart) {
+        return this.stream;
+      }
+    }
+
+    this.isStarting = true;
+    try {
+      const optimalDeviceId = options.deviceId || (await getOptimalCameraDeviceId());
+
+      // Stop old tracks if any
+      if (this.stream) {
+        stopCameraStream(this.stream);
+        this.stream = null;
+      }
+
+      this.stream = await startCameraStream({ deviceId: optimalDeviceId });
+      this.currentDeviceId = optimalDeviceId;
+      this._setupDeviceChangeListener();
+      this._notifyListeners(this.stream);
+      return this.stream;
+    } catch (err) {
+      this.stream = null;
+      this.currentDeviceId = null;
+      this._notifyListeners(null);
+      throw err;
+    } finally {
+      this.isStarting = false;
+    }
+  }
+
+  /**
+   * Stops all active tracks and cleans up listeners.
+   */
+  stop() {
+    if (this.stream) {
+      stopCameraStream(this.stream);
+      this.stream = null;
+    }
+    this.currentDeviceId = null;
+    this._removeDeviceChangeListener();
+    this._notifyListeners(null);
+  }
+
+  /**
+   * Subscribes to stream change events.
+   * @param {(stream: MediaStream|null) => void} callback
+   * @returns {() => void} Unsubscribe function
+   */
+  onStreamChange(callback) {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
+  }
+
+  _notifyListeners(stream) {
+    for (const listener of this.listeners) {
+      try {
+        listener(stream);
+      } catch (err) {
+        console.error('[CameraService] Kesalahan pada callback listener:', err);
+      }
+    }
+  }
+
+  _setupDeviceChangeListener() {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || this.deviceChangeListener) {
+      return;
+    }
+
+    this.deviceChangeListener = async () => {
+      console.log('[CameraService] Perubahan perangkat kamera terdeteksi (devicechange)');
+      try {
+        const newOptimalId = await getOptimalCameraDeviceId();
+        // If optimal device changed or current stream is lost, switch to new optimal camera
+        if (newOptimalId !== this.currentDeviceId || !this.isActive()) {
+          console.log(`[CameraService] Berganti kamera ke perangkat optimal: ${newOptimalId}`);
+          await this.start({ deviceId: newOptimalId, forceRestart: true });
+        }
+      } catch (err) {
+        console.warn('[CameraService] Gagal memperbarui stream saat devicechange:', err.message);
+      }
+    };
+
+    if (typeof navigator.mediaDevices.addEventListener === 'function') {
+      navigator.mediaDevices.addEventListener('devicechange', this.deviceChangeListener);
+    } else {
+      navigator.mediaDevices.ondevicechange = this.deviceChangeListener;
+    }
+  }
+
+  _removeDeviceChangeListener() {
+    if (!this.deviceChangeListener) return;
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
+      if (typeof navigator.mediaDevices.removeEventListener === 'function') {
+        navigator.mediaDevices.removeEventListener('devicechange', this.deviceChangeListener);
+      } else if (navigator.mediaDevices.ondevicechange === this.deviceChangeListener) {
+        navigator.mediaDevices.ondevicechange = null;
+      }
+    }
+    this.deviceChangeListener = null;
+  }
+}
+
+export const cameraService = new CameraService();
 
 /**
  * Captures a single frame from an active <video> element.
