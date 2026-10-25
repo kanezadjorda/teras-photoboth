@@ -41,6 +41,67 @@ function getOutputDir(sessionId) {
 }
 
 /**
+ * POST /api/sessions/:id/photo
+ * Menyimpan satu foto mentah secara idempoten per indeks ke disk dan database (PRD F-10, F-17)
+ */
+router.post('/:id/photo', (req, res) => {
+  try {
+    const sessionId = req.params.id;
+    const { index, photo } = req.body;
+
+    if (!photo) {
+      return res.status(400).json({ success: false, error: 'Data foto (base64) wajib disertakan' });
+    }
+
+    const rawIndex = parseInt(index, 10);
+    if (!Number.isFinite(rawIndex) || rawIndex < 0) {
+      return res.status(400).json({ success: false, error: 'Indeks foto tidak valid' });
+    }
+
+    const session = db.prepare('SELECT rowid, * FROM sessions WHERE id = ?').get(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Sesi tidak ditemukan' });
+    }
+
+    const sessionNo = formatSessionNumber(session.rowid);
+    const outputDir = getOutputDir(sessionId);
+    const now = new Date();
+    const urutan = rawIndex + 1; // 1-based urutan in DB
+
+    const cleanRaw = photo.replace(/^data:image\/\w+;base64,/, '');
+    const rawBuffer = Buffer.from(cleanRaw, 'base64');
+    const rawFilename = generatePhotoFilename({
+      date: now,
+      sessionNo,
+      type: 'raw',
+      rawIndex: urutan
+    });
+    const rawFilePath = resolve(outputDir, rawFilename);
+
+    writeFileSync(rawFilePath, rawBuffer);
+
+    const rawPhotoId = `photo_${sessionId}_raw_${urutan}`;
+    db.prepare(`
+      INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file)
+      VALUES (?, ?, ?, ?)
+    `).run(rawPhotoId, sessionId, urutan, rawFilename);
+
+    res.json({
+      success: true,
+      data: {
+        sessionNo,
+        urutan,
+        filename: rawFilename,
+        path: `/photos/${rawFilename}`
+      }
+    });
+  } catch (error) {
+    console.error('[Photos] Gagal menyimpan foto tunggal:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
  * POST /api/sessions/:id/save-photos
  * Menyimpan file foto final komposit dan foto-foto mentah ke disk sebelum instruksi cetak (PRD F-17, F-18)
  */

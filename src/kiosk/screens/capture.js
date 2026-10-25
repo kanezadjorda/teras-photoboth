@@ -1,66 +1,178 @@
 /**
  * Capture Screen for Kiosk (RawBlock Design System)
- * Handles live preview (mirrored), 3-2-1 countdown, shutter flash, quick preview, and retake mode.
- * PRD Reference: F-08, F-09, F-06, F-10
+ * Handles per-shot sub-state lifecycle (PRD F-10):
+ *   live -> countdown -> reviewing_shot
+ *
+ * Unlimited retake per photo before saving to disk.
+ * Continue / Selesai saves photo via idempotent API and advances.
+ * PRD Reference: F-08, F-09, F-06, F-10, F-25
  */
 
 import { cameraService, captureFrame } from '../../shared/camera.js';
 import { TIMEOUTS } from '../../shared/constants.js';
 import { getUniquePhotoCount } from '../../shared/composite.js';
+import { createCaptureStateMachine, CAPTURE_SUB_STATES } from '../../shared/capture-state.js';
+import { api } from '../../shared/api.js';
 
 export function createCaptureScreen({
+  session = null,
   template,
   countdownSeconds = TIMEOUTS.COUNTDOWN_SECONDS || 3,
-  retakeSlotIndex = undefined,
   existingPhotos = [],
-  onCaptureComplete
+  onCaptureComplete,
+  // Backward-compatible fallback for legacy calls:
+  retakeSlotIndex = undefined
 }) {
   let container = null;
   let videoElement = null;
-  let countdownOverlay = null;
-  let countdownNumber = null;
-  let flashOverlay = null;
   let previewOverlay = null;
   let previewImage = null;
   let previewText = null;
-  let triggerBtn = null;
-  let thumbnailTray = null;
+  let countdownOverlay = null;
+  let countdownNumber = null;
+  let flashOverlay = null;
   let slotIndicator = null;
+  let slotSubtext = null;
+  let cameraChip = null;
+  let cameraErrorBanner = null;
+
+  let liveActions = null;
+  let reviewActions = null;
+  let triggerBtn = null;
+  let retakeBtn = null;
+  let continueBtn = null;
+  let thumbnailTray = null;
 
   let stream = null;
   let countdownTimer = null;
-  let isCapturing = false;
+  let isSaving = false;
 
-  const isRetakeMode = retakeSlotIndex !== undefined;
   const totalPhotos = getUniquePhotoCount(template?.slots);
-  let currentSlotIndex = isRetakeMode ? retakeSlotIndex : 0;
-  const capturedPhotos = [...existingPhotos];
 
-  function updateSlotIndicator() {
-    if (!slotIndicator) return;
-    if (isRetakeMode) {
-      slotIndicator.textContent = `MENGULANG FOTO #${currentSlotIndex + 1}`;
-    } else {
-      slotIndicator.textContent = `FOTO ${currentSlotIndex + 1} DARI ${totalPhotos}`;
+  // Initialize pure state machine
+  const stateMachine = createCaptureStateMachine({
+    totalPhotos,
+    initialPhotos: existingPhotos,
+    onComplete: (allPhotos) => {
+      cleanupCamera();
+      if (typeof onCaptureComplete === 'function') {
+        onCaptureComplete(allPhotos);
+      }
+    }
+  });
+
+  function updateHeaderUI() {
+    const currentIdx = stateMachine.getCurrentShotIndex();
+    const subState = stateMachine.getSubState();
+
+    if (slotIndicator) {
+      slotIndicator.textContent = `FOTO ${currentIdx + 1} DARI ${totalPhotos}`;
+    }
+
+    if (slotSubtext) {
+      if (subState === CAPTURE_SUB_STATES.REVIEWING_SHOT) {
+        slotSubtext.textContent = 'PERIKSA HASIL FOTO \u2022 PILIH ULANGI ATAU LANJUT';
+      } else if (subState === CAPTURE_SUB_STATES.COUNTDOWN) {
+        slotSubtext.textContent = 'BERSIAP-SIAP... SENYUM TERBAIKMU!';
+      } else {
+        slotSubtext.textContent = 'BERPOSISILAH DI TENGAH BINGKAI KAMERA \u2022 SENYUM TERBAIKMU';
+      }
+    }
+
+    if (cameraChip) {
+      if (subState === CAPTURE_SUB_STATES.REVIEWING_SHOT) {
+        cameraChip.textContent = 'PRATINJAU HASIL';
+        cameraChip.className = 'chip-raw chip-raw-warning';
+      } else {
+        cameraChip.textContent = 'KAMERA AKTIF';
+        cameraChip.className = 'chip-raw chip-raw-active';
+      }
     }
   }
 
   function renderThumbnails() {
     if (!thumbnailTray) return;
     thumbnailTray.innerHTML = '';
+
+    const currentIdx = stateMachine.getCurrentShotIndex();
+    const acceptedPhotos = stateMachine.getAcceptedPhotos();
+    const subState = stateMachine.getSubState();
+    const pendingShot = stateMachine.getPendingShot();
+
     for (let i = 0; i < totalPhotos; i++) {
       const thumb = document.createElement('div');
       thumb.className =
-        'w-20 h-24 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden';
+        'w-16 h-20 md:w-20 md:h-24 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden shrink-0';
 
-      if (capturedPhotos[i]) {
-        thumb.innerHTML = `<img src="${capturedPhotos[i]}" alt="Foto ${i + 1}" class="w-full h-full object-cover" />`;
-      } else if (i === currentSlotIndex) {
-        thumb.innerHTML = `<span class="font-headline text-xs text-black border-b-[2px] border-black">AKTIF</span>`;
+      if (acceptedPhotos[i]) {
+        thumb.innerHTML = `<img src="${acceptedPhotos[i]}" alt="Foto ${i + 1}" class="w-full h-full object-cover" />`;
+      } else if (i === currentIdx) {
+        if (subState === CAPTURE_SUB_STATES.REVIEWING_SHOT && pendingShot) {
+          thumb.innerHTML = `<img src="${pendingShot}" alt="Review ${i + 1}" class="w-full h-full object-cover opacity-80" />`;
+          thumb.classList.add('border-black', 'bg-amber-100');
+        } else {
+          thumb.innerHTML = `<span class="font-headline text-xs text-black border-b-[2px] border-black">AKTIF</span>`;
+          thumb.classList.add('bg-white');
+        }
       } else {
         thumb.innerHTML = `<span class="font-mono text-xs text-black/40">#${i + 1}</span>`;
       }
+
       thumbnailTray.appendChild(thumb);
+    }
+  }
+
+  function syncViewWithSubState() {
+    const subState = stateMachine.getSubState();
+
+    updateHeaderUI();
+    renderThumbnails();
+
+    if (subState === CAPTURE_SUB_STATES.LIVE) {
+      // Show live video, hide captured photo
+      if (videoElement) videoElement.classList.remove('hidden');
+      if (previewImage) {
+        previewImage.classList.add('hidden');
+        previewImage.src = '';
+      }
+      if (countdownOverlay) countdownOverlay.classList.add('hidden');
+
+      // Controls
+      if (liveActions) liveActions.classList.remove('hidden');
+      if (reviewActions) reviewActions.classList.add('hidden');
+      if (triggerBtn) {
+        triggerBtn.disabled = false;
+        triggerBtn.textContent = 'AMBIL FOTO';
+      }
+    } else if (subState === CAPTURE_SUB_STATES.COUNTDOWN) {
+      if (videoElement) videoElement.classList.remove('hidden');
+      if (previewImage) previewImage.classList.add('hidden');
+      if (countdownOverlay) countdownOverlay.classList.remove('hidden');
+
+      if (liveActions) liveActions.classList.remove('hidden');
+      if (reviewActions) reviewActions.classList.add('hidden');
+      if (triggerBtn) triggerBtn.disabled = true;
+    } else if (subState === CAPTURE_SUB_STATES.REVIEWING_SHOT) {
+      // Freeze preview: hide video, show captured shot at exact preview dimensions
+      const pending = stateMachine.getPendingShot();
+      if (videoElement) videoElement.classList.add('hidden');
+      if (previewImage) {
+        previewImage.src = pending || '';
+        previewImage.classList.remove('hidden');
+      }
+      if (countdownOverlay) countdownOverlay.classList.add('hidden');
+
+      // Controls: Show Ulangi & Lanjut / Selesai
+      if (liveActions) liveActions.classList.add('hidden');
+      if (reviewActions) reviewActions.classList.remove('hidden');
+
+      if (retakeBtn) {
+        retakeBtn.disabled = false;
+      }
+      if (continueBtn) {
+        continueBtn.disabled = false;
+        continueBtn.textContent = stateMachine.isLastShot() ? 'SELESAI' : 'LANJUT';
+      }
     }
   }
 
@@ -74,36 +186,18 @@ export function createCaptureScreen({
     }, 100);
   }
 
-  function showQuickPreview(photoData, slotNum, onDone) {
-    if (!previewOverlay || !previewImage) {
-      onDone();
+  function startCountdown() {
+    if (stateMachine.getSubState() !== CAPTURE_SUB_STATES.LIVE) return;
+
+    try {
+      stateMachine.startCountdown();
+    } catch {
       return;
     }
 
-    previewImage.src = photoData;
-    if (previewText) {
-      previewText.textContent = `FOTO #${slotNum} TERSIMPAN!`;
-    }
-    previewOverlay.classList.remove('hidden');
-
-    setTimeout(() => {
-      if (previewOverlay) {
-        previewOverlay.classList.add('hidden');
-      }
-      onDone();
-    }, 1500); // 1.5s quick preview per Task 3.2
-  }
-
-  function takePhoto() {
-    if (isCapturing || !videoElement) return;
-    isCapturing = true;
-    if (triggerBtn) triggerBtn.disabled = true;
-
     let count = countdownSeconds;
-    if (countdownOverlay && countdownNumber) {
-      countdownNumber.textContent = count;
-      countdownOverlay.classList.remove('hidden');
-    }
+    if (countdownNumber) countdownNumber.textContent = count;
+    syncViewWithSubState();
 
     countdownTimer = setInterval(() => {
       count--;
@@ -112,56 +206,65 @@ export function createCaptureScreen({
       } else {
         clearInterval(countdownTimer);
         countdownTimer = null;
-        if (countdownOverlay) countdownOverlay.classList.add('hidden');
 
-        // Shutter flash & frame capture
         triggerShutterFlash();
         try {
-          const photoData = captureFrame(videoElement, { mirror: true });
-
-          if (isRetakeMode) {
-            capturedPhotos[retakeSlotIndex] = photoData;
-          } else {
-            capturedPhotos.push(photoData);
-          }
-
-          renderThumbnails();
-
-          // 1.5s quick preview
-          showQuickPreview(photoData, currentSlotIndex + 1, () => {
-            if (isRetakeMode) {
-              // Finish retake
-              cleanupCamera();
-              if (onCaptureComplete) {
-                onCaptureComplete(photoData, retakeSlotIndex);
-              }
-            } else {
-              currentSlotIndex++;
-              if (currentSlotIndex < totalPhotos) {
-                updateSlotIndicator();
-                isCapturing = false;
-                if (triggerBtn) triggerBtn.disabled = false;
-              } else {
-                // Selesai seluruh jepretan foto
-                cleanupCamera();
-                if (onCaptureComplete) {
-                  onCaptureComplete(capturedPhotos);
-                }
-              }
-            }
-          });
+          const frameData = captureFrame(videoElement, { mirror: true });
+          stateMachine.captureFrame(frameData);
+          syncViewWithSubState();
         } catch (err) {
           console.error('[Capture] Gagal mengambil frame foto:', err);
-          isCapturing = false;
-          if (triggerBtn) triggerBtn.disabled = false;
+          stateMachine.retake();
+          syncViewWithSubState();
         }
       }
     }, 1000);
   }
 
+  function handleRetake() {
+    if (isSaving || stateMachine.getSubState() !== CAPTURE_SUB_STATES.REVIEWING_SHOT) return;
+    console.log(`[Capture] Pelanggan memilih Ulangi foto #${stateMachine.getCurrentShotIndex() + 1}`);
+    stateMachine.retake();
+    syncViewWithSubState();
+  }
+
+  async function handleContinue() {
+    if (isSaving || stateMachine.getSubState() !== CAPTURE_SUB_STATES.REVIEWING_SHOT) return;
+    isSaving = true;
+
+    if (continueBtn) {
+      continueBtn.disabled = true;
+      continueBtn.textContent = 'MENYIMPAN...';
+    }
+    if (retakeBtn) {
+      retakeBtn.disabled = true;
+    }
+
+    try {
+      await stateMachine.confirmShot(async ({ index, photo }) => {
+        // Save to disk & database via idempotent API (PRD F-10, F-17)
+        if (session && session.id && !session.id.startsWith('mock_')) {
+          try {
+            await api.saveSinglePhoto(session.id, { index, photo });
+            console.log(`[Capture] Foto #${index + 1} berhasil disimpan ke disk.`);
+          } catch (apiErr) {
+            console.warn(`[Capture] Warning saat simpan foto #${index + 1}:`, apiErr.message);
+          }
+        }
+      });
+    } catch (err) {
+      console.error('[Capture] Gagal melanjutkan foto:', err);
+    } finally {
+      isSaving = false;
+      if (!stateMachine.isAllCompleted()) {
+        syncViewWithSubState();
+      }
+    }
+  }
+
   async function initCamera() {
     try {
-      // Reuses the singleton MediaStream already active from Welcome (PRD F-25)
+      // Reuses singleton MediaStream from cameraService (PRD F-25)
       stream = await cameraService.start();
       if (videoElement && stream) {
         videoElement.srcObject = stream;
@@ -169,12 +272,9 @@ export function createCaptureScreen({
       }
     } catch (err) {
       console.error('[Capture] Gagal menginisialisasi kamera:', err);
-      if (container) {
-        const errorBanner = container.querySelector('#camera-error-banner');
-        if (errorBanner) {
-          errorBanner.classList.remove('hidden');
-          errorBanner.textContent = 'KAMERA TIDAK TERDETEKSI. PERIKSA SAMBUNGAN PERANGKAT.';
-        }
+      if (cameraErrorBanner) {
+        cameraErrorBanner.classList.remove('hidden');
+        cameraErrorBanner.textContent = 'KAMERA TIDAK TERDETEKSI. PERIKSA SAMBUNGAN PERANGKAT.';
       }
     }
   }
@@ -184,7 +284,6 @@ export function createCaptureScreen({
       clearInterval(countdownTimer);
       countdownTimer = null;
     }
-    // Do NOT stop singleton stream tracks, detach element srcObject only (PRD F-25)
     if (videoElement) {
       videoElement.srcObject = null;
     }
@@ -194,49 +293,44 @@ export function createCaptureScreen({
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col justify-between w-full h-screen max-w-none px-6 py-4 box-border font-body bg-white overflow-hidden';
+      'flex flex-col justify-between w-full h-screen max-w-none px-6 py-4 box-border font-body bg-white overflow-hidden select-none';
 
     container.innerHTML = `
       <!-- Header -->
       <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-3 shrink-0">
         <div>
           <h1 id="slot-indicator" class="text-3xl md:text-4xl font-headline uppercase text-black">
-            ${isRetakeMode ? `MENGULANG FOTO #${retakeSlotIndex + 1}` : `FOTO 1 DARI ${totalPhotos}`}
+            FOTO 1 DARI ${totalPhotos}
           </h1>
-          <p class="font-body text-xs text-black/70">
-            ${
-              isRetakeMode
-                ? 'AMBIL FOTO PENGGANTI UNTUK SLOT INI &bull; HANYA 1X KESEMPATAN'
-                : 'BERPOSISILAH DI TENGAH BINGKAI KAMERA &bull; SENYUM TERBAIKMU'
-            }
+          <p id="slot-subtext" class="font-body text-xs text-black/70">
+            BERPOSISILAH DI TENGAH BINGKAI KAMERA &bull; SENYUM TERBAIKMU
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <span class="chip-raw chip-raw-active">KAMERA AKTIF</span>
+          <span id="camera-chip" class="chip-raw chip-raw-active">KAMERA AKTIF</span>
         </div>
       </div>
 
       <!-- Error Banner (Hidden by default) -->
       <div id="camera-error-banner" class="hidden w-full bg-raw-error text-white font-headline text-center p-3 mb-2 border-[3px] border-black"></div>
 
-      <!-- Video Viewport Frame: Flexible & Expanding to Available Viewport Space -->
+      <!-- Video & Shot Viewport Frame: Exact 16:9 Aspect Ratio Container -->
       <div class="flex-1 w-full min-h-0 py-2 flex items-center justify-center overflow-hidden">
         <div class="relative h-full max-w-full aspect-[16/9] border-[5px] border-black bg-black flex items-center justify-center overflow-hidden">
+          <!-- 1. Live Camera Video -->
           <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover -scale-x-100"></video>
 
-          <!-- Countdown Overlay: Pure bright typography without box/backdrop -->
-          <div id="countdown-overlay" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <span id="countdown-number" class="font-headline text-[180px] md:text-[240px] text-white drop-shadow-[0_10px_24px_rgba(0,0,0,0.95)] leading-none select-none tracking-normal">3</span>
+          <!-- 2. Captured Shot Image (Exact same dimensions as video preview - PRD F-10) -->
+          <img id="preview-image" src="" alt="Pratinjau Hasil Foto" class="hidden w-full h-full object-cover" />
+
+          <!-- Compatibility Overlay for selectors -->
+          <div id="preview-overlay" class="hidden absolute inset-0 pointer-events-none">
+            <p id="preview-text" class="hidden"></p>
           </div>
 
-          <!-- 1.5s Quick Preview Overlay -->
-          <div id="preview-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-25 p-4 space-y-3">
-            <div class="border-[5px] border-black bg-white p-2 max-h-[70%] aspect-video overflow-hidden">
-              <img id="preview-image" src="" alt="Pratinjau" class="w-full h-full object-contain" />
-            </div>
-            <p id="preview-text" class="font-headline text-xl text-white uppercase tracking-wider">
-              FOTO TERSIMPAN!
-            </p>
+          <!-- Countdown Overlay -->
+          <div id="countdown-overlay" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <span id="countdown-number" class="font-headline text-[180px] md:text-[240px] text-white drop-shadow-[0_10px_24px_rgba(0,0,0,0.95)] leading-none select-none tracking-normal">3</span>
           </div>
 
           <!-- Shutter Flash Effect -->
@@ -246,48 +340,81 @@ export function createCaptureScreen({
 
       <!-- Bottom Controls & Thumbnails -->
       <div class="w-full flex items-center justify-between pt-3 border-t-[3px] border-black gap-6 shrink-0">
-        <!-- Thumbnail Slot Tray -->
-        <div id="thumbnail-tray" class="flex items-center gap-3"></div>
+        <!-- Thumbnail Tray (Accepted photos & progress) -->
+        <div id="thumbnail-tray" class="flex items-center gap-2 md:gap-3 overflow-x-auto py-1"></div>
 
-        <!-- Action Button -->
-        <button id="btn-trigger-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline cursor-pointer">
-          ${isRetakeMode ? 'AMBIL FOTO PENGGANTI' : 'AMBIL FOTO'}
-        </button>
+        <!-- Action Controls -->
+        <div class="flex items-center gap-3 shrink-0">
+          <!-- Live Mode Actions -->
+          <div id="live-actions" class="flex items-center">
+            <button id="btn-trigger-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline cursor-pointer">
+              AMBIL FOTO
+            </button>
+          </div>
+
+          <!-- Review Mode Actions (PRD F-10) -->
+          <div id="review-actions" class="hidden flex items-center gap-3">
+            <button id="btn-retake-photo" class="btn-raw-secondary min-h-[64px] px-8 text-xl font-headline cursor-pointer">
+              ULANGI
+            </button>
+            <button id="btn-continue-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline cursor-pointer">
+              LANJUT
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
     parent.appendChild(container);
 
     videoElement = container.querySelector('#camera-video');
+    previewImage = container.querySelector('#preview-image');
+    previewOverlay = container.querySelector('#preview-overlay');
+    previewText = container.querySelector('#preview-text');
     countdownOverlay = container.querySelector('#countdown-overlay');
     countdownNumber = container.querySelector('#countdown-number');
     flashOverlay = container.querySelector('#flash-overlay');
-    previewOverlay = container.querySelector('#preview-overlay');
-    previewImage = container.querySelector('#preview-image');
-    previewText = container.querySelector('#preview-text');
-    triggerBtn = container.querySelector('#btn-trigger-photo');
-    thumbnailTray = container.querySelector('#thumbnail-tray');
     slotIndicator = container.querySelector('#slot-indicator');
+    slotSubtext = container.querySelector('#slot-subtext');
+    cameraChip = container.querySelector('#camera-chip');
+    cameraErrorBanner = container.querySelector('#camera-error-banner');
 
-    updateSlotIndicator();
-    renderThumbnails();
+    liveActions = container.querySelector('#live-actions');
+    reviewActions = container.querySelector('#review-actions');
+    triggerBtn = container.querySelector('#btn-trigger-photo');
+    retakeBtn = container.querySelector('#btn-retake-photo');
+    continueBtn = container.querySelector('#btn-continue-photo');
+    thumbnailTray = container.querySelector('#thumbnail-tray');
 
     if (triggerBtn) {
-      triggerBtn.addEventListener('click', takePhoto);
+      triggerBtn.addEventListener('click', startCountdown);
+    }
+    if (retakeBtn) {
+      retakeBtn.addEventListener('click', handleRetake);
+    }
+    if (continueBtn) {
+      continueBtn.addEventListener('click', handleContinue);
     }
 
+    syncViewWithSubState();
     initCamera();
   }
 
   function unmount() {
     cleanupCamera();
-    if (triggerBtn) triggerBtn.removeEventListener('click', takePhoto);
+    if (triggerBtn) triggerBtn.removeEventListener('click', startCountdown);
+    if (retakeBtn) retakeBtn.removeEventListener('click', handleRetake);
+    if (continueBtn) continueBtn.removeEventListener('click', handleContinue);
+
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
     container = null;
     videoElement = null;
+    previewImage = null;
     triggerBtn = null;
+    retakeBtn = null;
+    continueBtn = null;
   }
 
   return { mount, unmount };

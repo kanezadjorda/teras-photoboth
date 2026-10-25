@@ -8,6 +8,7 @@ import { createPrintingScreen } from './screens/printing.js';
 import { createDoneScreen } from './screens/done.js';
 import { createRecoveryModal } from './screens/recovery-modal.js';
 import { setupOfflineMonitor } from '../shared/ui.js';
+import { getUniquePhotoCount } from '../shared/composite.js';
 import { api } from '../shared/api.js';
 import { SESSION_STATES, DEFAULTS, TIMEOUTS } from '../shared/constants.js';
 
@@ -111,7 +112,7 @@ function initChooseTemplateScreen(session) {
   renderScreen(chooseScreen);
 }
 
-// 3. Capture Screen (All Slots Sequence)
+// 3. Capture Screen (All Slots Sequence with Per-Shot Retake - PRD F-10)
 async function initCaptureScreen(session, template) {
   let countdownSeconds = TIMEOUTS.COUNTDOWN_SECONDS || 3;
   try {
@@ -123,9 +124,37 @@ async function initCaptureScreen(session, template) {
     console.warn('[Kiosk] Menggunakan default countdown:', e.message);
   }
 
+  // Load existing saved photos for session recovery (PRD F-10)
+  const existingPhotos = [];
+  if (isRealSession(session)) {
+    try {
+      const photosRes = await api.getSessionPhotos(session.id);
+      if (photosRes.success && Array.isArray(photosRes.data?.photos)) {
+        const rawList = photosRes.data.photos
+          .filter((p) => p.urutan >= 1)
+          .sort((a, b) => a.urutan - b.urutan);
+
+        rawList.forEach((p) => {
+          existingPhotos[p.urutan - 1] = `/photos/${p.path_file}`;
+        });
+      }
+    } catch (err) {
+      console.warn('[Kiosk] Gagal mengambil foto tersimpan sebelumnya:', err.message);
+    }
+  }
+
+  const totalPhotos = getUniquePhotoCount(template?.slots);
+  if (existingPhotos.filter(Boolean).length >= totalPhotos) {
+    // All photos already saved; proceed directly to choosing effect
+    initReviewScreen(session, template, existingPhotos, countdownSeconds, session.effect_id || 'normal');
+    return;
+  }
+
   const captureScreen = createCaptureScreen({
+    session,
     template,
     countdownSeconds,
+    existingPhotos,
     onCaptureComplete: async (photos) => {
       console.log(`[Kiosk] Selesai mengambil ${photos.length} foto! Masuk ke review & pilih efek.`);
       try {
@@ -135,56 +164,35 @@ async function initCaptureScreen(session, template) {
       } catch (err) {
         console.warn('[Kiosk] Status update warning:', err.message);
       }
-      initReviewScreen(session, template, photos, {}, countdownSeconds, session.effect_id || 'normal');
+      initReviewScreen(session, template, photos, countdownSeconds, session.effect_id || 'normal');
     }
   });
 
   renderScreen(captureScreen);
 }
 
-// 4. Review & Retake Screen (with Photo Effects - PRD F-27, F-28)
-function initReviewScreen(session, template, photos, retakeCounts = {}, countdownSeconds = 3, currentEffectId = 'normal') {
+// 4. Review & Effect Screen (with Photo Effects - PRD F-27, F-28)
+function initReviewScreen(session, template, photos, countdownSeconds = 3, currentEffectId = 'normal') {
   const reviewScreen = createReviewScreen({
     template,
     photos,
-    retakeCounts,
     initialEffectId: currentEffectId,
-    onRetakeSlot: (slotIndex) => {
-      console.log(`[Kiosk] Mengulang foto slot #${slotIndex + 1}...`);
-      // Open capture screen specifically for retaking slotIndex
-      const retakeScreen = createCaptureScreen({
-        template,
-        countdownSeconds,
-        retakeSlotIndex: slotIndex,
-        existingPhotos: photos,
-        onCaptureComplete: (newPhoto) => {
-          // Update photo array and increment retake counter
-          photos[slotIndex] = newPhoto;
-          retakeCounts[slotIndex] = (retakeCounts[slotIndex] || 0) + 1;
-          console.log(`[Kiosk] Foto slot #${slotIndex + 1} berhasil diperbarui.`);
-          // Return to review screen with updated photo, retake counts, and effect
-          initReviewScreen(session, template, photos, retakeCounts, countdownSeconds, currentEffectId);
-        }
-      });
-      renderScreen(retakeScreen);
-    },
     onTimeout: async () => {
       console.warn(`[Kiosk] Review foto sesi ${session.id} timeout 60 detik tanpa aktivitas.`);
       await cancelSession(session);
     },
     onConfirm: async ({ photos: confirmedPhotos, compositeDataUrl, effectId }) => {
-      console.log(`[Kiosk] Foto dikonfirmasi pelanggan dengan efek '${effectId}', menyimpan foto...`);
+      console.log(`[Kiosk] Foto dikonfirmasi pelanggan dengan efek '${effectId}', menyimpan komposit...`);
 
       let sessionNo = '0001';
       try {
         if (isRealSession(session)) {
-          // 1. Simpan foto ke disk & database sebelum cetak (PRD F-17, F-28: foto asli tetap tanpa efek)
+          // 1. Simpan foto komposit ke disk & database sebelum cetak (PRD F-17, F-28)
           const saveResult = await api.savePhotos(session.id, {
-            composite: compositeDataUrl,
-            rawPhotos: confirmedPhotos
+            composite: compositeDataUrl
           });
           sessionNo = saveResult?.data?.sessionNo || sessionNo;
-          console.log(`[Kiosk] Foto tersimpan ke disk! Nomor sesi #${sessionNo}`);
+          console.log(`[Kiosk] Foto komposit tersimpan ke disk! Nomor sesi #${sessionNo}`);
 
           // 2. Transisi status sesi ke printing dan simpan effect_id terpilih (PRD F-28)
           await api.updateSessionStatus(session.id, SESSION_STATES.PRINTING, undefined, effectId);

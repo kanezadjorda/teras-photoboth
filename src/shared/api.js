@@ -49,6 +49,11 @@ export const api = {
     fetchApi(`/payments/${sessionId}/confirm-manual`, { method: 'POST' }),
   simulatePayment: (orderId) =>
     fetchApi(`/payments/${orderId}/simulate-pay`, { method: 'POST' }),
+  saveSinglePhoto: (sessionId, { index, photo }) =>
+    fetchApi(`/sessions/${sessionId}/photo`, {
+      method: 'POST',
+      body: JSON.stringify({ index, photo })
+    }),
   savePhotos: (sessionId, { composite, rawPhotos }) =>
     fetchApi(`/sessions/${sessionId}/save-photos`, {
       method: 'POST',

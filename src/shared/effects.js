@@ -59,3 +59,4 @@ export function getEffect(id) {
   const normalized = id.toLowerCase().trim();
   return EFFECT_PRESETS[normalized] || EFFECT_PRESETS.normal;
 }
+

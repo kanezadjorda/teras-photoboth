@@ -1,6 +1,6 @@
 # PRD — Aplikasi Photobooth (QRIS + Template + Kamera & Printer Eksternal)
 
-**Versi:** 0.10 (Draft MVP) · **Tanggal:** 4 Oktober 2026
+**Versi:** 0.11 (Draft MVP) · **Tanggal:** 4 Oktober 2026
 
 ---
 
@@ -54,8 +54,8 @@ Aplikasi web lokal yang berjalan di laptop staff untuk mengoperasikan photobooth
       ├─ Lunas      → lanjut
       └─ Expired    → kembali ke Welcome
 3. Pilih template        → bebas memilih template yang diaktifkan admin
-4. Foto                  → preview live → countdown 3-2-1 → ambil N foto (N = jumlah slot template)
-5. Pilih efek & review   → pratinjau hasil, pilih efek, (opsional) ulang foto maks 1× per slot
+4. Foto (per foto)       → preview live → countdown 3-2-1 → ambil → tampil hasil foto ke-i → **Ulangi** (tanpa batas) atau **Lanjut** ke foto berikutnya; diulang sampai N foto (N = jumlah slot template)
+5. Pilih efek           → pratinjau hasil akhir, pilih efek (tidak ada retake di tahap ini)
 6. Cetak                 → komposit (dengan efek) → print → "Ambil hasil cetakmu"
 7. Soft file             → layar akhir: "Scan QR di cetakanmu untuk unduh soft file" (foto sudah tersimpan di folder Drive)
    │
@@ -83,7 +83,7 @@ Selesai → kembali ke Welcome (otomatis)
 | **Kamera**              |                                                                                                                                                                                                                         |           |
 | F-08                    | Kamera eksternal terdeteksi otomatis (tanpa pemilihan manual; kamera bawaan laptop diabaikan jika ada kamera eksternal), live preview (mirror)                                                                          | P0        |
 | F-09                    | Countdown + capture resolusi tertinggi yang didukung                                                                                                                                                                    | P0        |
-| F-10                    | Retake per foto                                                                                                                                                                                                         | P1        |
+| F-10                    | Retake saat pengambilan: setelah tiap foto, customer memilih **Ulangi** (tanpa batas) atau **Lanjut** ke foto berikutnya. Hanya foto yang diterima yang disimpan ke disk; tidak ada retake setelah semua foto selesai   | P0        |
 | **Cetak**               |                                                                                                                                                                                                                         |           |
 | F-11                    | Komposit foto + template ke satu gambar siap cetak (300 DPI)                                                                                                                                                            | P0        |
 | F-12                    | Cetak otomatis tanpa dialog ke printer default sistem (tanpa pemilihan printer; ukuran 4R diatur oleh aplikasi); jumlah salinan diterapkan di langkah cetak (N halaman pada CSS cetak), bukan di dialog printer         | P0        |
