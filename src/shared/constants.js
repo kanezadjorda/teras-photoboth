@@ -4,6 +4,7 @@
  */
 
 export const SESSION_STATES = Object.freeze({
+  VIEWING_INSTRUCTIONS: 'viewing_instructions',
   WAITING_PAYMENT: 'waiting_payment',
   CHOOSING_TEMPLATE: 'choosing_template',
   CAPTURING: 'capturing',
@@ -37,7 +38,8 @@ export const TIMEOUTS = Object.freeze({
   PAYMENT_SECONDS: 180, // 3 minutes QRIS expiration countdown
   PAYMENT_POLL_INTERVAL_MS: 2500, // Poll every 2-3 seconds
   COUNTDOWN_SECONDS: 3, // 3-2-1 photo countdown
-  DONE_SCREEN_SECONDS: 10 // Auto return to welcome
+  DONE_SCREEN_SECONDS: 10, // Auto return to welcome
+  IDLE_TIMEOUT_SECONDS: 60 // 60s idle timeout for instructions, template, review (PRD F-29)
 });
 
 export const DEFAULTS = Object.freeze({

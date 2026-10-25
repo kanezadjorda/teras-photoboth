@@ -1,4 +1,5 @@
 import { createWelcomeScreen } from './screens/welcome.js';
+import { createInstructionsScreen } from './screens/instructions.js';
 import { createPaymentScreen } from './screens/payment.js';
 import { createChooseTemplateScreen } from './screens/choose-template.js';
 import { createCaptureScreen } from './screens/capture.js';
@@ -29,23 +30,40 @@ function renderScreen(screen) {
 // 1. Welcome Screen
 function initWelcomeScreen() {
   const welcome = createWelcomeScreen({
-    onStart: async () => {
+    onStart: () => {
+      // Transition to Layar Tata Cara (PRD F-26)
+      initInstructionsScreen();
+    }
+  });
+  renderScreen(welcome);
+}
+
+// 1.1 Instructions Screen (Tata Cara 4 Langkah & 60s Idle Timeout - PRD F-26, F-29)
+function initInstructionsScreen() {
+  const instructionsScreen = createInstructionsScreen({
+    onBack: () => {
+      console.log('[Kiosk] Kembali ke Layar Welcome.');
+      initWelcomeScreen();
+    },
+    onNext: async () => {
       try {
-        console.log('[Kiosk] Memulai sesi baru...');
+        console.log('[Kiosk] Memulai sesi baru setelah tata cara...');
         const res = await api.createSession();
         const session = res.data;
         console.log('[Kiosk] Sesi dibuat:', session);
-
-        // Transition to QRIS Payment (Phase 4)
         initPaymentScreen(session);
       } catch (err) {
         console.error('[Kiosk] Gagal membuat sesi:', err);
         // Fallback for offline/standalone test
         initPaymentScreen({ id: `sess_demo_${Date.now()}` });
       }
+    },
+    onTimeout: () => {
+      console.log('[Kiosk] Layar tata cara timeout tanpa aktivitas, kembali ke Welcome.');
+      initWelcomeScreen();
     }
   });
-  renderScreen(welcome);
+  renderScreen(instructionsScreen);
 }
 
 // 2. Payment Screen (QRIS Dinamis Midtrans)
@@ -83,6 +101,10 @@ function initChooseTemplateScreen(session) {
         console.error('[Kiosk] Gagal memperbarui status sesi:', err);
         await initCaptureScreen(session, template);
       }
+    },
+    onTimeout: async () => {
+      console.warn(`[Kiosk] Pemilihan template sesi ${session.id} timeout 60 detik tanpa aktivitas.`);
+      await cancelSession(session);
     }
   });
 
@@ -144,6 +166,10 @@ function initReviewScreen(session, template, photos, retakeCounts = {}, countdow
         }
       });
       renderScreen(retakeScreen);
+    },
+    onTimeout: async () => {
+      console.warn(`[Kiosk] Review foto sesi ${session.id} timeout 60 detik tanpa aktivitas.`);
+      await cancelSession(session);
     },
     onConfirm: async ({ photos: confirmedPhotos, compositeDataUrl }) => {
       console.log('[Kiosk] Foto dikonfirmasi pelanggan, menyimpan foto...');
@@ -239,6 +265,10 @@ async function resumeSession(session) {
   console.log(`[Kiosk] Melanjutkan sesi ${session.id} pada status: ${session.status}`);
 
   switch (session.status) {
+    case SESSION_STATES.VIEWING_INSTRUCTIONS:
+      initInstructionsScreen();
+      break;
+
     case SESSION_STATES.WAITING_PAYMENT:
       initPaymentScreen(session);
       break;

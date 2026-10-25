@@ -6,10 +6,13 @@
 
 import { api } from '../../shared/api.js';
 import { getUniquePhotoCount } from '../../shared/composite.js';
+import { createIdleTimer } from '../../shared/ui.js';
+import { TIMEOUTS } from '../../shared/constants.js';
 
-export function createChooseTemplateScreen({ onSelectTemplate }) {
+export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
   let container = null;
   let gridContainer = null;
+  let idleTimer = null;
 
   async function loadTemplates() {
     if (!gridContainer) return;
@@ -147,9 +150,25 @@ export function createChooseTemplateScreen({ onSelectTemplate }) {
 
     gridContainer = container.querySelector('#templates-grid');
     loadTemplates();
+
+    // Start 60s idle timeout (PRD F-29)
+    idleTimer = createIdleTimer({
+      timeoutSeconds: TIMEOUTS.IDLE_TIMEOUT_SECONDS || 60,
+      onTimeout: () => {
+        console.warn('[ChooseTemplate] Tidak ada aktivitas selama 60 detik. Membatalkan sesi & kembali ke awal.');
+        if (typeof onTimeout === 'function') {
+          onTimeout();
+        }
+      }
+    });
+    idleTimer.start();
   }
 
   function unmount() {
+    if (idleTimer) {
+      idleTimer.stop();
+      idleTimer = null;
+    }
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }

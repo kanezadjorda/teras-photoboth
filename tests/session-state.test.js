@@ -4,6 +4,7 @@ import { isValidTransition, transitionSessionState } from '../src/shared/session
 
 describe('Session State Machine', () => {
   it('allows valid forward transitions', () => {
+    expect(isValidTransition(SESSION_STATES.VIEWING_INSTRUCTIONS, SESSION_STATES.WAITING_PAYMENT)).toBe(true);
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.CHOOSING_TEMPLATE)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CHOOSING_TEMPLATE, SESSION_STATES.CAPTURING)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CAPTURING, SESSION_STATES.REVIEWING)).toBe(true);
@@ -16,6 +17,7 @@ describe('Session State Machine', () => {
   });
 
   it('allows cancellation from active states', () => {
+    expect(isValidTransition(SESSION_STATES.VIEWING_INSTRUCTIONS, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CHOOSING_TEMPLATE, SESSION_STATES.CANCELLED)).toBe(true);
     expect(isValidTransition(SESSION_STATES.CAPTURING, SESSION_STATES.CANCELLED)).toBe(true);
@@ -34,10 +36,13 @@ describe('Session State Machine', () => {
   });
 
   it('rejects invalid state transitions', () => {
+    expect(isValidTransition(SESSION_STATES.VIEWING_INSTRUCTIONS, SESSION_STATES.DONE)).toBe(false);
+    expect(isValidTransition(SESSION_STATES.VIEWING_INSTRUCTIONS, SESSION_STATES.PRINTING)).toBe(false);
     expect(isValidTransition(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.DONE)).toBe(false);
     expect(isValidTransition(SESSION_STATES.DONE, SESSION_STATES.WAITING_PAYMENT)).toBe(false);
     expect(isValidTransition(SESSION_STATES.CHOOSING_TEMPLATE, SESSION_STATES.PRINTING)).toBe(false);
     expect(() => transitionSessionState(SESSION_STATES.WAITING_PAYMENT, SESSION_STATES.PRINTING)).toThrow();
+    expect(() => transitionSessionState(SESSION_STATES.VIEWING_INSTRUCTIONS, SESSION_STATES.CAPTURING)).toThrow();
   });
 });
 

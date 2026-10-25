@@ -28,7 +28,7 @@ router.post('/', (req, res) => {
   try {
     const id = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date().toISOString();
-    const initialStatus = SESSION_STATES.WAITING_PAYMENT;
+    const initialStatus = req.body?.status || SESSION_STATES.WAITING_PAYMENT;
 
     // Ambil event yang sedang aktif jika ada
     let eventId = null;

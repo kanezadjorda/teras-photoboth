@@ -28,6 +28,9 @@ describe('Offline Resilience & Session Recovery (PRD Bagian 7 & 12)', () => {
 
   describe('Session Recovery Lifecycle', () => {
     it('detects uncompleted session when app boots up', async () => {
+      // 0. Bersihkan sesi aktif lama agar tidak bertabrakan dengan test paralel
+      db.prepare("UPDATE sessions SET status = 'cancelled' WHERE status NOT IN ('done', 'cancelled', 'expired')").run();
+
       // 1. Insert session simulating abrupt crash during capturing
       const nowIso = new Date().toISOString();
       db.prepare(`

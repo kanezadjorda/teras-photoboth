@@ -87,3 +87,49 @@ export function setupOfflineMonitor(parent = document.body, message = 'KONEKSI I
     }
   };
 }
+
+/**
+ * Monitor aktivitas pengguna untuk mendeteksi timeout idle/tanpa interaksi
+ * PRD Reference: F-29
+ * @param {object} options
+ * @param {number} [options.timeoutSeconds=60]
+ * @param {() => void} options.onTimeout
+ * @returns {{ start: () => void, stop: () => void, reset: () => void }}
+ */
+export function createIdleTimer({ timeoutSeconds = 60, onTimeout }) {
+  let timer = null;
+  const timeoutMs = timeoutSeconds * 1000;
+
+  function reset() {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (typeof onTimeout === 'function') {
+        onTimeout();
+      }
+    }, timeoutMs);
+  }
+
+  const events = ['pointerdown', 'mousemove', 'keydown', 'touchstart'];
+  function handleActivity() {
+    reset();
+  }
+
+  function start() {
+    reset();
+    if (typeof window !== 'undefined') {
+      events.forEach((evt) => window.addEventListener(evt, handleActivity, { passive: true }));
+    }
+  }
+
+  function stop() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    if (typeof window !== 'undefined') {
+      events.forEach((evt) => window.removeEventListener(evt, handleActivity));
+    }
+  }
+
+  return { start, stop, reset };
+}

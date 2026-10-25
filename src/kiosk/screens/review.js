@@ -5,21 +5,23 @@
  */
 
 import { renderComposite, loadImage, getSlotPhotoIndex } from '../../shared/composite.js';
-import { DEFAULTS, CANVAS_SPECS } from '../../shared/constants.js';
-import { preventDoubleClick } from '../../shared/ui.js';
+import { DEFAULTS, CANVAS_SPECS, TIMEOUTS } from '../../shared/constants.js';
+import { preventDoubleClick, createIdleTimer } from '../../shared/ui.js';
 
 export function createReviewScreen({
   template,
   photos = [],
   retakeCounts = {},
   onConfirm,
-  onRetakeSlot
+  onRetakeSlot,
+  onTimeout
 }) {
   let container = null;
   let canvasContainer = null;
   let slotsContainer = null;
   let confirmBtn = null;
   let compositeCanvas = null;
+  let idleTimer = null;
 
   async function generateCompositePreview() {
     if (!canvasContainer) return;
@@ -206,9 +208,25 @@ export function createReviewScreen({
 
     renderSlotsList();
     generateCompositePreview();
+
+    // Start 60s idle timeout (PRD F-29)
+    idleTimer = createIdleTimer({
+      timeoutSeconds: TIMEOUTS.IDLE_TIMEOUT_SECONDS || 60,
+      onTimeout: () => {
+        console.warn('[Review] Tidak ada aktivitas selama 60 detik. Membatalkan sesi & kembali ke awal.');
+        if (typeof onTimeout === 'function') {
+          onTimeout();
+        }
+      }
+    });
+    idleTimer.start();
   }
 
   function unmount() {
+    if (idleTimer) {
+      idleTimer.stop();
+      idleTimer = null;
+    }
     if (confirmBtn && onConfirm) confirmBtn.removeEventListener('click', onConfirm);
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
