@@ -59,32 +59,36 @@ export function createWelcomeScreen({ onStart }) {
         <div class="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/40 to-black/80"></div>
       </div>
 
-      <!-- Lapisan Gelap / Gradasi agar teks dan UI terbaca kontras (PRD F-24) -->
-      <div class="absolute inset-0 bg-black/45 backdrop-brightness-75 z-10 pointer-events-none"></div>
+      <!-- Lapisan Gelap / Gradasi agar teks dan UI terbaca kontras tanpa menutupi kamera (PRD F-24) -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70 z-10 pointer-events-none"></div>
 
-      <!-- Konten Utama Kiosk -->
-      <div class="relative z-20 flex flex-col items-center justify-center text-center p-6 sm:p-8 max-w-4xl w-full">
-        <div class="border-[5px] border-black bg-white p-8 sm:p-12 w-full space-y-8 shadow-[8px_8px_0px_0px_#000]">
-          <div class="space-y-4">
-            <h1 class="text-5xl sm:text-6xl md:text-7xl font-headline uppercase tracking-tight text-black leading-none">
-              Teras Photobooth
-            </h1>
-            <p class="text-lg sm:text-xl md:text-2xl font-body text-black">
-              Abadikan momen spesialmu dalam hitungan menit
-            </p>
-          </div>
+      <!-- Konten Utama Kiosk (Tanpa box background, menyatu elegan dengan live preview kamera) -->
+      <div class="relative z-20 flex flex-col items-center justify-between text-center p-8 sm:p-12 w-full h-full max-w-5xl select-none">
+        <!-- Bagian Atas: Branding & Tagline -->
+        <div class="space-y-3 pt-6 sm:pt-10">
+          <h1 class="text-5xl sm:text-6xl md:text-7xl font-headline uppercase tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] leading-none">
+            Teras Photobooth
+          </h1>
+          <p class="text-lg sm:text-xl md:text-2xl font-body text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] max-w-2xl mx-auto">
+            Abadikan momen spesialmu dalam hitungan menit
+          </p>
+        </div>
 
-          <div class="pt-4 flex justify-center">
-            <button id="btn-start" class="btn-raw-primary min-h-[64px] px-10 sm:px-12 py-5 text-xl sm:text-2xl cursor-pointer">
-              Mulai Sesi Foto
-            </button>
-          </div>
+        <!-- Bagian Tengah: Tombol Mulai yang Besar & Bersih -->
+        <div class="my-auto py-6">
+          <button
+            id="btn-start"
+            class="bg-white text-black font-headline text-xl sm:text-2xl md:text-3xl px-12 sm:px-16 py-6 min-h-[72px] border-[4px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-black hover:text-white hover:border-white transition-all cursor-pointer uppercase tracking-wider active:translate-x-[2px] active:translate-y-[2px]"
+          >
+            Mulai Sesi Foto
+          </button>
+        </div>
 
-          <div class="border-t-[3px] border-black pt-4">
-            <p class="font-mono text-xs uppercase tracking-wider text-black">
-              PEMBAYARAN INSTAN VIA QRIS &bull; HASIL CETAK OTOMATIS 4R
-            </p>
-          </div>
+        <!-- Bagian Bawah: Info Footer Bersih -->
+        <div class="pb-4 sm:pb-8">
+          <p class="font-mono text-xs sm:text-sm uppercase tracking-widest text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] bg-black/40 px-5 py-2.5 border border-white/20">
+            PEMBAYARAN INSTAN VIA QRIS &bull; HASIL CETAK OTOMATIS 4R
+          </p>
         </div>
       </div>
     `;
