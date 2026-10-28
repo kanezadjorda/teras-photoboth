@@ -42,30 +42,36 @@ export function createTemplateEditor({ onBack }) {
       for (const tpl of templates) {
         const uniqueTakes = getUniquePhotoCount(tpl.slots);
         const card = document.createElement('div');
-        card.className = 'card-sb flex flex-col justify-between gap-4 p-4 bg-white border border-[#E5E5E5]';
+        card.className = 'card-sb flex flex-col justify-between p-4 bg-white border border-[#E5E5E5] overflow-hidden hover:border-[#0A0A0A] transition-colors duration-150';
 
         card.innerHTML = `
           <div>
-            <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#E5E5E5]">
-              <h4 class="font-mono text-xs uppercase font-medium text-[#0A0A0A] truncate">${tpl.nama}</h4>
-              <span class="chip-sb text-[10px] ${tpl.aktif ? 'border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10' : 'border border-[#E5E5E5] text-[#737373]'}">
+            <div class="flex items-center justify-between gap-2 pb-2 mb-3 border-b border-[#E5E5E5]">
+              <h4 class="font-mono text-xs uppercase font-medium text-[#0A0A0A] truncate min-w-0 flex-1" title="${tpl.nama}">${tpl.nama}</h4>
+              <span class="chip-sb text-[10px] shrink-0 font-mono ${tpl.aktif ? 'border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 font-medium' : 'border border-[#E5E5E5] text-[#737373]'}">
                 ${tpl.aktif ? 'AKTIF' : 'NON-AKTIF'}
               </span>
             </div>
             <div class="aspect-[2/3] bg-[#FAFAFA] border border-[#E5E5E5] overflow-hidden flex items-center justify-center mb-3">
-              <img src="/templates/${tpl.file_png}" alt="${tpl.nama}" class="w-full h-full object-contain" />
+              <img src="/templates/${tpl.file_png}" alt="${tpl.nama}" class="w-full h-full object-contain p-1" />
             </div>
-            <div class="font-mono text-xs text-[#737373] space-y-1">
-              <div>SLOT FOTO: <strong class="text-[#0A0A0A]">${tpl.jumlah_slot} SLOT</strong>${uniqueTakes < tpl.jumlah_slot ? ` <span class="text-[#737373] font-medium">(${uniqueTakes}X FOTO)</span>` : ''}</div>
-              <div class="truncate text-[11px]">FILE: ${tpl.file_png}</div>
+            <div class="font-mono text-xs text-[#737373] space-y-1 mb-3">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] uppercase">SLOT FOTO:</span>
+                <span class="text-[#0A0A0A] font-semibold">${tpl.jumlah_slot} SLOT${uniqueTakes < tpl.jumlah_slot ? ` (${uniqueTakes}X)` : ''}</span>
+              </div>
+              <div class="flex items-center justify-between text-[11px] truncate">
+                <span class="uppercase">BERKAS:</span>
+                <span class="truncate text-[#0A0A0A] max-w-[130px]" title="${tpl.file_png}">${tpl.file_png}</span>
+              </div>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 pt-2 border-t border-[#E5E5E5]">
-            <button class="btn-toggle-aktif btn-sb-secondary flex-1 py-1.5 text-xs font-mono uppercase">
+          <div class="grid grid-cols-2 gap-2 pt-3 border-t border-[#E5E5E5]">
+            <button class="btn-toggle-aktif btn-sb-secondary btn-sm w-full min-w-0 text-[11px] font-mono uppercase truncate" title="${tpl.aktif ? 'Nonaktifkan template' : 'Aktifkan template'}">
               ${tpl.aktif ? 'NONAKTIFKAN' : 'AKTIFKAN'}
             </button>
-            <button class="btn-delete-tpl btn-sb-destructive px-3 py-1.5 text-xs font-mono uppercase">
+            <button class="btn-delete-tpl btn-sb-destructive btn-sm w-full min-w-0 text-[11px] font-mono uppercase truncate" title="Hapus template">
               HAPUS
             </button>
           </div>
@@ -446,7 +452,7 @@ export function createTemplateEditor({ onBack }) {
           <h3 class="text-h3 font-semibold uppercase text-[#0A0A0A]">GALERI TEMPLATE TERSIMPAN</h3>
           <span class="font-mono text-xs text-[#737373]">HANYA TEMPLATE AKTIF YANG MUNCUL DI KIOSK</span>
         </div>
-        <div id="template-gallery" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6"></div>
+        <div id="template-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
       </section>
     `;
 

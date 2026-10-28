@@ -262,11 +262,38 @@ body {
 
 /* Kiosk Sized Interactive Buttons (min-height 64px for touch/pointer ease) */
 .btn-kiosk {
-  min-height: 64px;
-  padding-left: 2rem;
-  padding-right: 2rem;
-  font-size: 1.125rem;
+  min-height: 64px !important;
+  height: 64px !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+  font-size: 1.125rem !important;
   letter-spacing: 0.06em;
+}
+
+/* StudioBlank Button Size Modifiers */
+.btn-sm {
+  height: 32px !important;
+  min-height: 32px !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+  font-size: 0.6875rem !important; /* 11px */
+  letter-spacing: 0.04em;
+}
+
+.btn-md {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+  font-size: 0.8125rem !important; /* 13px */
+}
+
+.btn-lg {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  font-size: 0.875rem !important; /* 14px */
 }
 
 /* ==========================================================================
