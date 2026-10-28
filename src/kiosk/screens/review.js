@@ -61,7 +61,7 @@ export function createReviewScreen({
       });
 
       compositeCanvas.className =
-        'max-h-[62vh] w-auto border-[5px] border-black bg-white shadow-none object-contain';
+        'max-h-[62vh] w-auto border border-[#0A0A0A] bg-white shadow-none object-contain';
 
       canvasContainer.innerHTML = '';
       canvasContainer.appendChild(compositeCanvas);
@@ -69,7 +69,7 @@ export function createReviewScreen({
       console.error('[Review] Gagal membuat komposit preview:', err);
       if (canvasContainer) {
         canvasContainer.innerHTML = `
-          <div class="border-[3px] border-black bg-raw-error text-white p-4 font-headline text-center uppercase">
+          <div class="border border-[#DC2626] bg-white text-[#DC2626] p-4 font-headline text-center uppercase">
             GAGAL MERENDER KOMPOSIT FOTO.
           </div>
         `;
@@ -88,22 +88,22 @@ export function createReviewScreen({
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.dataset.effectId = preset.id;
-      chip.className = `effect-chip flex items-center gap-3 p-3 border-[3px] border-black font-headline text-sm uppercase cursor-pointer select-none transition-none w-full ${
+      chip.className = `effect-chip flex items-center gap-3 p-3 border font-headline text-xs md:text-sm uppercase cursor-pointer select-none transition-colors duration-150 w-full ${
         isSelected
-          ? 'bg-black text-white shadow-[3px_3px_0px_0px_#000]'
-          : 'bg-white text-black hover:bg-neutral-100'
+          ? 'bg-[#0A0A0A] text-[#FAFAFA] border-[#0A0A0A]'
+          : 'bg-white text-[#0A0A0A] border-[#D4D4D8] hover:bg-[#F4F4F5] hover:border-[#A1A1AA]'
       }`;
 
       chip.innerHTML = `
-        <span class="w-8 h-8 border-[2px] border-black overflow-hidden inline-block shrink-0 bg-raw-sunken">
+        <span class="w-7 h-7 border border-[#D4D4D8] overflow-hidden inline-block shrink-0 bg-[#FAFAFA]">
           ${
             samplePhotoSrc
               ? `<img src="${samplePhotoSrc}" alt="${preset.label}" class="w-full h-full object-cover" style="filter: ${preset.filter};" />`
-              : `<span class="block w-full h-full bg-neutral-300"></span>`
+              : `<span class="block w-full h-full bg-[#E5E5E5]"></span>`
           }
         </span>
         <span class="tracking-wider flex-1 text-left">${preset.label}</span>
-        ${isSelected ? '<span class="text-xs font-mono">\u25cf AKTIF</span>' : ''}
+        ${isSelected ? '<span class="text-xs font-mono font-medium tracking-widest text-white/70">&bull; AKTIF</span>' : ''}
       `;
 
       chip.addEventListener('click', () => {
@@ -120,40 +120,40 @@ export function createReviewScreen({
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 box-border font-body overflow-y-auto select-none';
+      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 md:p-8 box-border font-body overflow-y-auto select-none';
 
     container.innerHTML = `
-      <!-- Header -->
-      <div class="flex items-center justify-between pb-4 mb-4 border-b-[5px] border-black">
+      <!-- Header (StudioBlank: 1px border, refined hierarchy) -->
+      <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#D4D4D8]">
         <div>
-          <h1 class="text-3xl md:text-4xl font-headline uppercase text-black">
+          <h1 class="text-h1 uppercase text-[#0A0A0A]">
             PILIH EFEK FOTO
           </h1>
-          <p class="font-body text-xs text-black/70 mt-1">
+          <p class="text-body-sm text-[#71717A] mt-1">
             PILIH FILTER WARNA TERBAIK UNTUK HASIL CETAK 4R KAMU
           </p>
         </div>
       </div>
 
       <!-- Main Layout: Composite Preview (Left/Center) & Effect Selection (Right) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto py-2">
         <!-- Composite Preview -->
         <div class="lg:col-span-7 flex flex-col items-center justify-center">
-          <div id="composite-canvas-container" class="border-[5px] border-black bg-raw-sunken p-4 flex items-center justify-center w-full min-h-[460px]">
+          <div id="composite-canvas-container" class="border border-[#E5E5E5] bg-[#FAFAFA] p-4 flex items-center justify-center w-full min-h-[460px]">
           </div>
-          <span class="font-mono text-xs text-black/60 mt-2 uppercase">
+          <span class="font-mono text-xs text-[#71717A] mt-2 uppercase tracking-wider">
             PRATINJAU HASIL CETAK 4R (BORDERLESS)
           </span>
         </div>
 
         <!-- Effect Selection Tray (Right) -->
         <div class="lg:col-span-5 space-y-4">
-          <div class="card-raw-elevated space-y-3 p-5 border-[4px] border-black bg-white shadow-[4px_4px_0px_0px_#000]">
-            <div class="flex items-center justify-between pb-2 border-b-[3px] border-black">
-              <h3 class="font-headline text-base uppercase text-black">
+          <div class="card-sb space-y-4 p-6 border border-[#E5E5E5] bg-white">
+            <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+              <h3 class="font-headline text-base font-semibold uppercase text-[#0A0A0A]">
                 PILIH PRESET EFEK
               </h3>
-              <span class="font-mono text-xs text-black/60 uppercase">7 PILIHAN</span>
+              <span class="font-mono text-xs text-[#71717A] uppercase tracking-wider">7 PILIHAN</span>
             </div>
             <div id="effects-selection-tray" class="flex flex-col gap-2.5 max-h-[400px] overflow-y-auto pr-1"></div>
           </div>
@@ -161,12 +161,12 @@ export function createReviewScreen({
       </div>
 
       <!-- Footer Action -->
-      <div class="mt-6 pt-4 border-t-[5px] border-black flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="font-mono text-xs text-black/80">
+      <div class="mt-6 pt-4 border-t border-[#D4D4D8] flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="font-mono text-xs text-[#71717A]">
           PASTIKAN EFEK WARNA SUDAH PAS SEBELUM MENCETAK.
         </div>
-        <button id="btn-confirm-print" class="btn-raw-primary min-h-[64px] px-12 text-xl font-headline w-full md:w-auto cursor-pointer">
-          LANJUT & CETAK FOTO
+        <button id="btn-confirm-print" class="btn-sb-primary btn-kiosk min-h-[64px] px-12 text-sm md:text-base font-mono uppercase tracking-wider font-semibold w-full md:w-auto cursor-pointer">
+          LANJUT & CETAK FOTO &rarr;
         </button>
       </div>
     `;

@@ -22,9 +22,9 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
 
       if (templates.length === 0) {
         gridContainer.innerHTML = `
-          <div class="col-span-full border-[5px] border-black bg-white p-12 text-center space-y-4">
-            <h3 class="font-headline text-2xl uppercase text-black">BELUM ADA TEMPLATE AKTIF</h3>
-            <p class="font-body text-sm text-black/70">
+          <div class="col-span-full border border-[#E5E5E5] bg-white p-12 text-center space-y-4">
+            <h3 class="text-h2 uppercase text-[#0A0A0A]">BELUM ADA TEMPLATE AKTIF</h3>
+            <p class="text-body-sm text-[#71717A]">
               Silakan hubungi staff atau operator untuk mengaktifkan template cetakan di panel admin.
             </p>
           </div>
@@ -41,27 +41,27 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
 
         const card = document.createElement('div');
         card.className =
-          'card-raw flex flex-col justify-between cursor-pointer group hover:bg-black hover:text-white transition-none p-5 space-y-4';
+          'card-sb flex flex-col justify-between cursor-pointer group bg-white border border-[#E5E5E5] hover:border-[#0A0A0A] transition-colors duration-150 p-5 space-y-4';
 
         card.innerHTML = `
           <div class="space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b-[2px] border-black group-hover:border-white">
-              <h3 class="font-headline text-lg uppercase text-black group-hover:text-white truncate">
+            <div class="flex items-center justify-between pb-2 border-b border-[#E5E5E5]">
+              <h3 class="font-headline text-base font-semibold uppercase text-[#0A0A0A] truncate">
                 ${tpl.nama}
               </h3>
-              <span class="chip-raw chip-raw-default group-hover:border-white group-hover:text-white group-hover:bg-black">
+              <span class="chip-sb text-[10px] font-mono text-[#71717A]">
                 ${photoBadgeText}
               </span>
             </div>
 
-            <!-- Thumbnail Preview -->
-            <div class="aspect-[2/3] bg-raw-sunken border-[3px] border-black group-hover:border-white overflow-hidden flex items-center justify-center p-2">
+            <!-- Thumbnail Preview: StudioBlank clean image container -->
+            <div class="aspect-[2/3] bg-[#FAFAFA] border border-[#E5E5E5] overflow-hidden flex items-center justify-center p-3 group-hover:border-[#0A0A0A] transition-colors duration-150">
               <img src="/templates/${tpl.file_png}" alt="${tpl.nama}" class="w-full h-full object-contain" />
             </div>
           </div>
 
-          <button class="btn-select btn-raw-primary w-full py-4 text-base font-headline group-hover:bg-white group-hover:text-black group-hover:border-white">
-            PILIH TEMPLATE INI
+          <button class="btn-select btn-sb-primary w-full h-12 text-xs font-mono uppercase tracking-wider font-semibold cursor-pointer">
+            PILIH TEMPLATE INI &rarr;
           </button>
         `;
 
@@ -106,8 +106,8 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
       console.error('[ChooseTemplate] Gagal memuat template:', err);
       if (gridContainer) {
         gridContainer.innerHTML = `
-          <div class="col-span-full border-[5px] border-black bg-raw-error text-white p-8 text-center font-headline uppercase">
-            GAGAL MENGHUBUNGI SERVER LOCAL. PERIKSA KONEKSI APLIKASI.
+          <div class="col-span-full border border-[#DC2626] bg-[#FFFFFF] text-[#DC2626] p-8 text-center font-headline uppercase">
+            GAGAL MENGHUBUNGI SERVER LOKAL. PERIKSA KONEKSI APLIKASI.
           </div>
         `;
       }
@@ -117,30 +117,30 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 box-border font-body overflow-y-auto';
+      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 md:p-8 box-border font-body overflow-y-auto select-none';
 
     container.innerHTML = `
-      <!-- Header -->
-      <div class="flex items-center justify-between pb-4 mb-6 border-b-[5px] border-black">
+      <!-- Header (StudioBlank: 1px border, refined hierarchy) -->
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-[#D4D4D8]">
         <div>
-          <h1 class="text-3xl md:text-4xl font-headline uppercase text-black">
+          <h1 class="text-h1 uppercase text-[#0A0A0A]">
             PILIH TEMPLATE CETAKAN
           </h1>
-          <p class="font-body text-xs text-black/70 mt-1">
+          <p class="text-body-sm text-[#71717A] mt-1">
             PILIH BINGKAI FOTO YANG KAMU SUKAI UNTUK MEMULAI SESI FOTO
           </p>
         </div>
       </div>
 
       <!-- Templates Grid -->
-      <div id="templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-auto">
-        <div class="col-span-full font-mono text-sm text-center p-12 border-[3px] border-black bg-raw-sunken">
+      <div id="templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-auto py-2">
+        <div class="col-span-full font-mono text-sm text-center p-12 border border-[#E5E5E5] bg-white text-[#71717A]">
           MEMUAT DAFTAR TEMPLATE AKTIF...
         </div>
       </div>
 
       <!-- Footer Info -->
-      <div class="mt-6 pt-4 border-t-[3px] border-black flex items-center justify-between font-mono text-xs text-black/60">
+      <div class="mt-6 pt-4 border-t border-[#D4D4D8] flex items-center justify-between font-mono text-xs text-[#71717A]">
         <span>FORMAT CETAK: 4R (1200×1800 PX) BORDERLESS</span>
         <span>KLIK PADA SALAH SATU KARTU UNTUK MEMILIH</span>
       </div>

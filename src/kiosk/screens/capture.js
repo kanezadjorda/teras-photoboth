@@ -82,10 +82,10 @@ export function createCaptureScreen({
     if (cameraChip) {
       if (subState === CAPTURE_SUB_STATES.REVIEWING_SHOT) {
         cameraChip.textContent = 'PRATINJAU HASIL';
-        cameraChip.className = 'chip-raw chip-raw-warning';
+        cameraChip.className = 'chip-sb chip-sb-warning';
       } else {
         cameraChip.textContent = 'KAMERA AKTIF';
-        cameraChip.className = 'chip-raw chip-raw-active';
+        cameraChip.className = 'chip-sb chip-sb-selected';
       }
     }
   }
@@ -102,20 +102,24 @@ export function createCaptureScreen({
     for (let i = 0; i < totalPhotos; i++) {
       const thumb = document.createElement('div');
       thumb.className =
-        'w-16 h-20 md:w-20 md:h-24 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden shrink-0';
+        'w-16 h-20 md:w-20 md:h-24 border border-[#D4D4D8] bg-[#FAFAFA] flex items-center justify-center overflow-hidden shrink-0 transition-colors duration-150';
 
       if (acceptedPhotos[i]) {
         thumb.innerHTML = `<img src="${acceptedPhotos[i]}" alt="Foto ${i + 1}" class="w-full h-full object-cover" />`;
+        thumb.classList.remove('border-[#D4D4D8]');
+        thumb.classList.add('border-[#0A0A0A]');
       } else if (i === currentIdx) {
         if (subState === CAPTURE_SUB_STATES.REVIEWING_SHOT && pendingShot) {
-          thumb.innerHTML = `<img src="${pendingShot}" alt="Review ${i + 1}" class="w-full h-full object-cover opacity-80" />`;
-          thumb.classList.add('border-black', 'bg-amber-100');
+          thumb.innerHTML = `<img src="${pendingShot}" alt="Review ${i + 1}" class="w-full h-full object-cover opacity-90" />`;
+          thumb.classList.remove('border-[#D4D4D8]');
+          thumb.classList.add('border-2', 'border-[#0A0A0A]', 'bg-white');
         } else {
-          thumb.innerHTML = `<span class="font-headline text-xs text-black border-b-[2px] border-black">AKTIF</span>`;
-          thumb.classList.add('bg-white');
+          thumb.innerHTML = `<span class="font-headline text-xs text-[#0A0A0A] font-semibold tracking-wider">AKTIF</span>`;
+          thumb.classList.remove('border-[#D4D4D8]');
+          thumb.classList.add('border-2', 'border-[#0A0A0A]', 'bg-white');
         }
       } else {
-        thumb.innerHTML = `<span class="font-mono text-xs text-black/40">#${i + 1}</span>`;
+        thumb.innerHTML = `<span class="font-mono text-xs text-[#A1A1AA]">#${i + 1}</span>`;
       }
 
       thumbnailTray.appendChild(thumb);
@@ -296,27 +300,27 @@ export function createCaptureScreen({
       'flex flex-col justify-between w-full h-screen max-w-none px-6 py-4 box-border font-body bg-white overflow-hidden select-none';
 
     container.innerHTML = `
-      <!-- Header -->
-      <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-3 shrink-0">
+      <!-- Header (StudioBlank: 1px border, clear typographic scale) -->
+      <div class="w-full flex items-center justify-between border-b border-[#D4D4D8] pb-3 shrink-0">
         <div>
-          <h1 id="slot-indicator" class="text-3xl md:text-4xl font-headline uppercase text-black">
+          <h1 id="slot-indicator" class="text-h1 uppercase text-[#0A0A0A]">
             FOTO 1 DARI ${totalPhotos}
           </h1>
-          <p id="slot-subtext" class="font-body text-xs text-black/70">
+          <p id="slot-subtext" class="text-body-sm text-[#71717A] mt-0.5">
             BERPOSISILAH DI TENGAH BINGKAI KAMERA &bull; SENYUM TERBAIKMU
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <span id="camera-chip" class="chip-raw chip-raw-active">KAMERA AKTIF</span>
+          <span id="camera-chip" class="chip-sb chip-sb-selected">KAMERA AKTIF</span>
         </div>
       </div>
 
       <!-- Error Banner (Hidden by default) -->
-      <div id="camera-error-banner" class="hidden w-full bg-raw-error text-white font-headline text-center p-3 mb-2 border-[3px] border-black"></div>
+      <div id="camera-error-banner" class="hidden w-full bg-[#DC2626] text-white font-headline text-xs py-2 text-center uppercase tracking-wider mb-2 border border-[#0A0A0A]"></div>
 
-      <!-- Video & Shot Viewport Frame: Exact 16:9 Aspect Ratio Container -->
+      <!-- Video & Shot Viewport Frame: Exact 16:9 Aspect Ratio Container (StudioBlank crisp 1px frame) -->
       <div class="flex-1 w-full min-h-0 py-2 flex items-center justify-center overflow-hidden">
-        <div class="relative h-full max-w-full aspect-[16/9] border-[5px] border-black bg-black flex items-center justify-center overflow-hidden">
+        <div class="relative h-full max-w-full aspect-[16/9] border border-[#0A0A0A] bg-black flex items-center justify-center overflow-hidden">
           <!-- 1. Live Camera Video -->
           <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover -scale-x-100"></video>
 
@@ -330,7 +334,7 @@ export function createCaptureScreen({
 
           <!-- Countdown Overlay -->
           <div id="countdown-overlay" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <span id="countdown-number" class="font-headline text-[180px] md:text-[240px] text-white drop-shadow-[0_10px_24px_rgba(0,0,0,0.95)] leading-none select-none tracking-normal">3</span>
+            <span id="countdown-number" class="font-headline text-[160px] md:text-[220px] font-bold text-white drop-shadow-[0_8px_20px_rgba(0,0,0,0.85)] leading-none select-none tracking-tight">3</span>
           </div>
 
           <!-- Shutter Flash Effect -->
@@ -339,7 +343,7 @@ export function createCaptureScreen({
       </div>
 
       <!-- Bottom Controls & Thumbnails -->
-      <div class="w-full flex items-center justify-between pt-3 border-t-[3px] border-black gap-6 shrink-0">
+      <div class="w-full flex items-center justify-between pt-3 border-t border-[#D4D4D8] gap-6 shrink-0">
         <!-- Thumbnail Tray (Accepted photos & progress) -->
         <div id="thumbnail-tray" class="flex items-center gap-2 md:gap-3 overflow-x-auto py-1"></div>
 
@@ -347,17 +351,17 @@ export function createCaptureScreen({
         <div class="flex items-center gap-3 shrink-0">
           <!-- Live Mode Actions -->
           <div id="live-actions" class="flex items-center">
-            <button id="btn-trigger-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline cursor-pointer">
+            <button id="btn-trigger-photo" class="btn-sb-primary btn-kiosk min-h-[64px] px-10 text-sm md:text-base font-mono uppercase tracking-wider font-semibold cursor-pointer">
               AMBIL FOTO
             </button>
           </div>
 
           <!-- Review Mode Actions (PRD F-10) -->
           <div id="review-actions" class="hidden flex items-center gap-3">
-            <button id="btn-retake-photo" class="btn-raw-secondary min-h-[64px] px-8 text-xl font-headline cursor-pointer">
+            <button id="btn-retake-photo" class="btn-sb-secondary btn-kiosk min-h-[64px] px-8 text-sm md:text-base font-mono uppercase tracking-wider font-semibold cursor-pointer">
               ULANGI
             </button>
-            <button id="btn-continue-photo" class="btn-raw-primary min-h-[64px] px-10 text-xl font-headline cursor-pointer">
+            <button id="btn-continue-photo" class="btn-sb-primary btn-kiosk min-h-[64px] px-10 text-sm md:text-base font-mono uppercase tracking-wider font-semibold cursor-pointer">
               LANJUT
             </button>
           </div>

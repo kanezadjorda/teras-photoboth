@@ -18,38 +18,38 @@ export function createDoneScreen({
       isMounted = true;
 
       container.innerHTML = `
-        <div class="w-full h-full min-h-screen bg-white flex flex-col items-center justify-center p-8 select-none">
-          <div class="card-raw-elevated max-w-2xl w-full flex flex-col items-center text-center p-10 bg-white border-5 border-black">
+        <div class="w-full h-full min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center p-8 select-none">
+          <div class="card-sb max-w-xl w-full flex flex-col items-center text-center p-8 md:p-10 bg-white border border-[#E5E5E5]">
             
             <!-- Badge Sesi Selesai -->
-            <div class="chip-raw chip-raw-active mb-6 text-sm py-2 px-5 font-mono font-bold tracking-widest uppercase">
+            <div class="chip-sb mb-6 text-xs py-1 px-3 font-mono text-[#0A0A0A] bg-[#FAFAFA] border border-[#D4D4D8] uppercase tracking-wider">
               SESI SELESAI • TERIMA KASIH
             </div>
 
             <!-- Pesan Utama -->
-            <h1 class="font-headline text-3xl md:text-5xl text-black uppercase tracking-tight mb-4 leading-tight">
+            <h1 class="text-h2 font-semibold text-[#0A0A0A] tracking-tight mb-2 leading-tight">
               AMBIL HASIL CETAKANMU DI PRINTER!
             </h1>
 
-            <p class="font-body text-lg text-black/85 max-w-lg mb-8 leading-relaxed">
+            <p class="text-body-sm text-[#737373] max-w-lg mb-8 leading-relaxed">
               Foto Anda telah selesai dicetak. Silakan ambil lembaran cetak dari tray keluaran printer.
             </p>
 
             <!-- Box Info Soft File & Nomor Sesi -->
-            <div class="w-full bg-raw-sunken border-3 border-black p-6 mb-8 text-left space-y-4">
-              <div class="flex items-center justify-between border-b-2 border-black/20 pb-3">
-                <span class="font-mono text-xs uppercase tracking-wider text-black/70">NOMOR SESI ANDA:</span>
-                <span class="font-headline text-2xl text-black tracking-wider">#${sessionNo}</span>
+            <div class="w-full border border-[#E5E5E5] bg-[#FAFAFA] p-6 mb-8 text-left space-y-4">
+              <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+                <span class="font-mono text-xs uppercase tracking-wider text-[#737373]">NOMOR SESI ANDA:</span>
+                <span class="font-mono font-semibold text-xl text-[#0A0A0A] tracking-wider">#${sessionNo}</span>
               </div>
               <div class="flex items-start gap-4 pt-1">
-                <div class="bg-black text-white font-mono text-xl font-bold w-10 h-10 flex items-center justify-center shrink-0 border-2 border-black">
+                <div class="bg-[#0A0A0A] text-[#FAFAFA] font-mono text-xs font-semibold w-8 h-8 flex items-center justify-center shrink-0">
                   QR
                 </div>
                 <div>
-                  <div class="font-headline text-sm uppercase text-black mb-1">
+                  <div class="text-body-sm font-semibold uppercase text-[#0A0A0A] mb-1">
                     UNDUH SOFT FILE DIGITAL
                   </div>
-                  <div class="font-body text-xs text-black/70 leading-normal">
+                  <div class="text-caption text-[#737373] leading-relaxed">
                     Pindai (scan) kode QR yang tercetak di sudut lembar foto Anda menggunakan kamera HP untuk mengunduh soft file foto beresolusi tinggi langsung dari Google Drive.
                   </div>
                 </div>
@@ -58,14 +58,14 @@ export function createDoneScreen({
 
             <!-- Countdown Timer & Tombol Selesai -->
             <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-              <div class="font-mono text-sm text-black flex items-center gap-2">
-                <span class="w-3 h-3 bg-raw-success inline-block"></span>
-                <span>KEMBALI KE AWAL DALAM <strong id="done-countdown" class="text-base">${remainingSeconds}</strong> DETIK</span>
+              <div class="font-mono text-xs text-[#737373] flex items-center gap-2">
+                <span class="w-2 h-2 bg-[#2BB673] inline-block"></span>
+                <span>KEMBALI KE AWAL DALAM <strong id="done-countdown" class="text-xs font-semibold text-[#0A0A0A]">${remainingSeconds}</strong> DETIK</span>
               </div>
 
               <button
                 id="btn-done-finish"
-                class="btn-raw-primary min-h-14 px-8 text-base w-full sm:w-auto"
+                class="btn-sb-primary btn-kiosk px-8 text-xs font-mono uppercase tracking-wider w-full sm:w-auto"
               >
                 SELESAI SEKARANG &rarr;
               </button>

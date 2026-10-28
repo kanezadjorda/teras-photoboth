@@ -57,38 +57,38 @@ export function createSettingsScreen() {
           title: 'PENGATURAN',
           description: 'Harga sesi, jumlah cetak, durasi countdown, dan PIN operator'
         })}
-        <section class="card-raw-elevated my-6 bg-white p-4 sm:p-6 lg:p-8">
-          <h2 class="text-xl font-headline uppercase tracking-tight text-black pb-2 mb-6 border-b-[3px] border-black">
+        <section class="card-sb my-6 bg-white p-6 lg:p-8 border border-[#E5E5E5]">
+          <h2 class="text-h3 font-semibold uppercase tracking-tight text-[#0A0A0A] pb-3 mb-6 border-b border-[#E5E5E5]">
             PENGATURAN SESI & KEAMANAN
           </h2>
           <div id="settings-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
-              <label class="label-raw">HARGA PER SESI (RUPIAH)</label>
-              <input type="number" id="setting-price" class="input-raw w-full" />
-              <p class="font-body text-xs text-black/70 mt-1">Nominal yang akan digenerate ke QRIS dinamis Midtrans</p>
+              <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">HARGA PER SESI (RUPIAH)</label>
+              <input type="number" id="setting-price" class="input-sb w-full font-mono text-xs" />
+              <p class="text-caption text-[#737373] mt-1">Nominal yang akan digenerate ke QRIS dinamis Midtrans</p>
             </div>
             <div>
-              <label class="label-raw">JUMLAH CETAK PER SESI</label>
-              <input type="number" id="setting-copies" min="1" max="10" class="input-raw w-full" />
-              <p class="font-body text-xs text-black/70 mt-1">Jumlah lembar 4R yang dicetak otomatis per sesi</p>
+              <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">JUMLAH CETAK PER SESI</label>
+              <input type="number" id="setting-copies" min="1" max="10" class="input-sb w-full font-mono text-xs" />
+              <p class="text-caption text-[#737373] mt-1">Jumlah lembar 4R yang dicetak otomatis per sesi</p>
             </div>
             <div>
-              <label class="label-raw">COUNTDOWN FOTO (DETIK)</label>
-              <select id="setting-countdown" class="input-raw w-full font-headline text-sm bg-white cursor-pointer">
+              <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">COUNTDOWN FOTO (DETIK)</label>
+              <select id="setting-countdown" class="input-sb w-full font-mono text-xs bg-white cursor-pointer">
                 <option value="3">3 DETIK (STANDAR)</option>
                 <option value="5">5 DETIK</option>
                 <option value="10">10 DETIK</option>
                 <option value="15">15 DETIK</option>
               </select>
-              <p class="font-body text-xs text-black/70 mt-1">Waktu hitung mundur sebelum kamera mengambil gambar</p>
+              <p class="text-caption text-[#737373] mt-1">Waktu hitung mundur sebelum kamera mengambil gambar</p>
             </div>
             <div>
-              <label class="label-raw">PIN OPERATOR (4 DIGIT)</label>
-              <input type="password" id="setting-pin" maxlength="4" class="input-raw font-mono tracking-widest text-center w-full" placeholder="1234" />
-              <p class="font-body text-xs text-black/70 mt-1">PIN untuk membuka panel & konfirmasi manual (F-14)</p>
+              <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">PIN OPERATOR (4 DIGIT)</label>
+              <input type="password" id="setting-pin" maxlength="4" class="input-sb font-mono tracking-widest text-center w-full text-xs" placeholder="1234" />
+              <p class="text-caption text-[#737373] mt-1">PIN untuk membuka panel & konfirmasi manual (F-14)</p>
             </div>
-            <div class="sm:col-span-2 lg:col-span-4 flex justify-end pt-2">
-              <button id="btn-save-settings" class="btn-raw-primary px-8 py-3 text-sm font-headline cursor-pointer">
+            <div class="sm:col-span-2 lg:col-span-4 flex justify-end pt-2 border-t border-[#E5E5E5]">
+              <button id="btn-save-settings" class="btn-sb-primary px-6 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer">
                 SIMPAN PENGATURAN
               </button>
             </div>

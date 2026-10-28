@@ -54,41 +54,46 @@ export function createWelcomeScreen({ onStart }) {
       <!-- Fallback Visual Statis jika kamera tidak tersedia / error (PRD F-24) -->
       <div
         id="welcome-fallback-bg"
-        class="absolute inset-0 w-full h-full bg-neutral-900 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] z-0 flex items-center justify-center"
+        class="absolute inset-0 w-full h-full bg-[#0A0A0A] z-0 flex items-center justify-center"
       >
-        <div class="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/40 to-black/80"></div>
+        <div class="w-full h-full border border-white/5 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:32px_32px]"></div>
       </div>
 
-      <!-- Lapisan Gelap / Gradasi agar teks dan UI terbaca kontras tanpa menutupi kamera (PRD F-24) -->
-      <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70 z-10 pointer-events-none"></div>
+      <!-- Lapisan Gelap / Gradasi Halus agar teks dan UI terbaca jelas di atas kamera -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80 z-10 pointer-events-none"></div>
 
-      <!-- Konten Utama Kiosk (Tanpa box background, menyatu elegan dengan live preview kamera) -->
-      <div class="relative z-20 flex flex-col items-center justify-between text-center p-8 sm:p-12 w-full h-full max-w-5xl select-none">
+      <!-- Konten Utama Kiosk (StudioBlank: ultra-minimal, ruang bernapas lapang, tanpa shadow/radius) -->
+      <div class="relative z-20 flex flex-col items-center justify-between text-center p-8 sm:p-12 md:p-16 w-full h-full max-w-5xl select-none">
         <!-- Bagian Atas: Branding & Tagline -->
-        <div class="space-y-3 pt-6 sm:pt-10">
-          <h1 class="text-5xl sm:text-6xl md:text-7xl font-headline uppercase tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] leading-none">
+        <div class="space-y-3 pt-8 sm:pt-12">
+          <span class="inline-block font-mono text-xs tracking-[0.2em] uppercase text-white/60 mb-2 border border-white/20 px-3 py-1">
+            PHOTOBOOTH OTOMATIS
+          </span>
+          <h1 class="text-hero uppercase tracking-tight text-white leading-none">
             Teras Photobooth
           </h1>
-          <p class="text-lg sm:text-xl md:text-2xl font-body text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] max-w-2xl mx-auto">
+          <p class="text-body md:text-lg text-white/80 max-w-xl mx-auto font-light leading-relaxed">
             Abadikan momen spesialmu dalam hitungan menit
           </p>
         </div>
 
-        <!-- Bagian Tengah: Tombol Mulai yang Besar & Bersih -->
-        <div class="my-auto py-6">
+        <!-- Bagian Tengah: Tombol Mulai (StudioBlank: flat sharp rectangle, hover inversion) -->
+        <div class="my-auto py-8">
           <button
             id="btn-start"
-            class="bg-white text-black font-headline text-xl sm:text-2xl md:text-3xl px-12 sm:px-16 py-6 min-h-[72px] border-[4px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-black hover:text-white hover:border-white transition-all cursor-pointer uppercase tracking-wider active:translate-x-[2px] active:translate-y-[2px]"
+            class="btn-sb-primary btn-kiosk min-h-[64px] px-12 md:px-16 text-base md:text-lg font-mono tracking-wider font-semibold uppercase cursor-pointer transition-colors duration-150"
           >
-            Mulai Sesi Foto
+            Mulai Sesi Foto &rarr;
           </button>
         </div>
 
         <!-- Bagian Bawah: Info Footer Bersih -->
-        <div class="pb-4 sm:pb-8">
-          <p class="font-mono text-xs sm:text-sm uppercase tracking-widest text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] bg-black/40 px-5 py-2.5 border border-white/20">
-            PEMBAYARAN INSTAN VIA QRIS &bull; HASIL CETAK OTOMATIS 4R
-          </p>
+        <div class="pb-6 sm:pb-8">
+          <div class="font-mono text-xs uppercase tracking-[0.15em] text-white/80 bg-black/60 px-5 py-2.5 border border-white/20 inline-flex items-center gap-3">
+            <span>PEMBAYARAN INSTAN QRIS</span>
+            <span class="text-white/40">&bull;</span>
+            <span>CETAK OTOMATIS 4R</span>
+          </div>
         </div>
       </div>
     `;

@@ -57,12 +57,12 @@ export function createAdminShell({ onLock }) {
     navLinks.forEach((link) => {
       const isActive = link.getAttribute('data-route') === route;
       if (isActive) {
-        link.classList.remove('text-white', 'hover:bg-white/10');
-        link.classList.add('bg-white', 'text-black');
+        link.classList.remove('text-[#A3A3A3]', 'hover:bg-[#171717]', 'hover:text-white');
+        link.classList.add('bg-[#FAFAFA]', 'text-[#0A0A0A]', 'font-semibold');
         link.setAttribute('aria-current', 'page');
       } else {
-        link.classList.remove('bg-white', 'text-black');
-        link.classList.add('text-white', 'hover:bg-white/10');
+        link.classList.remove('bg-[#FAFAFA]', 'text-[#0A0A0A]', 'font-semibold');
+        link.classList.add('text-[#A3A3A3]', 'hover:bg-[#171717]', 'hover:text-white');
         link.removeAttribute('aria-current');
       }
     });
@@ -77,14 +77,14 @@ export function createAdminShell({ onLock }) {
       const activeEvent = res.data?.find((e) => e.aktif === 1);
       if (activeEvent) {
         topbarEvent.textContent = `EVENT: ${activeEvent.nama.toUpperCase()}`;
-        topbarEvent.className = 'chip-raw chip-raw-active text-xs';
+        topbarEvent.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       } else {
         topbarEvent.textContent = 'EVENT: TANPA EVENT';
-        topbarEvent.className = 'chip-raw chip-raw-warning text-xs';
+        topbarEvent.className = 'chip-sb border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10 text-xs';
       }
     } catch (err) {
       topbarEvent.textContent = 'EVENT: ERROR';
-      topbarEvent.className = 'chip-raw chip-raw-error text-xs';
+      topbarEvent.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
     }
   }
 
@@ -96,7 +96,7 @@ export function createAdminShell({ onLock }) {
       const devices = await getCameraDevices();
       if (!devices || devices.length === 0) {
         topbarCamera.textContent = 'KAMERA: TIDAK ADA';
-        topbarCamera.className = 'chip-raw chip-raw-error text-xs';
+        topbarCamera.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
         return;
       }
       const savedCamId = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_camera_id') : null;
@@ -106,14 +106,14 @@ export function createAdminShell({ onLock }) {
       }
       if (selectedDev.isExternal) {
         topbarCamera.textContent = 'KAMERA: EKSTERNAL';
-        topbarCamera.className = 'chip-raw chip-raw-active text-xs';
+        topbarCamera.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       } else {
         topbarCamera.textContent = 'KAMERA: LAPTOP';
-        topbarCamera.className = 'chip-raw chip-raw-active text-xs';
+        topbarCamera.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       }
     } catch (err) {
       topbarCamera.textContent = 'KAMERA: ERROR';
-      topbarCamera.className = 'chip-raw chip-raw-error text-xs';
+      topbarCamera.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
     }
   }
 
@@ -128,14 +128,14 @@ export function createAdminShell({ onLock }) {
       }
       if (!printers || printers.length === 0) {
         topbarPrinter.textContent = 'PRINTER: TIDAK ADA';
-        topbarPrinter.className = 'chip-raw chip-raw-error text-xs';
+        topbarPrinter.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
       } else {
         topbarPrinter.textContent = 'PRINTER: OK';
-        topbarPrinter.className = 'chip-raw chip-raw-active text-xs';
+        topbarPrinter.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       }
     } catch (err) {
       topbarPrinter.textContent = 'PRINTER: ERROR';
-      topbarPrinter.className = 'chip-raw chip-raw-error text-xs';
+      topbarPrinter.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
     }
   }
 
@@ -228,8 +228,8 @@ export function createAdminShell({ onLock }) {
 function renderLayout() {
   const navHtml = NAV_ITEMS.map((item) => `
       <a href="#/${item.route}" data-route="${item.route}"
-         class="flex items-center h-14 px-6 font-headline text-sm uppercase text-white hover:bg-white/10 transition-colors
-                focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-white">
+         class="flex items-center h-10 px-4 font-mono text-xs uppercase tracking-wider text-[#A3A3A3] hover:text-white hover:bg-[#171717] transition-colors
+                focus-visible:outline focus-visible:outline-1 focus-visible:outline-white">
         <span>${item.label}</span>
       </a>
     `).join('');
@@ -237,40 +237,40 @@ function renderLayout() {
 
   return `
     <!-- Mobile Backdrop -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden backdrop-blur-xs"></div>
 
     <!-- Responsive Sidebar Drawer on mobile, static on md+ -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:h-screen md:sticky md:top-0 md:shrink-0">
-      <div class="p-4 sm:p-6 border-b-thick border-white flex items-center justify-between">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-[#0A0A0A] text-[#FAFAFA] flex flex-col transition-transform duration-200 -translate-x-full md:translate-x-0 md:h-screen md:sticky md:top-0 md:shrink-0 border-r border-[#262626]">
+      <div class="p-6 border-b border-[#262626] flex items-center justify-between">
         <div>
-          <p class="font-headline text-lg sm:text-xl uppercase leading-tight">TERAS<br/>PHOTOBOOTH</p>
-          <p class="font-mono text-[10px] sm:text-[11px] text-white/60 mt-1">PANEL OPERATOR</p>
+          <p class="font-semibold text-base uppercase leading-tight text-white tracking-tight">TERAS<br/>PHOTOBOOTH</p>
+          <p class="font-mono text-[10px] text-[#A3A3A3] mt-1 tracking-wider uppercase">PANEL OPERATOR</p>
         </div>
-        <button id="btn-close-sidebar" class="md:hidden text-white hover:text-raw-error p-1 font-headline text-lg" aria-label="Tutup menu">✕</button>
+        <button id="btn-close-sidebar" class="md:hidden text-[#A3A3A3] hover:text-white p-1 font-mono text-base" aria-label="Tutup menu">✕</button>
       </div>
-      <nav class="flex-1 py-4 overflow-y-auto" aria-label="Menu admin">
+      <nav class="flex-1 py-4 px-2 space-y-1 overflow-y-auto" aria-label="Menu admin">
         ${navHtml}
       </nav>
-      <div class="p-4 border-t-thick border-white">
-        <button id="btn-lock-panel" class="btn-raw-secondary w-full py-3 text-xs font-headline">KUNCI PANEL</button>
+      <div class="p-4 border-t border-[#262626]">
+        <button id="btn-lock-panel" class="btn-sb-secondary w-full py-2.5 text-xs font-mono uppercase tracking-wider">KUNCI PANEL</button>
       </div>
     </aside>
 
-    <div class="flex-1 min-w-0 flex flex-col w-full">
-      <header class="sticky top-0 z-40 bg-white border-b-thick border-black px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+    <div class="flex-1 min-w-0 flex flex-col w-full bg-[#FAFAFA]">
+      <header class="sticky top-0 z-40 bg-white border-b border-[#E5E5E5] px-6 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 md:hidden">
-          <button id="btn-toggle-sidebar" class="md:hidden! btn-raw-secondary px-3 py-1.5 text-xs font-headline flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
+          <button id="btn-toggle-sidebar" class="md:hidden! btn-sb-secondary px-3 py-1.5 text-xs font-mono flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
             <span>☰</span>
             <span>MENU</span>
           </button>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-          <span id="topbar-camera" class="chip-raw chip-raw-default text-xs">KAMERA: ...</span>
-          <span id="topbar-printer" class="chip-raw chip-raw-default text-xs">PRINTER: ...</span>
-          <span id="topbar-event" class="chip-raw chip-raw-default text-xs">EVENT: ...</span>
+          <span id="topbar-camera" class="chip-sb text-xs">KAMERA: ...</span>
+          <span id="topbar-printer" class="chip-sb text-xs">PRINTER: ...</span>
+          <span id="topbar-event" class="chip-sb text-xs">EVENT: ...</span>
         </div>
       </header>
-      <main id="admin-content" class="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-none"></main>
+      <main id="admin-content" class="flex-1 p-6 lg:p-8 w-full max-w-none"></main>
     </div>
   `;
 }

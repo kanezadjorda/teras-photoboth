@@ -37,7 +37,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
     if (activeDev.isExternal) {
       if (camChip) {
         camChip.textContent = 'TERHUBUNG (EKSTERNAL)';
-        camChip.className = 'chip-raw chip-raw-active text-xs';
+        camChip.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       }
       if (camHint) {
         camHint.textContent = `Kamera eksternal (${activeDev.label}) aktif dan siap untuk sesi foto kiosk.`;
@@ -45,7 +45,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
     } else {
       if (camChip) {
         camChip.textContent = 'TERHUBUNG (LAPTOP)';
-        camChip.className = 'chip-raw chip-raw-active text-xs';
+        camChip.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       }
       if (camHint) {
         camHint.textContent = 'Kamera eksternal tidak ditemukan. Menggunakan kamera bawaan laptop sebagai default.';
@@ -68,7 +68,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
         selectCamera.innerHTML = '<option value="">TIDAK ADA KAMERA TERHUBUNG</option>';
         if (camChip) {
           camChip.textContent = 'TIDAK TERHUBUNG';
-          camChip.className = 'chip-raw chip-raw-error text-xs';
+          camChip.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
         }
         if (camHint) {
           camHint.textContent = 'Peringatan: Tidak ada kamera terdeteksi. Sambungkan DSLR/webcam ke port USB!';
@@ -123,7 +123,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
         selectPrinter.innerHTML = '<option value="">TIDAK ADA PRINTER TERHUBUNG</option>';
         if (printerChip) {
           printerChip.textContent = 'TIDAK TERHUBUNG';
-          printerChip.className = 'chip-raw chip-raw-error text-xs';
+          printerChip.className = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10 text-xs';
         }
         if (printerHint) {
           printerHint.textContent = 'Tidak ada printer terdeteksi pada sistem laptop. Pastikan kabel printer terpasang dan driver aktif.';
@@ -155,7 +155,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
       selectPrinter.value = chosenName;
       if (printerChip) {
         printerChip.textContent = 'TERHUBUNG';
-        printerChip.className = 'chip-raw chip-raw-active text-xs';
+        printerChip.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
       }
       if (printerHint) {
         printerHint.textContent = `Printer "${chosenName}" siap digunakan untuk cetak senyap otomatis (silent print).`;
@@ -209,19 +209,19 @@ export function createHomeScreen({ onStatusChange } = {}) {
 
         const nominal = paymentData ? Number(paymentData.nominal).toLocaleString('id-ID') : '25.000';
 
-        widgetBadge.className = 'chip-raw bg-black text-white animate-pulse';
+        widgetBadge.className = 'chip-sb bg-[#0A0A0A] text-[#FAFAFA] animate-pulse text-xs';
         widgetBadge.textContent = 'MENUNGGU PEMBAYARAN';
 
         widgetContent.innerHTML = `
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-[3px] border-black bg-raw-sunken">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-[#E5E5E5] bg-[#FAFAFA]">
             <div>
-              <p class="font-headline text-base text-black uppercase">
+              <p class="text-body font-semibold text-[#0A0A0A] uppercase">
                 SESI AKTIF: ${session.id}
               </p>
-              <p class="font-mono text-xs text-black/80 mt-1">
-                NOMINAL: <span class="font-bold">RP ${nominal}</span> &bull; STATUS: <span class="uppercase">WAITING PAYMENT</span>
+              <p class="font-mono text-xs text-[#737373] mt-1">
+                NOMINAL: <span class="font-bold text-[#0A0A0A]">RP ${nominal}</span> &bull; STATUS: <span class="uppercase">WAITING PAYMENT</span>
               </p>
-              <p class="font-body text-xs text-black/60 mt-1">
+              <p class="text-caption text-[#737373] mt-1">
                 Gunakan konfirmasi manual jika customer telah membayar tetapi gateway terganggu.
               </p>
             </div>
@@ -229,18 +229,18 @@ export function createHomeScreen({ onStatusChange } = {}) {
               id="btn-manual-confirm"
               type="button"
               data-session-id="${session.id}"
-              class="btn-raw-primary px-6 py-3 text-xs font-headline whitespace-nowrap cursor-pointer hover:bg-black hover:text-white"
+              class="btn-sb-primary px-5 py-2.5 text-xs font-mono whitespace-nowrap cursor-pointer"
             >
               KONFIRMASI BAYAR MANUAL
             </button>
           </div>
         `;
       } else {
-        widgetBadge.className = 'chip-raw chip-raw-active';
+        widgetBadge.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
         widgetBadge.textContent = 'STANDBY';
         widgetContent.innerHTML = `
-          <div class="p-3 border border-black/30 bg-white">
-            <p class="font-mono text-xs text-black/60">Tidak ada sesi aktif yang sedang menunggu pembayaran.</p>
+          <div class="p-4 border border-[#E5E5E5] bg-[#FAFAFA]">
+            <p class="font-mono text-xs text-[#737373]">Tidak ada sesi aktif yang sedang menunggu pembayaran.</p>
           </div>
         `;
       }
@@ -290,7 +290,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
         const printerHint = el.querySelector('#printer-hint');
         if (printerChip) {
           printerChip.textContent = 'TERHUBUNG';
-          printerChip.className = 'chip-raw chip-raw-active text-xs';
+          printerChip.className = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 text-xs';
         }
         if (printerHint) {
           printerHint.textContent = `Printer "${chosenName}" siap digunakan untuk cetak senyap otomatis (silent print).`;
@@ -375,58 +375,58 @@ export function createHomeScreen({ onStatusChange } = {}) {
         })}
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
-          <div class="p-4 sm:p-6 border-[3px] border-black bg-white">
-            <span class="label-raw text-xs text-black">SESI HARI INI</span>
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+            <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">SESI HARI INI</span>
             <div class="mt-2">
-              <span id="home-today-sessions" class="font-headline text-3xl sm:text-4xl text-black">0 SESI</span>
+              <span id="home-today-sessions" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 SESI</span>
             </div>
           </div>
-          <div class="p-4 sm:p-6 border-[3px] border-black bg-white">
-            <span class="label-raw text-xs text-black">LUNAS</span>
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+            <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">LUNAS</span>
             <div class="mt-2">
-              <span id="home-today-paid" class="font-headline text-3xl sm:text-4xl text-black">0 LUNAS</span>
+              <span id="home-today-paid" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 LUNAS</span>
             </div>
           </div>
-          <div class="p-4 sm:p-6 border-[3px] border-black bg-white sm:col-span-2 lg:col-span-1">
-            <span class="label-raw text-xs text-black">OMSET HARI INI</span>
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white sm:col-span-2 lg:col-span-1">
+            <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">OMSET HARI INI</span>
             <div class="mt-2">
-              <span id="home-today-revenue" class="font-headline text-3xl sm:text-4xl text-black">RP 0</span>
+              <span id="home-today-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">RP 0</span>
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div class="lg:col-span-2">
-            <section id="waiting-payment-section" class="card-raw border-[5px] border-black bg-white h-full flex flex-col justify-between p-4 sm:p-6">
-              <div class="flex items-center justify-between pb-3 border-b-[3px] border-black">
+            <section id="waiting-payment-section" class="card-sb border border-[#E5E5E5] bg-white h-full flex flex-col justify-between p-6">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
                 <div class="flex items-center gap-2">
-                  <span class="chip-raw bg-black text-white text-xs">F-04</span>
-                  <h2 class="text-base sm:text-lg font-headline uppercase tracking-tight text-black">
+                  <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">F-04</span>
+                  <h2 class="text-body font-semibold uppercase tracking-tight text-[#0A0A0A]">
                     SESI MENUNGGU PEMBAYARAN (QRIS)
                   </h2>
                 </div>
-                <span id="payment-widget-badge" class="chip-raw chip-raw-warning">STANDBY</span>
+                <span id="payment-widget-badge" class="chip-sb text-xs border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10">STANDBY</span>
               </div>
 
               <div id="payment-widget-content" class="py-4 flex-1">
-                <p class="font-mono text-xs text-black/60">Mengecek sesi aktif di kiosk...</p>
+                <p class="font-mono text-xs text-[#737373]">Mengecek sesi aktif di kiosk...</p>
               </div>
             </section>
           </div>
 
           <div>
-            <section class="card-raw border-[5px] border-black bg-white h-full flex flex-col justify-between p-4 sm:p-6">
+            <section class="card-sb border border-[#E5E5E5] bg-white h-full flex flex-col justify-between p-6">
               <div>
-                <div class="flex items-center gap-2 pb-3 border-b-[3px] border-black">
-                  <span class="chip-raw bg-black text-white text-xs">F-16</span>
-                  <h3 class="text-base sm:text-lg font-headline uppercase text-black">TOMBOL DARURAT</h3>
+                <div class="flex items-center gap-2 pb-3 border-b border-[#E5E5E5]">
+                  <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">F-16</span>
+                  <h3 class="text-body font-semibold uppercase text-[#0A0A0A]">TOMBOL DARURAT</h3>
                 </div>
-                <p class="font-body text-xs text-black/80 mt-3">
+                <p class="text-caption text-[#737373] mt-3 leading-relaxed">
                   Gunakan jika customer mengalami kendala dan ingin membatalkan sesi kembali ke layar Welcome.
                 </p>
               </div>
               <div class="pt-4">
-                <button id="btn-emergency-reset" class="btn-raw-destructive w-full py-3 text-xs font-headline">
+                <button id="btn-emergency-reset" class="btn-sb-destructive w-full py-2.5 text-xs font-mono uppercase tracking-wider">
                   RESET KE WELCOME
                 </button>
               </div>
@@ -435,47 +435,47 @@ export function createHomeScreen({ onStatusChange } = {}) {
         </div>
 
         <div class="mb-6">
-          <div class="flex items-center gap-2 pb-2 mb-4 border-b-[3px] border-black">
-            <span class="chip-raw bg-black text-white text-xs">PERANGKAT</span>
-            <h2 class="text-base sm:text-lg font-headline uppercase tracking-tight text-black">
+          <div class="flex items-center gap-2 pb-2 mb-4 border-b border-[#E5E5E5]">
+            <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">PERANGKAT</span>
+            <h2 class="text-body font-semibold uppercase tracking-tight text-[#0A0A0A]">
               STATUS & PEMILIHAN PERANGKAT
             </h2>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Card Kamera -->
-            <div class="card-raw flex flex-col justify-between p-4 sm:p-6 bg-white">
-              <div class="flex items-center justify-between pb-2 border-b-[2px] border-black">
-                <span class="label-raw text-xs text-black">PERANGKAT KAMERA (DSLR / WEBCAM)</span>
-                <span id="cam-chip" class="chip-raw chip-raw-warning text-xs">MEMINDAI...</span>
+            <div class="card-sb flex flex-col justify-between p-6 bg-white border border-[#E5E5E5]">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+                <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">PERANGKAT KAMERA</span>
+                <span id="cam-chip" class="chip-sb text-xs border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10">MEMINDAI...</span>
               </div>
-              <div class="mt-3">
-                <label for="select-camera-device" class="block font-headline text-xs text-black mb-1">
+              <div class="mt-4">
+                <label for="select-camera-device" class="block text-caption font-mono uppercase text-[#0A0A0A] mb-2 font-medium">
                   PILIH SUMBER KAMERA:
                 </label>
-                <select id="select-camera-device" class="input-raw w-full text-xs font-mono font-bold bg-white cursor-pointer">
+                <select id="select-camera-device" class="input-sb w-full text-xs font-mono bg-white cursor-pointer">
                   <option value="">MEMINDAI PERANGKAT KAMERA...</option>
                 </select>
-                <p id="cam-hint" class="font-mono text-[11px] text-black/75 mt-2">
+                <p id="cam-hint" class="font-mono text-[11px] text-[#737373] mt-2">
                   Mendeteksi ketersediaan kamera eksternal dan bawaan laptop...
                 </p>
               </div>
             </div>
 
             <!-- Card Printer -->
-            <div class="card-raw flex flex-col justify-between p-4 bg-white">
-              <div class="flex items-center justify-between pb-2 border-b-[2px] border-black">
-                <span class="label-raw text-xs text-black">PERANGKAT PRINTER (4R / STRIP)</span>
-                <span id="printer-chip" class="chip-raw chip-raw-warning text-xs">MEMINDAI...</span>
+            <div class="card-sb flex flex-col justify-between p-6 bg-white border border-[#E5E5E5]">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+                <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">PERANGKAT PRINTER</span>
+                <span id="printer-chip" class="chip-sb text-xs border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10">MEMINDAI...</span>
               </div>
-              <div class="mt-3">
-                <label for="select-printer-device" class="block font-headline text-xs text-black mb-1">
+              <div class="mt-4">
+                <label for="select-printer-device" class="block text-caption font-mono uppercase text-[#0A0A0A] mb-2 font-medium">
                   PILIH PRINTER TUJUAN:
                 </label>
-                <select id="select-printer-device" class="input-raw w-full text-xs font-mono font-bold bg-white cursor-pointer">
+                <select id="select-printer-device" class="input-sb w-full text-xs font-mono bg-white cursor-pointer">
                   <option value="">MEMINDAI DAFTAR PRINTER...</option>
                 </select>
-                <p id="printer-hint" class="font-mono text-[11px] text-black/75 mt-2">
+                <p id="printer-hint" class="font-mono text-[11px] text-[#737373] mt-2">
                   Mendeteksi printer sistem untuk cetak senyap otomatis...
                 </p>
               </div>
@@ -483,39 +483,39 @@ export function createHomeScreen({ onStatusChange } = {}) {
           </div>
         </div>
 
-        <!-- Modal PIN Konfirmasi Manual RawBlock (F-04) -->
-        <div id="pin-modal-overlay" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div class="card-raw border-[5px] border-black bg-white max-w-md w-full p-6 space-y-4">
-            <div class="border-b-[3px] border-black pb-3 flex items-center justify-between">
-              <span class="chip-raw bg-black text-white text-xs">OTORISASI STAFF</span>
-              <span class="font-headline text-lg uppercase">MASUKKAN PIN</span>
+        <!-- Modal PIN Konfirmasi Manual StudioBlank (F-04) -->
+        <div id="pin-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div class="card-sb border border-[#E5E5E5] bg-white max-w-md w-full p-6 space-y-4">
+            <div class="border-b border-[#E5E5E5] pb-3 flex items-center justify-between">
+              <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">OTORISASI STAFF</span>
+              <span class="text-body font-semibold uppercase text-[#0A0A0A]">MASUKKAN PIN</span>
             </div>
 
-            <p class="font-body text-xs text-black/80">
-              Konfirmasi pembayaran manual untuk sesi: <span id="pin-modal-session-id" class="font-mono font-bold text-black"></span>
+            <p class="text-body-sm text-[#737373]">
+              Konfirmasi pembayaran manual untuk sesi: <span id="pin-modal-session-id" class="font-mono font-medium text-[#0A0A0A]"></span>
             </p>
 
             <form id="pin-confirm-form" class="space-y-4">
               <div>
-                <label class="label-raw">PIN OPERATOR (DEFAULT: 1234)</label>
+                <label class="block text-caption font-mono uppercase text-[#737373] mb-1">PIN OPERATOR (DEFAULT: 1234)</label>
                 <input
                   type="password"
                   id="input-pin-confirm"
-                  class="input-raw text-center text-3xl font-mono tracking-[0.5em] py-3 w-full"
+                  class="input-sb text-center text-2xl font-mono tracking-[0.5em] py-2.5 w-full"
                   maxlength="8"
                   placeholder="••••"
                   autocomplete="off"
                 />
-                <p id="pin-modal-error" class="hidden font-headline text-xs text-raw-error mt-2">
+                <p id="pin-modal-error" class="hidden text-caption font-mono text-[#E5484D] mt-2">
                   PIN SALAH! SILAKAN COBA LAGI.
                 </p>
               </div>
 
               <div class="flex items-center justify-end gap-3 pt-2">
-                <button type="button" id="btn-cancel-pin-modal" class="btn-raw-secondary px-6 py-3 text-xs font-headline">
+                <button type="button" id="btn-cancel-pin-modal" class="btn-sb-secondary px-5 py-2 text-xs font-mono uppercase tracking-wider">
                   BATAL
                 </button>
-                <button type="submit" id="btn-submit-pin-modal" class="btn-raw-primary px-6 py-3 text-xs font-headline">
+                <button type="submit" id="btn-submit-pin-modal" class="btn-sb-primary px-5 py-2 text-xs font-mono uppercase tracking-wider">
                   KONFIRMASI BAYAR
                 </button>
               </div>

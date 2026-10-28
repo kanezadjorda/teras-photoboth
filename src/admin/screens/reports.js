@@ -87,14 +87,14 @@ export function createReportsScreen() {
           const templateName = r.template_nama || 'Belum Dipilih';
           const nominalStr = formatRupiah(r.nominal);
 
-          let sessionBadge = 'chip-raw-default';
-          if (r.session_status === 'done') sessionBadge = 'chip-raw-active';
-          else if (r.session_status === 'cancelled') sessionBadge = 'chip-raw-error';
-          else if (r.session_status === 'capturing' || r.session_status === 'reviewing') sessionBadge = 'chip-raw-warning';
+          let sessionBadge = 'chip-sb border border-[#E5E5E5] text-[#737373]';
+          if (r.session_status === 'done') sessionBadge = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10';
+          else if (r.session_status === 'cancelled') sessionBadge = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10';
+          else if (r.session_status === 'capturing' || r.session_status === 'reviewing') sessionBadge = 'chip-sb border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10';
 
-          let payBadge = 'chip-raw-default';
+          let payBadge = 'chip-sb border border-[#E5E5E5] text-[#737373]';
           if (r.payment_status === 'lunas' || r.payment_status === 'paid') {
-            payBadge = 'chip-raw-active';
+            payBadge = 'chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10';
           } else if (
             r.payment_status === 'batal' ||
             r.payment_status === 'gagal' ||
@@ -102,34 +102,34 @@ export function createReportsScreen() {
             r.payment_status === 'expired' ||
             r.payment_status === 'cancelled'
           ) {
-            payBadge = 'chip-raw-error';
+            payBadge = 'chip-sb border border-[#E5484D]/40 text-[#E5484D] bg-[#E5484D]/10';
           } else if (
             r.payment_status === 'menunggu' ||
             r.payment_status === 'unpaid' ||
             r.payment_status === 'pending'
           ) {
-            payBadge = 'chip-raw-warning';
+            payBadge = 'chip-sb border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10';
           }
 
           const canReprint = Boolean(r.composite_path);
           const reprintBtn = canReprint
-            ? `<button type="button" class="btn-raw-secondary text-xs px-3 py-1 font-headline btn-reprint" data-session-id="${r.id}" data-session-no="${sessionNo}">
+            ? `<button type="button" class="btn-sb-secondary text-xs px-3 py-1 font-mono uppercase btn-reprint" data-session-id="${r.id}" data-session-no="${sessionNo}">
                 CETAK ULANG
               </button>`
-            : '<span class="text-black/40 text-[11px] font-body">-</span>';
+            : '<span class="text-[#737373] text-[11px] font-mono">-</span>';
 
           return `
-            <tr class="hover:bg-raw-sunken transition-colors">
-              <td class="p-3 sm:p-4 border-r-[2px] border-black font-bold text-black font-mono text-xs sm:text-sm whitespace-nowrap">${sessionNo}</td>
-              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black/80 font-mono text-[11px] sm:text-xs">${eventName}</td>
-              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black/80 font-mono text-[11px] sm:text-xs whitespace-nowrap">${dateStr}</td>
-              <td class="p-3 sm:p-4 border-r-[2px] border-black text-black font-headline text-xs sm:text-sm">${templateName}</td>
-              <td class="p-3 sm:p-4 border-r-[2px] border-black font-mono font-bold text-xs sm:text-sm whitespace-nowrap">${nominalStr}</td>
-              <td class="p-3 sm:p-4 border-r-[2px] border-black whitespace-nowrap">
-                <span class="chip-raw ${sessionBadge} uppercase">${r.session_status || '-'}</span>
+            <tr class="hover:bg-[#FAFAFA] border-b border-[#E5E5E5] transition-colors">
+              <td class="p-3 sm:p-4 font-semibold text-[#0A0A0A] font-mono text-xs sm:text-sm whitespace-nowrap">${sessionNo}</td>
+              <td class="p-3 sm:p-4 text-[#737373] font-mono text-[11px] sm:text-xs">${eventName}</td>
+              <td class="p-3 sm:p-4 text-[#737373] font-mono text-[11px] sm:text-xs whitespace-nowrap">${dateStr}</td>
+              <td class="p-3 sm:p-4 text-[#0A0A0A] font-mono text-xs sm:text-sm">${templateName}</td>
+              <td class="p-3 sm:p-4 font-mono font-medium text-[#0A0A0A] text-xs sm:text-sm whitespace-nowrap">${nominalStr}</td>
+              <td class="p-3 sm:p-4 whitespace-nowrap">
+                <span class="${sessionBadge} uppercase text-[11px]">${r.session_status || '-'}</span>
               </td>
-              <td class="p-3 sm:p-4 border-r-[2px] border-black whitespace-nowrap">
-                <span class="chip-raw ${payBadge} uppercase">${r.payment_status || '-'}</span>
+              <td class="p-3 sm:p-4 whitespace-nowrap">
+                <span class="${payBadge} uppercase text-[11px]">${r.payment_status || '-'}</span>
               </td>
               <td class="p-3 sm:p-4 text-center whitespace-nowrap">${reprintBtn}</td>
             </tr>
@@ -256,74 +256,72 @@ export function createReportsScreen() {
           description: 'Omset, riwayat transaksi, dan cetak ulang',
           actionsHtml: `
             <div class="flex items-center gap-2">
-              <span class="label-raw text-xs text-black mb-0">FILTER:</span>
-              <select id="select-report-event" class="input-raw py-1.5 px-3 text-xs font-mono">
+              <span class="text-caption font-mono uppercase text-[#737373] font-medium">FILTER:</span>
+              <select id="select-report-event" class="input-sb py-1.5 px-3 text-xs font-mono bg-white">
                 <option value="">SEMUA EVENT</option>
               </select>
             </div>
-            <button id="btn-refresh-history" class="btn-raw-secondary px-4 py-2 text-xs font-headline">
+            <button id="btn-refresh-history" class="btn-sb-secondary px-4 py-2 text-xs font-mono uppercase tracking-wider">
               REFRESH
             </button>
-            <button id="btn-export-csv" class="btn-raw-primary px-5 py-2 text-xs font-headline flex items-center justify-center gap-2">
+            <button id="btn-export-csv" class="btn-sb-primary px-4 py-2 text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2">
               <span>EKSPOR CSV</span>
             </button>
           `
         })}
 
         <!-- 4 Kartu Ringkasan -->
-        <div class="card-raw-elevated mb-6 bg-white p-4 sm:p-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
-            <div class="p-4 sm:p-5 border-[3px] border-black bg-raw-sunken">
-              <span class="label-raw text-xs text-black">TOTAL SESI HARI INI</span>
-              <div class="mt-2 flex items-baseline justify-between">
-                <span id="report-today-sessions" class="font-headline text-2xl sm:text-3xl text-black">0 SESI</span>
-                <span id="report-today-paid" class="font-mono text-xs sm:text-sm text-black/70">0 LUNAS</span>
-              </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6">
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+            <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">TOTAL SESI HARI INI</span>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span id="report-today-sessions" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 SESI</span>
+              <span id="report-today-paid" class="font-mono text-xs text-[#737373]">0 LUNAS</span>
             </div>
+          </div>
 
-            <div class="p-4 sm:p-5 border-[3px] border-black bg-white">
-              <span class="label-raw text-xs text-black">OMSET HARI INI</span>
-              <div class="mt-2">
-                <span id="report-today-revenue" class="font-headline text-2xl sm:text-3xl text-black">RP 0</span>
-              </div>
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+            <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">OMSET HARI INI</span>
+            <div class="mt-2">
+              <span id="report-today-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">RP 0</span>
             </div>
+          </div>
 
-            <div class="p-4 sm:p-5 border-[3px] border-black bg-raw-sunken">
-              <span class="label-raw text-xs text-black">TOTAL SESI (AKUMULASI)</span>
-              <div class="mt-2 flex items-baseline justify-between">
-                <span id="report-alltime-sessions" class="font-headline text-2xl sm:text-3xl text-black">0 SESI</span>
-                <span id="report-alltime-paid" class="font-mono text-xs sm:text-sm text-black/70">0 LUNAS</span>
-              </div>
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+            <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">TOTAL SESI (AKUMULASI)</span>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span id="report-alltime-sessions" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 SESI</span>
+              <span id="report-alltime-paid" class="font-mono text-xs text-[#737373]">0 LUNAS</span>
             </div>
+          </div>
 
-            <div class="p-4 sm:p-5 border-[3px] border-black bg-white">
-              <span class="label-raw text-xs text-black">TOTAL OMSET (AKUMULASI)</span>
-              <div class="mt-2">
-                <span id="report-alltime-revenue" class="font-headline text-2xl sm:text-3xl text-black">RP 0</span>
-              </div>
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+            <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">TOTAL OMSET (AKUMULASI)</span>
+            <div class="mt-2">
+              <span id="report-alltime-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">RP 0</span>
             </div>
           </div>
         </div>
 
         <!-- Tabel Riwayat Transaksi -->
-        <div class="card-raw bg-white p-0 overflow-hidden mb-6">
+        <div class="card-sb bg-white p-0 overflow-hidden mb-6 border border-[#E5E5E5]">
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse border-[3px] border-black text-sm">
+            <table class="w-full text-left border-collapse text-xs font-mono">
               <thead>
-                <tr class="bg-black text-white font-headline text-xs sm:text-sm uppercase">
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-24 sm:w-28 min-w-[90px]">NO SESI</th>
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 min-w-[140px]">EVENT</th>
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-36 sm:w-44 min-w-[140px]">WAKTU (WIB)</th>
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 min-w-[140px]">TEMPLATE</th>
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-32 sm:w-36 min-w-[110px]">NOMINAL</th>
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-32 sm:w-36 min-w-[120px]">STATUS SESI</th>
-                  <th class="p-3 sm:p-4 border-r-[2px] border-white/20 w-32 sm:w-36 min-w-[120px]">PEMBAYARAN</th>
-                  <th class="p-3 sm:p-4 text-center w-36 sm:w-40 min-w-[130px]">AKSI REPRINT</th>
+                <tr class="bg-[#FAFAFA] text-[#737373] border-b border-[#E5E5E5] uppercase">
+                  <th class="p-3 sm:p-4 font-medium w-24 sm:w-28 min-w-[90px]">NO SESI</th>
+                  <th class="p-3 sm:p-4 font-medium min-w-[140px]">EVENT</th>
+                  <th class="p-3 sm:p-4 font-medium w-36 sm:w-44 min-w-[140px]">WAKTU (WIB)</th>
+                  <th class="p-3 sm:p-4 font-medium min-w-[140px]">TEMPLATE</th>
+                  <th class="p-3 sm:p-4 font-medium w-32 sm:w-36 min-w-[110px]">NOMINAL</th>
+                  <th class="p-3 sm:p-4 font-medium w-32 sm:w-36 min-w-[120px]">STATUS SESI</th>
+                  <th class="p-3 sm:p-4 font-medium w-32 sm:w-36 min-w-[120px]">PEMBAYARAN</th>
+                  <th class="p-3 sm:p-4 font-medium text-center w-36 sm:w-40 min-w-[130px]">AKSI REPRINT</th>
                 </tr>
               </thead>
-              <tbody id="history-table-body" class="font-mono text-xs divide-y-[2px] divide-black">
+              <tbody id="history-table-body" class="divide-y divide-[#E5E5E5]">
                 <tr>
-                  <td colspan="8" class="p-4 text-center text-black/60 font-body">
+                  <td colspan="8" class="p-4 text-center text-[#737373] font-mono text-xs">
                     Memuat data riwayat transaksi...
                   </td>
                 </tr>

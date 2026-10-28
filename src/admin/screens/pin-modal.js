@@ -20,12 +20,12 @@ export function createPinModal({ onAuthenticated }) {
     dots.forEach((dot, idx) => {
       if (idx < enteredPin.length) {
         dot.textContent = '●';
-        dot.classList.add('bg-black', 'text-white');
-        dot.classList.remove('bg-white', 'text-transparent');
+        dot.classList.add('bg-[#0A0A0A]', 'text-[#FAFAFA]', 'border-[#0A0A0A]');
+        dot.classList.remove('bg-[#FAFAFA]', 'text-[#A3A3A3]', 'border-[#D4D4D8]');
       } else {
         dot.textContent = '○';
-        dot.classList.remove('bg-black', 'text-white');
-        dot.classList.add('bg-white', 'text-black/40');
+        dot.classList.remove('bg-[#0A0A0A]', 'text-[#FAFAFA]', 'border-[#0A0A0A]');
+        dot.classList.add('bg-[#FAFAFA]', 'text-[#A3A3A3]', 'border-[#D4D4D8]');
       }
     });
 
@@ -82,59 +82,59 @@ export function createPinModal({ onAuthenticated }) {
       isMounted = true;
       container = document.createElement('div');
       container.className =
-        'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 select-none';
+        'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 select-none backdrop-blur-xs';
 
       container.innerHTML = `
-        <div class="card-raw border-[5px] border-black bg-white max-w-sm w-full p-8 space-y-6 shadow-none">
+        <div class="card-sb border border-[#E5E5E5] bg-white max-w-sm w-full p-8 space-y-6">
           
           <!-- Header -->
-          <div class="text-center space-y-2 border-b-[3px] border-black pb-4">
-            <span class="chip-raw chip-raw-default text-xs font-mono font-bold tracking-widest uppercase">
+          <div class="text-center space-y-2 border-b border-[#E5E5E5] pb-4">
+            <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5] uppercase tracking-wider inline-block">
               PENGAMANAN SISTEM (F-14)
             </span>
-            <h2 class="text-2xl font-headline uppercase text-black tracking-tight">
+            <h2 class="text-h3 font-semibold text-[#0A0A0A] tracking-tight uppercase">
               MASUKKAN PIN STAFF
             </h2>
-            <p class="font-body text-xs text-black/70">
+            <p class="text-body-sm text-[#737373]">
               Panel admin dilindungi. Masukkan 4 digit PIN operator untuk melanjutkan.
             </p>
           </div>
 
           <!-- PIN Display (4 Kotak) -->
-          <div id="pin-dots" class="flex justify-center items-center gap-4 py-2">
-            <div class="pin-dot w-12 h-14 border-[3px] border-black flex items-center justify-center font-headline text-2xl">○</div>
-            <div class="pin-dot w-12 h-14 border-[3px] border-black flex items-center justify-center font-headline text-2xl">○</div>
-            <div class="pin-dot w-12 h-14 border-[3px] border-black flex items-center justify-center font-headline text-2xl">○</div>
-            <div class="pin-dot w-12 h-14 border-[3px] border-black flex items-center justify-center font-headline text-2xl">○</div>
+          <div id="pin-dots" class="flex justify-center items-center gap-3 py-2">
+            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
           </div>
 
           <!-- Pesan Error -->
-          <div id="pin-error-msg" class="hidden border-[3px] border-black bg-raw-error text-white p-2 text-center font-headline text-xs uppercase">
+          <div id="pin-error-msg" class="hidden border border-[#E5484D] bg-[#E5484D]/10 text-[#E5484D] p-2 text-center font-mono text-xs uppercase">
             PIN SALAH! SILAKAN COBA LAGI.
           </div>
 
-          <!-- RawBlock Numeric Keypad Grid (3 x 4) -->
-          <div class="grid grid-cols-3 gap-3">
-            <button type="button" data-key="1" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">1</button>
-            <button type="button" data-key="2" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">2</button>
-            <button type="button" data-key="3" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">3</button>
+          <!-- StudioBlank Numeric Keypad Grid (3 x 4) -->
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" data-key="1" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">1</button>
+            <button type="button" data-key="2" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">2</button>
+            <button type="button" data-key="3" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">3</button>
 
-            <button type="button" data-key="4" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">4</button>
-            <button type="button" data-key="5" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">5</button>
-            <button type="button" data-key="6" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">6</button>
+            <button type="button" data-key="4" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">4</button>
+            <button type="button" data-key="5" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">5</button>
+            <button type="button" data-key="6" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">6</button>
 
-            <button type="button" data-key="7" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">7</button>
-            <button type="button" data-key="8" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">8</button>
-            <button type="button" data-key="9" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">9</button>
+            <button type="button" data-key="7" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">7</button>
+            <button type="button" data-key="8" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">8</button>
+            <button type="button" data-key="9" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">9</button>
 
-            <button type="button" data-key="clear" class="keypad-btn btn-raw-destructive h-14 text-sm font-headline">RESET</button>
-            <button type="button" data-key="0" class="keypad-btn btn-raw-secondary h-14 text-xl font-headline">0</button>
-            <button type="button" data-key="backspace" class="keypad-btn btn-raw-secondary h-14 text-base font-headline">⌫</button>
+            <button type="button" data-key="clear" class="keypad-btn btn-sb-ghost h-12 text-xs font-mono text-[#E5484D]">RESET</button>
+            <button type="button" data-key="0" class="keypad-btn btn-sb-secondary h-12 text-lg font-mono font-medium">0</button>
+            <button type="button" data-key="backspace" class="keypad-btn btn-sb-secondary h-12 text-base font-mono">⌫</button>
           </div>
 
           <!-- Hint Default -->
-          <div class="text-center pt-2 border-t-[2px] border-black/20">
-            <span class="font-mono text-[11px] text-black/50 uppercase">PIN STANDAR: 1234</span>
+          <div class="text-center pt-2 border-t border-[#E5E5E5]">
+            <span class="font-mono text-[11px] text-[#737373] uppercase">PIN STANDAR: 1234</span>
           </div>
         </div>
       `;

@@ -45,111 +45,111 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
       'flex flex-col items-center justify-between w-full h-full max-w-5xl mx-auto p-6 box-border font-body';
 
     container.innerHTML = `
-      <!-- Header -->
-      <div class="w-full flex items-center justify-between border-b-[5px] border-black pb-4 mb-4">
+      <!-- Header (StudioBlank: 1px border, clear hierarchy) -->
+      <div class="w-full flex items-center justify-between border-b border-[#D4D4D8] pb-4 mb-4">
         <div>
-          <h1 class="text-3xl md:text-4xl font-headline uppercase text-black">
+          <h1 class="text-h1 uppercase text-[#0A0A0A]">
             PEMBAYARAN QRIS
           </h1>
-          <p class="font-body text-xs text-black/70">
-            SCAN KODE QRIS MENGGUNAKAN GO-PAY, OVO, DANA, BCA, ATAU MOBILE BANKING
+          <p class="text-body-sm text-[#71717A] mt-1">
+            Pindai kode QRIS menggunakan GoPay, OVO, Dana, BCA, atau Mobile Banking apa saja
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <div class="chip-raw bg-white font-mono text-xs">
+          <div class="chip-sb font-mono text-xs text-[#71717A]">
             SESI: ${sessionId.substring(0, 14)}
           </div>
-          <button id="btn-cancel-payment" class="btn-raw-secondary text-xs px-4 py-2">
+          <button id="btn-cancel-payment" class="btn-sb-secondary text-xs h-9 px-4 font-mono uppercase tracking-wider cursor-pointer">
             BATAL
           </button>
         </div>
       </div>
 
       <!-- Main Payment Body -->
-      <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center my-auto">
+      <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center my-auto py-2">
         <!-- Left: QRIS Card Frame -->
         <div class="flex flex-col items-center justify-center">
-          <div class="border-[5px] border-black bg-white p-4 max-w-[340px] w-full flex flex-col items-center">
+          <div class="card-sb border border-[#E5E5E5] bg-white p-6 max-w-[360px] w-full flex flex-col items-center hover:border-[#0A0A0A]">
             <!-- QRIS Header Label -->
-            <div class="w-full border-b-[3px] border-black pb-2 mb-3 flex items-center justify-between">
-              <span class="font-headline text-lg tracking-wider">QRIS</span>
-              <span class="chip-raw bg-black text-white text-[10px] px-2 py-0.5">NATIONAL STANDARD</span>
+            <div class="w-full border-b border-[#E5E5E5] pb-3 mb-4 flex items-center justify-between">
+              <span class="font-headline text-lg font-bold tracking-wider text-[#0A0A0A]">QRIS</span>
+              <span class="chip-sb chip-sb-selected text-[10px] px-2 py-0.5">STANDAR NASIONAL</span>
             </div>
 
             <!-- QR Code Image / Container -->
-            <div id="qr-container" class="w-64 h-64 border-[3px] border-black bg-raw-sunken flex items-center justify-center overflow-hidden">
-              <p class="font-mono text-xs text-black/50 animate-pulse">MEMBUAT KODE QRIS...</p>
+            <div id="qr-container" class="w-64 h-64 border border-[#D4D4D8] bg-[#FAFAFA] flex items-center justify-center overflow-hidden">
+              <p class="font-mono text-xs text-[#71717A] animate-pulse">MEMBUAT KODE QRIS...</p>
             </div>
 
             <!-- Instruction -->
-            <p class="font-mono text-[11px] text-center text-black/80 mt-3 uppercase tracking-tight">
-              TAMPILKAN KE KAMERA HP ANDA
+            <p class="font-mono text-xs text-center text-[#71717A] mt-4 uppercase tracking-wider">
+              ARAHKAN KAMERA HP KE KODE QR
             </p>
           </div>
         </div>
 
         <!-- Right: Nominal & Countdown Card -->
-        <div class="flex flex-col space-y-4">
+        <div class="flex flex-col space-y-5 max-w-md w-full mx-auto md:mx-0">
           <!-- Total Tagihan -->
-          <div class="card-raw p-6 border-[5px] border-black bg-white">
-            <span class="chip-raw bg-black text-white text-xs mb-2">TOTAL PEMBAYARAN</span>
-            <div id="payment-nominal" class="font-headline text-4xl md:text-5xl text-black mt-2">
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A]">
+            <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] block mb-1">TOTAL PEMBAYARAN</span>
+            <div id="payment-nominal" class="font-headline text-4xl md:text-5xl font-bold text-[#0A0A0A] mt-1 tracking-tight">
               ${formatPrice(DEFAULTS.SESSION_PRICE)}
             </div>
-            <p class="font-body text-xs text-black/60 mt-1">
-              Harga sesi tetap &bull; Bebas pilih template apa pun setelah pembayaran
+            <p class="text-body-sm text-[#71717A] mt-2 font-light">
+              Tarif sesi tunggal &bull; Termasuk cetak 4R otomatis
             </p>
           </div>
 
           <!-- Countdown Timer -->
-          <div class="card-raw p-6 border-[5px] border-black bg-white">
-            <span class="chip-raw bg-white text-xs mb-2">SISA WAKTU PEMBAYARAN</span>
-            <div id="payment-timer" class="font-mono text-4xl md:text-5xl font-bold text-black tracking-widest mt-2">
+          <div class="card-sb p-6 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A]">
+            <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] block mb-1">SISA WAKTU PEMBAYARAN</span>
+            <div id="payment-timer" class="font-mono text-4xl md:text-5xl font-semibold text-[#0A0A0A] tracking-wider mt-1">
               03:00
             </div>
-            <div class="w-full bg-raw-sunken h-2 mt-4 border border-black overflow-hidden">
-              <div id="timer-bar" class="bg-black h-full w-full transition-all duration-1000 ease-linear"></div>
+            <div class="w-full bg-[#F4F4F5] h-1.5 mt-4 overflow-hidden">
+              <div id="timer-bar" class="bg-[#0A0A0A] h-full w-full transition-all duration-1000 ease-linear"></div>
             </div>
           </div>
 
           <!-- Status Indicator -->
-          <div id="payment-status-box" class="card-raw p-4 border-[3px] border-black bg-raw-sunken flex items-center gap-3">
-            <div class="w-3 h-3 bg-raw-accent border border-black animate-ping"></div>
-            <p id="payment-status-text" class="font-mono text-xs text-black uppercase">
+          <div id="payment-status-box" class="border border-[#E5E5E5] bg-[#FAFAFA] p-4 flex items-center gap-3">
+            <div class="w-2.5 h-2.5 bg-[#0A0A0A] animate-pulse shrink-0"></div>
+            <p id="payment-status-text" class="font-mono text-xs text-[#0A0A0A] uppercase tracking-wider">
               MENUNGGU PEMBAYARAN DARI PELANGGAN...
             </p>
           </div>
 
-          <!-- Dev Simulator Panel (ONLY rendered and visible when MIDTRANS_ENV=sandbox) -->
-          <div id="dev-sim-wrapper" class="hidden card-raw p-3 border-[3px] border-black border-dashed bg-raw-sunken space-y-2">
-            <div class="flex items-center justify-between border-b border-black/30 pb-1">
-              <span class="font-headline text-[11px] uppercase text-black">[DEV PANEL - SANDBOX ONLY]</span>
-              <span class="chip-raw bg-black text-white text-[9px] px-1.5 py-0.5">MIDTRANS_ENV=SANDBOX</span>
+          <!-- Dev Simulator Panel (Sandbox Only) -->
+          <div id="dev-sim-wrapper" class="hidden card-sb p-4 border border-dashed border-[#A1A1AA] bg-[#FAFAFA] space-y-2">
+            <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-2">
+              <span class="font-mono text-[11px] uppercase text-[#71717A]">[DEV PANEL - SANDBOX ONLY]</span>
+              <span class="chip-sb text-[9px] px-1.5 py-0.5">SANDBOX</span>
             </div>
 
             <!-- Action 1: generate-qr-code -->
-            <div id="dev-action-v1-box" class="hidden flex flex-col gap-1 bg-white p-2 border border-black">
+            <div id="dev-action-v1-box" class="hidden flex flex-col gap-1 bg-white p-2 border border-[#E5E5E5]">
               <div class="flex items-center justify-between gap-2">
-                <span class="font-mono text-[10px] font-bold text-black">generate-qr-code:</span>
-                <button id="btn-copy-url-v1" type="button" class="btn-raw-secondary text-[10px] py-1 px-2 font-mono">
-                  📋 SALIN URL V1
+                <span class="font-mono text-[10px] text-[#0A0A0A]">generate-qr-code:</span>
+                <button id="btn-copy-url-v1" type="button" class="btn-sb-secondary text-[10px] py-1 px-2 font-mono h-auto">
+                  SALIN URL V1
                 </button>
               </div>
-              <p id="dev-url-v1" class="font-mono text-[9px] text-black/80 break-all select-all"></p>
+              <p id="dev-url-v1" class="font-mono text-[9px] text-[#71717A] break-all select-all"></p>
             </div>
 
             <!-- Action 2: generate-qr-code-v2 -->
-            <div id="dev-action-v2-box" class="hidden flex flex-col gap-1 bg-white p-2 border border-black">
+            <div id="dev-action-v2-box" class="hidden flex flex-col gap-1 bg-white p-2 border border-[#E5E5E5]">
               <div class="flex items-center justify-between gap-2">
-                <span class="font-mono text-[10px] font-bold text-black">generate-qr-code-v2:</span>
-                <button id="btn-copy-url-v2" type="button" class="btn-raw-secondary text-[10px] py-1 px-2 font-mono">
-                  📋 SALIN URL V2
+                <span class="font-mono text-[10px] text-[#0A0A0A]">generate-qr-code-v2:</span>
+                <button id="btn-copy-url-v2" type="button" class="btn-sb-secondary text-[10px] py-1 px-2 font-mono h-auto">
+                  SALIN URL V2
                 </button>
               </div>
-              <p id="dev-url-v2" class="font-mono text-[9px] text-black/80 break-all select-all"></p>
+              <p id="dev-url-v2" class="font-mono text-[9px] text-[#71717A] break-all select-all"></p>
             </div>
 
-            <button id="btn-simulate-pay" type="button" class="btn-raw-secondary w-full text-xs py-2 bg-white text-black border-dashed">
+            <button id="btn-simulate-pay" type="button" class="btn-sb-secondary w-full text-xs py-2 h-auto bg-white text-[#0A0A0A] border-dashed font-mono">
               [DEV] SIMULASI BAYAR LANGSUNG
             </button>
           </div>
@@ -157,28 +157,28 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
       </div>
 
       <!-- Confirmation Modal for Cancellation -->
-      <div id="modal-confirm-cancel" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-6 select-none">
-        <div class="card-raw border-[5px] border-black bg-white max-w-md w-full p-6 sm:p-8 space-y-6 shadow-none">
+      <div id="modal-confirm-cancel" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 select-none backdrop-blur-xs">
+        <div class="card-sb border border-[#E5E5E5] bg-white max-w-md w-full p-8 space-y-6">
           <!-- Header -->
-          <div class="border-b-[3px] border-black pb-3 space-y-2">
-            <span class="chip-raw bg-black text-white text-xs font-mono font-bold tracking-widest uppercase">
+          <div class="border-b border-[#E5E5E5] pb-4 space-y-2">
+            <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] font-medium">
               KONFIRMASI
             </span>
-            <h2 class="text-xl sm:text-2xl font-headline uppercase text-black tracking-tight mt-2">
-              APAKAH ANDA YAKIN INGIN MEMBATALKAN SESI INI?
+            <h2 class="text-h3 uppercase text-[#0A0A0A] font-semibold tracking-tight mt-1">
+              BATALKAN SESI INI?
             </h2>
-            <p class="font-body text-xs text-black/70">
-              Sesi foto akan diakhiri dan transaksi pembayaran ini akan dibatalkan.
+            <p class="text-body-sm text-[#71717A]">
+              Sesi foto akan diakhiri dan transaksi QRIS ini akan dibatalkan.
             </p>
           </div>
 
           <!-- Pilihan Tombol YA / TIDAK -->
           <div class="flex flex-row gap-4 pt-2">
-            <button id="btn-cancel-yes" type="button" class="btn-raw-destructive flex-1 py-4 text-base font-headline cursor-pointer">
-              YA
+            <button id="btn-cancel-yes" type="button" class="btn-sb-destructive flex-1 h-12 text-xs font-mono uppercase tracking-wider cursor-pointer">
+              YA, BATALKAN
             </button>
-            <button id="btn-cancel-no" type="button" class="btn-raw-secondary flex-1 py-4 text-base font-headline cursor-pointer">
-              TIDAK
+            <button id="btn-cancel-no" type="button" class="btn-sb-secondary flex-1 h-12 text-xs font-mono uppercase tracking-wider cursor-pointer">
+              KEMBALI
             </button>
           </div>
         </div>
@@ -383,8 +383,8 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     function handleSuccess() {
       cleanup();
       if (statusBox && statusText) {
-        statusBox.className = 'card-raw p-4 border-[5px] border-black bg-raw-success text-white flex items-center gap-3';
-        statusText.className = 'font-headline text-sm uppercase text-white';
+        statusBox.className = 'card-sb p-4 border border-[#2BB673] bg-[#2BB673]/10 text-[#0A0A0A] flex items-center gap-3';
+        statusText.className = 'font-mono text-xs uppercase font-medium text-[#0A0A0A]';
         statusText.textContent = 'PEMBAYARAN DITERIMA! MEMPROSES SESI...';
       }
 
@@ -396,8 +396,8 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
     function handleExpired() {
       cleanup();
       if (statusBox && statusText) {
-        statusBox.className = 'card-raw p-4 border-[5px] border-black bg-raw-error text-white flex items-center gap-3';
-        statusText.className = 'font-headline text-sm uppercase text-white';
+        statusBox.className = 'card-sb p-4 border border-[#E5484D] bg-[#E5484D]/10 text-[#E5484D] flex items-center gap-3';
+        statusText.className = 'font-mono text-xs uppercase font-medium text-[#E5484D]';
         statusText.textContent = 'WAKTU PEMBAYARAN TELAH HABIS';
       }
 

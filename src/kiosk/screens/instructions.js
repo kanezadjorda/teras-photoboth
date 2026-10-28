@@ -64,27 +64,27 @@ export function createInstructionsScreen({ onNext, onBack, onTimeout }) {
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 box-border font-body select-none';
+      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 md:p-8 box-border font-body select-none';
 
     const stepsHtml = INSTRUCTIONS_COPY.steps
       .map(
         (step) => `
-        <div class="card-raw flex flex-col justify-between p-6 space-y-4 border-[4px] border-black bg-white shadow-[6px_6px_0px_0px_#000]">
-          <div class="flex items-center justify-between pb-3 border-b-[3px] border-black">
-            <span class="bg-black text-white font-headline text-xs px-2.5 py-1 tracking-wider">
+        <div class="card-sb flex flex-col justify-between p-6 space-y-4 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A] transition-colors duration-150">
+          <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+            <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] font-medium">
               LANGKAH 0${step.step}
             </span>
           </div>
 
-          <div class="py-4 flex justify-center items-center bg-raw-sunken border-[2px] border-black">
+          <div class="py-6 flex justify-center items-center bg-[#FAFAFA] border border-[#E5E5E5]">
             ${getStepSvg(step.icon)}
           </div>
 
           <div class="space-y-1.5 flex-1">
-            <h3 class="font-headline text-lg uppercase text-black leading-tight">
+            <h3 class="font-headline text-base md:text-lg font-semibold text-[#0A0A0A] leading-tight">
               ${step.title}
             </h3>
-            <p class="font-body text-xs text-black/80 leading-relaxed">
+            <p class="font-body text-xs md:text-sm text-[#71717A] leading-relaxed font-light">
               ${step.desc}
             </p>
           </div>
@@ -94,35 +94,35 @@ export function createInstructionsScreen({ onNext, onBack, onTimeout }) {
       .join('');
 
     container.innerHTML = `
-      <!-- Header -->
-      <div class="flex items-center justify-between pb-4 mb-4 border-b-[5px] border-black">
+      <!-- Header (StudioBlank: Clean 1px border, refined typography) -->
+      <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#D4D4D8]">
         <div>
-          <h1 class="text-3xl md:text-4xl font-headline uppercase text-black">
+          <h1 class="text-h1 uppercase text-[#0A0A0A]">
             ${INSTRUCTIONS_COPY.title}
           </h1>
-          <p class="font-body text-xs text-black/70 mt-1 uppercase tracking-wider">
+          <p class="text-body-sm text-[#71717A] mt-1">
             ${INSTRUCTIONS_COPY.subtitle}
           </p>
         </div>
       </div>
 
       <!-- 4 Langkah Bergambar -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-auto py-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-auto py-4">
         ${stepsHtml}
       </div>
 
       <!-- Footer Navigasi -->
-      <div class="mt-4 pt-4 border-t-[5px] border-black flex items-center justify-between gap-4">
+      <div class="mt-4 pt-4 border-t border-[#D4D4D8] flex items-center justify-between gap-4">
         <button
           id="btn-instructions-back"
-          class="btn-raw-secondary min-h-[64px] px-8 text-lg md:text-xl font-headline cursor-pointer"
+          class="btn-sb-secondary btn-kiosk min-h-[64px] px-8 text-sm md:text-base font-mono uppercase tracking-wider font-semibold cursor-pointer"
         >
           ${INSTRUCTIONS_COPY.btnBack}
         </button>
 
         <button
           id="btn-instructions-next"
-          class="btn-raw-primary min-h-[64px] px-10 md:px-12 text-lg md:text-xl font-headline cursor-pointer"
+          class="btn-sb-primary btn-kiosk min-h-[64px] px-10 md:px-12 text-sm md:text-base font-mono uppercase tracking-wider font-semibold cursor-pointer"
         >
           ${INSTRUCTIONS_COPY.btnNext}
         </button>

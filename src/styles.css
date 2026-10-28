@@ -1,198 +1,406 @@
 @import "tailwindcss";
 
 @theme {
-  --color-raw-black: #000000;
-  --color-raw-white: #FFFFFF;
-  --color-raw-blue: #0000FF;
-  --color-raw-sunken: #F0F0F0;
-  --color-raw-success: #008000;
-  --color-raw-warning: #FFA500;
-  --color-raw-error: #FF0000;
-  --color-raw-info: #0000FF;
+  --color-primary: #0A0A0A;
+  --color-secondary: #FAFAFA;
+  --color-tertiary: #D4D4D8;
+  --color-surface-base: #FAFAFA;
+  --color-surface-card: #FFFFFF;
+  --color-surface-inverse: #0A0A0A;
+  --color-surface-muted: #F4F4F5;
+  --color-border-subtle: #E5E5E5;
+  --color-border-default: #D4D4D8;
 
-  --font-headline: 'Archivo Black', sans-serif;
-  --font-body: 'Work Sans', sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --color-success: #16A34A;
+  --color-warning: #CA8A04;
+  --color-error: #DC2626;
+  --color-info: #71717A;
 
-  --border-width-thick: 3px;
-  --border-width-heavy: 5px;
+  /* Backward compatibility aliases */
+  --color-raw-black: #0A0A0A;
+  --color-raw-white: #FAFAFA;
+  --color-raw-sunken: #F4F4F5;
+  --color-raw-success: #16A34A;
+  --color-raw-warning: #CA8A04;
+  --color-raw-error: #DC2626;
+  --color-raw-info: #71717A;
+
+  --font-headline: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', Menlo, Monaco, Consolas, monospace;
+
+  --spacing-space-1: 4px;
+  --spacing-space-2: 8px;
+  --spacing-space-3: 16px;
+  --spacing-space-4: 32px;
+  --spacing-space-5: 48px;
+  --spacing-space-6: 64px;
+  --spacing-space-8: 96px;
+  --spacing-space-10: 128px;
 }
 
-/* Global RawBlock Reset */
+/* ==========================================================================
+   StudioBlank Global Reset: Strict Zero Radius & Zero Shadow
+   ========================================================================== */
 * {
   border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-body {
-  font-family: var(--font-body);
-  background-color: #FFFFFF;
-  color: #000000;
-  margin: 0;
-  padding: 0;
+:focus-visible {
+  outline: 2px solid #0A0A0A;
+  outline-offset: 2px;
 }
 
-/* RawBlock Typography */
+body {
+  font-family: var(--font-body);
+  background-color: #FAFAFA;
+  color: #0A0A0A;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   StudioBlank Typography Classes
+   ========================================================================== */
 .font-headline {
   font-family: var(--font-headline);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .font-body {
   font-family: var(--font-body);
+  font-weight: 300;
 }
 
 .font-mono {
   font-family: var(--font-mono);
 }
 
-/* RawBlock Buttons */
-.btn-raw-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #000000;
-  color: #FFFFFF;
-  border: 3px solid #000000;
-  font-family: var(--font-headline);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: none;
-}
-.btn-raw-primary:hover {
-  background-color: #FFFFFF;
-  color: #000000;
-}
-.btn-raw-primary:active {
-  background-color: #000000;
-  color: #FFFFFF;
-  border-width: 5px;
-}
-.btn-raw-primary:disabled {
-  background-color: #F0F0F0;
-  color: #888888;
-  border-color: #CCCCCC;
-  cursor: not-allowed;
+.text-hero {
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
 }
 
-.btn-raw-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FFFFFF;
-  color: #000000;
-  border: 3px solid #000000;
-  font-family: var(--font-headline);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: none;
-}
-.btn-raw-secondary:hover {
-  background-color: #000000;
-  color: #FFFFFF;
-}
-.btn-raw-secondary:active {
-  background-color: #FFFFFF;
-  color: #000000;
-  border-width: 5px;
+.text-h1 {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
-.btn-raw-destructive {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FF0000;
-  color: #FFFFFF;
-  border: 3px solid #000000;
-  font-family: var(--font-headline);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: none;
-}
-.btn-raw-destructive:hover {
-  background-color: #000000;
-  color: #FF0000;
-}
-.btn-raw-destructive:active {
-  border-width: 5px;
-}
-
-/* RawBlock Cards */
-.card-raw {
-  background-color: #FFFFFF;
-  border: 3px solid #000000;
-  padding: 24px;
-}
-
-.card-raw-elevated {
-  background-color: #FFFFFF;
-  border: 5px solid #000000;
-  padding: 24px;
-}
-
-/* RawBlock Inputs */
-.input-raw {
-  background-color: #F0F0F0;
-  color: #000000;
-  border: 3px solid #000000;
-  font-family: var(--font-mono);
-  font-size: 15px;
-  padding: 10px 12px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.input-raw:hover {
-  background-color: #E8E8E8;
-}
-.input-raw:focus {
-  border: 5px solid #000000;
-  outline: none;
-}
-
-.label-raw {
-  display: block;
-  font-family: var(--font-headline);
-  font-size: 14px;
-  text-transform: uppercase;
-  color: #000000;
-  margin-bottom: 4px;
-}
-
-/* RawBlock Status Chips */
-.chip-raw {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-body);
-  font-size: 11px;
+.text-h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 2px 10px;
-  background-color: #FFFFFF;
-  border-width: 2px;
-  border-style: solid;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
-.chip-raw-active {
-  border-color: #008000;
-  color: #008000;
+
+.text-h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
-.chip-raw-warning {
-  border-color: #FFA500;
-  color: #FFA500;
+
+.text-body {
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.65;
 }
-.chip-raw-error {
-  border-color: #FF0000;
-  color: #FF0000;
+
+.text-body-sm {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.6;
 }
-.chip-raw-default {
-  border-color: #000000;
-  color: #000000;
+
+.text-caption {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 /* ==========================================================================
-   RawBlock Print Styling (PRD F-12: 4R 300 DPI Borderless Silent Print)
+   StudioBlank Buttons
+   Sharp-edged rectangles, 0px radius, hover via background inversion
+   ========================================================================== */
+.btn-raw-primary,
+.btn-sb-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0A0A0A;
+  color: #FAFAFA;
+  border: 1px solid #0A0A0A;
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 1.5rem;
+  height: 48px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  user-select: none;
+}
+.btn-raw-primary:hover,
+.btn-sb-primary:hover {
+  background-color: #FAFAFA;
+  color: #0A0A0A;
+  border-color: #0A0A0A;
+}
+.btn-raw-primary:active,
+.btn-sb-primary:active {
+  background-color: #262626;
+  color: #FAFAFA;
+  border-color: #262626;
+}
+.btn-raw-primary:disabled,
+.btn-sb-primary:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.btn-raw-secondary,
+.btn-sb-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #0A0A0A;
+  border: 1px solid #0A0A0A;
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 1.5rem;
+  height: 48px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  user-select: none;
+}
+.btn-raw-secondary:hover,
+.btn-sb-secondary:hover {
+  background-color: #0A0A0A;
+  color: #FAFAFA;
+}
+.btn-raw-secondary:active,
+.btn-sb-secondary:active {
+  background-color: #262626;
+  color: #FAFAFA;
+}
+.btn-raw-secondary:disabled,
+.btn-sb-secondary:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.btn-sb-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #0A0A0A;
+  border: 1px solid transparent;
+  font-family: var(--font-headline);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0 1.25rem;
+  height: 40px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+.btn-sb-ghost:hover {
+  background-color: #F4F4F5;
+  border-color: #E5E5E5;
+}
+
+.btn-raw-destructive,
+.btn-sb-destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #DC2626;
+  color: #FAFAFA;
+  border: 1px solid #DC2626;
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 1.5rem;
+  height: 48px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+}
+.btn-raw-destructive:hover,
+.btn-sb-destructive:hover {
+  background-color: #B91C1C;
+  border-color: #B91C1C;
+}
+.btn-raw-destructive:disabled,
+.btn-sb-destructive:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* Kiosk Sized Interactive Buttons (min-height 64px for touch/pointer ease) */
+.btn-kiosk {
+  min-height: 64px;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  font-size: 1.125rem;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   StudioBlank Cards
+   Pure flat, 1px border #E5E5E5, hover shifts to #0A0A0A
+   ========================================================================== */
+.card-raw,
+.card-raw-elevated,
+.card-sb {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  padding: 1.5rem;
+  transition: border-color 150ms ease-out;
+}
+
+.card-raw:hover,
+.card-sb:hover {
+  border-color: #0A0A0A;
+}
+
+/* ==========================================================================
+   StudioBlank Inputs
+   Flat, 1px #D4D4D8, focus 2px #0A0A0A
+   ========================================================================== */
+.input-raw,
+.input-sb {
+  background-color: #FFFFFF;
+  color: #0A0A0A;
+  border: 1px solid #D4D4D8;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 150ms ease-out;
+}
+
+.input-raw:hover,
+.input-sb:hover {
+  border-color: #A1A1AA;
+}
+
+.input-raw:focus,
+.input-sb:focus {
+  border: 2px solid #0A0A0A;
+  outline: none;
+  padding: 7px 11px;
+}
+
+.input-raw:disabled,
+.input-sb:disabled {
+  background-color: #F4F4F5;
+  border-color: #E5E5E5;
+  color: #A1A1AA;
+  cursor: not-allowed;
+}
+
+.label-raw,
+.label-sb {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0A0A0A;
+  margin-bottom: 0.375rem;
+}
+
+/* ==========================================================================
+   StudioBlank Status & Filter Chips
+   0px radius, 12px Inter, 28px tall
+   ========================================================================== */
+.chip-raw,
+.chip-sb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  height: 28px;
+  background-color: transparent;
+  color: #71717A;
+  border: 1px solid #D4D4D8;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.chip-raw-active,
+.chip-sb-selected {
+  background-color: #0A0A0A;
+  color: #FAFAFA;
+  border-color: #0A0A0A;
+}
+
+.chip-raw-warning,
+.chip-sb-warning {
+  border-color: #CA8A04;
+  color: #CA8A04;
+}
+
+.chip-raw-error,
+.chip-sb-error {
+  border-color: #DC2626;
+  color: #DC2626;
+}
+
+.chip-raw-default,
+.chip-sb-default {
+  border-color: #0A0A0A;
+  color: #0A0A0A;
+}
+
+/* ==========================================================================
+   Accessibility: Reduced Motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   StudioBlank Print Styling (PRD F-12: 4R 300 DPI Borderless Silent Print)
    ========================================================================== */
 @media print {
   @page {
@@ -211,12 +419,10 @@ body {
     print-color-adjust: exact;
   }
 
-  /* Sembunyikan seluruh UI kiosk saat mencetak */
   body > * {
     display: none !important;
   }
 
-  /* Hanya tampilkan container print */
   #photobooth-print-container {
     display: block !important;
     position: absolute !important;
@@ -252,4 +458,3 @@ body {
     display: block !important;
   }
 }
-
