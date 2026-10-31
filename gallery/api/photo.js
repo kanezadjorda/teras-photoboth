@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
@@ -36,4 +36,4 @@ export default async function handler(req, res) {
     console.error('[Vercel API photo] Fetch error:', err);
     return res.status(500).send('Gagal mengunduh foto: ' + err.message);
   }
-}
+};

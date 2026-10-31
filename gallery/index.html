@@ -95,15 +95,13 @@
         </div>
 
         <div>
-          <a
+          <button
             id="btn-download-composite"
-            href="#"
-            download="teras-photobooth-4R.jpg"
-            target="_blank"
-            class="block w-full text-center bg-brand text-white font-mono text-xs uppercase tracking-wider py-3.5 hover:bg-neutral-800 transition-colors"
+            type="button"
+            class="block w-full text-center bg-brand text-white font-mono text-xs uppercase tracking-wider py-3.5 hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             UNDUH FOTO CETAKAN 4R &darr;
-          </a>
+          </button>
         </div>
       </div>
 
@@ -156,24 +154,39 @@
 
     let pollInterval = null;
 
+    // Helper download file langsung ke perangkat tanpa membuka tab baru
+    async function downloadImage(url, filename) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          window.URL.revokeObjectURL(blobUrl);
+          document.body.removeChild(a);
+        }, 1500);
+      } catch (err) {
+        console.warn('Download blob error, fallback ke window.open:', err);
+        window.open(url, '_blank');
+      }
+    }
+
     function normalizeData(meta) {
-      const isHosted = window.location.hostname.includes('vercel.app') || window.location.hostname !== 'localhost';
+      const isHosted = window.location.hostname.includes('vercel.app') || (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
 
-      const resolveViewUrl = (filename, directUrl) => {
+      const resolveUrl = (filename, directUrl) => {
         if (!filename) return directUrl || '';
         if (isHosted) {
-          // Melalui serverless proxy Vercel untuk mem-bypass pemblokiran ISP lokal terhadap domain r2.dev
-          return '/api/photo?key=sessions/' + token + '/' + encodeURIComponent(filename);
+          // Melalui Vercel edge rewrite /r2/... yang 100% berfungsi tanpa kena blokir ISP
+          return '/r2/sessions/' + token + '/' + encodeURIComponent(filename);
         }
-        return directUrl || ('/photos/' + filename);
-      };
-
-      const resolveDownloadUrl = (filename, directUrl) => {
-        if (!filename) return directUrl || '';
-        if (isHosted) {
-          return '/api/photo?download=1&key=sessions/' + token + '/' + encodeURIComponent(filename);
-        }
-        return directUrl || ('/photos/' + filename);
+        return '/photos/' + filename;
       };
 
       return {
@@ -182,14 +195,12 @@
         isFullyUploaded: true,
         composite: meta.composite ? {
           filename: meta.composite.filename,
-          viewUrl: resolveViewUrl(meta.composite.filename, meta.composite.url),
-          downloadUrl: resolveDownloadUrl(meta.composite.filename, meta.composite.url)
+          url: resolveUrl(meta.composite.filename, meta.composite.url)
         } : null,
         photos: (meta.photos || []).map(p => ({
           urutan: p.urutan,
           filename: p.filename,
-          viewUrl: resolveViewUrl(p.filename, p.url),
-          downloadUrl: resolveDownloadUrl(p.filename, p.url)
+          url: resolveUrl(p.filename, p.url)
         }))
       };
     }
@@ -202,25 +213,25 @@
 
       sessionBadge.textContent = 'TOKEN: ' + token.substring(0, 8);
 
-      // Jalur 1: Vercel Serverless Function (/api/meta?token=...) - bypass blokir ISP
+      // Jalur 1: Vercel Proxy Rewrite (/r2/sessions/:token/meta.json) - paling cepat & bebas blokir ISP
       try {
-        const metaRes = await fetch('/api/meta?token=' + token, { cache: 'no-store' });
-        if (metaRes.ok) {
-          const meta = await metaRes.json();
+        const r2ProxyRes = await fetch('/r2/sessions/' + token + '/meta.json', { cache: 'no-store' });
+        if (r2ProxyRes.ok) {
+          const meta = await r2ProxyRes.json();
           if (meta && meta.token) {
             handleSessionData(normalizeData(meta));
             return;
           }
         }
       } catch (e) {
-        // Lanjutkan ke opsi berikutnya
+        // Lanjutkan
       }
 
-      // Jalur 2: Vercel Proxy Rewrite (/r2/sessions/:token/meta.json)
+      // Jalur 2: Vercel Serverless Function (/api/meta?token=...)
       try {
-        const r2ProxyRes = await fetch('/r2/sessions/' + token + '/meta.json', { cache: 'no-store' });
-        if (r2ProxyRes.ok) {
-          const meta = await r2ProxyRes.json();
+        const metaRes = await fetch('/api/meta?token=' + token, { cache: 'no-store' });
+        if (metaRes.ok) {
+          const meta = await metaRes.json();
           if (meta && meta.token) {
             handleSessionData(normalizeData(meta));
             return;
@@ -241,14 +252,12 @@
               createdAt: resJson.data.createdAt,
               composite: resJson.data.composite ? {
                 filename: resJson.data.composite.filename,
-                viewUrl: resJson.data.composite.localUrl,
-                downloadUrl: resJson.data.composite.localUrl
+                url: resJson.data.composite.localUrl
               } : null,
               photos: (resJson.data.photos || []).map(p => ({
                 urutan: p.urutan,
                 filename: p.filename,
-                viewUrl: p.localUrl,
-                downloadUrl: p.localUrl
+                url: p.localUrl
               }))
             });
             return;
@@ -287,10 +296,11 @@
 
       // Tampilkan Komposit
       if (data.composite) {
-        const compView = data.composite.viewUrl || data.composite.r2Url || data.composite.localUrl;
-        const compDownload = data.composite.downloadUrl || compView;
-        compositeImg.src = compView;
-        btnDownloadComposite.href = compDownload;
+        compositeImg.src = data.composite.url;
+        btnDownloadComposite.onclick = (e) => {
+          e.preventDefault();
+          downloadImage(data.composite.url, data.composite.filename || 'teras-photobooth-4R.jpg');
+        };
       }
 
       // Tampilkan Raw Photos
@@ -299,26 +309,26 @@
       rawPhotosGrid.innerHTML = '';
 
       rawPhotos.forEach((photo, idx) => {
-        const viewUrl = photo.viewUrl || photo.r2Url || photo.localUrl;
-        const downloadUrl = photo.downloadUrl || viewUrl;
+        const photoFilename = photo.filename || `foto-${idx + 1}.jpg`;
         const card = document.createElement('div');
         card.className = 'border border-border bg-canvas p-2 flex flex-col justify-between space-y-2';
         card.innerHTML = `
           <div class="aspect-[4/3] bg-white border border-border overflow-hidden flex items-center justify-center">
-            <img src="${viewUrl}" alt="Jepretan ${idx + 1}" class="w-full h-full object-cover" />
+            <img src="${photo.url}" alt="Jepretan ${idx + 1}" class="w-full h-full object-cover" />
           </div>
           <div class="flex items-center justify-between text-[10px] font-mono text-subtle">
             <span>FOTO #${idx + 1}</span>
           </div>
-          <a
-            href="${downloadUrl}"
-            download="foto-${idx + 1}.jpg"
-            target="_blank"
-            class="block w-full text-center bg-white border border-border hover:border-brand text-brand font-mono text-[11px] uppercase py-2 transition-colors"
+          <button
+            type="button"
+            class="btn-download-raw block w-full text-center bg-white border border-border hover:border-brand text-brand font-mono text-[11px] uppercase py-2 transition-colors cursor-pointer"
           >
             UNDUH &darr;
-          </a>
+          </button>
         `;
+        card.querySelector('.btn-download-raw').addEventListener('click', () => {
+          downloadImage(photo.url, photoFilename);
+        });
         rawPhotosGrid.appendChild(card);
       });
 
