@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/s/:token", "destination": "/index.html" },
+    { "source": "/s", "destination": "/index.html" },
+    { "source": "/:token", "destination": "/index.html" }
+  ]
+}

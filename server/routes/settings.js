@@ -11,6 +11,11 @@ router.get('/', (req, res) => {
       acc[row.key] = row.value;
       return acc;
     }, {});
+
+    if (!settings.gallery_base_url) {
+      settings.gallery_base_url = process.env.GALLERY_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    }
+
     res.json({ success: true, data: settings });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

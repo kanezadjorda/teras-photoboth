@@ -11,6 +11,8 @@ import sessionsRouter from './routes/sessions.js';
 import paymentsRouter from './routes/payments.js';
 import photosRouter from './routes/photos.js';
 import reportsRouter from './routes/reports.js';
+import galleryRouter from './routes/gallery.js';
+import { startR2QueueWorker } from './storage/r2.js';
 import { DEFAULTS } from '../src/shared/constants.js';
 
 dotenv.config();
@@ -118,6 +120,17 @@ app.use('/api/sessions', sessionsRouter);
 app.use('/api/sessions', photosRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/gallery', galleryRouter);
+
+// Local Web Gallery (/s/:token)
+const galleryDir = resolve('gallery');
+app.get('/config.js', (req, res) => {
+  res.type('application/javascript').send(`window.__GALLERY_CONFIG__ = { r2PublicUrl: "${process.env.R2_PUBLIC_URL || ''}" };`);
+});
+app.use('/s', express.static(galleryDir));
+app.get('/s/:token', (req, res) => {
+  res.sendFile(resolve(galleryDir, 'index.html'));
+});
 
 /**
  * Start Express HTTP server
@@ -126,6 +139,7 @@ app.use('/api/reports', reportsRouter);
  */
 export function startServer(port = PORT) {
   initDb();
+  startR2QueueWorker();
   return new Promise((resolvePromise) => {
     const server = app.listen(port, () => {
       console.log(`[Express] Photobooth server running on http://localhost:${port}`);

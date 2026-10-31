@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teras Photobooth — Unduh Soft File</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          },
+          colors: {
+            brand: '#0A0A0A',
+            canvas: '#FAFAFA',
+            subtle: '#737373',
+            border: '#E5E5E5',
+            accent: '#2BB673'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FAFAFA;
+      color: #0A0A0A;
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8">
+
+  <!-- Main Container -->
+  <main class="w-full max-w-xl mx-auto space-y-6">
+
+    <!-- Header & Brand -->
+    <header class="border-b border-border pb-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-xs font-mono uppercase tracking-widest text-subtle">TERAS PHOTOBOOTH</h1>
+        <p class="text-lg font-bold tracking-tight text-brand uppercase">GALERI SOFT FILE DIGITAL</p>
+      </div>
+      <div id="session-badge" class="font-mono text-xs px-2.5 py-1 border border-border bg-white font-medium text-brand">
+        MEMUAT...
+      </div>
+    </header>
+
+    <!-- State: Loading / Uploading in Progress -->
+    <section id="state-loading" class="border border-border bg-white p-8 text-center space-y-4">
+      <div class="inline-block animate-spin w-8 h-8 border-2 border-brand border-t-transparent"></div>
+      <h2 class="text-base font-semibold text-brand uppercase">Mempersiapkan Foto Anda...</h2>
+      <p class="text-xs text-subtle font-mono max-w-md mx-auto leading-relaxed">
+        Foto sedang diunggah dari booth photobooth ke cloud. Halaman ini akan diperbarui otomatis begitu file siap diunduh.
+      </p>
+      <div id="upload-status" class="text-[11px] font-mono text-accent pt-2">Memeriksa status antrean...</div>
+    </section>
+
+    <!-- State: Error / Not Found -->
+    <section id="state-error" class="hidden border border-red-200 bg-red-50 p-6 text-center space-y-2">
+      <h2 class="text-sm font-semibold text-red-700 uppercase font-mono">SESI TIDAK DITEMUKAN</h2>
+      <p id="error-message" class="text-xs text-red-600 font-mono">
+        Tautan tidak valid atau sesi foto belum tercatat. Pastikan Anda memindai kode QR yang tertera pada layar atau cetakan photobooth.
+      </p>
+    </section>
+
+    <!-- State: Success / Gallery Content -->
+    <section id="state-gallery" class="hidden space-y-6">
+
+      <!-- Notice Banner -->
+      <div class="border border-border bg-white p-4 flex items-start gap-3">
+        <div class="w-5 h-5 bg-accent text-white font-mono text-xs font-bold flex items-center justify-center shrink-0">
+          ✓
+        </div>
+        <div class="text-xs leading-relaxed">
+          <p class="font-medium text-brand uppercase">FOTO SIAP DIUNDUH!</p>
+          <p class="text-subtle">Simpan cetakan komposit 4R dan foto satuan resolusi tinggi langsung ke perangkat Anda.</p>
+        </div>
+      </div>
+
+      <!-- 4R Composite Card (Main Photo) -->
+      <div class="border border-border bg-white p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-border">
+          <span class="font-mono text-xs font-semibold uppercase text-brand">HASIL CETAK 4R (KOMPOSIT)</span>
+          <span class="text-[10px] font-mono uppercase text-subtle px-2 py-0.5 border border-border bg-canvas">4R FULL</span>
+        </div>
+
+        <div class="aspect-[2/3] max-w-sm mx-auto bg-canvas border border-border overflow-hidden flex items-center justify-center">
+          <img id="composite-img" src="" alt="Hasil Cetak 4R" class="w-full h-full object-contain" />
+        </div>
+
+        <div>
+          <a
+            id="btn-download-composite"
+            href="#"
+            download="teras-photobooth-4R.jpg"
+            target="_blank"
+            class="block w-full text-center bg-brand text-white font-mono text-xs uppercase tracking-wider py-3.5 hover:bg-neutral-800 transition-colors"
+          >
+            UNDUH FOTO CETAKAN 4R &darr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Single Raw Photos Grid -->
+      <div id="raw-photos-section" class="border border-border bg-white p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-border">
+          <span class="font-mono text-xs font-semibold uppercase text-brand">FOTO SATUAN (RAW SHOTS)</span>
+          <span id="raw-count-badge" class="text-[10px] font-mono uppercase text-subtle px-2 py-0.5 border border-border bg-canvas">0 FOTO</span>
+        </div>
+
+        <div id="raw-photos-grid" class="grid grid-cols-2 gap-3 sm:gap-4"></div>
+      </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center font-mono text-[11px] text-subtle pt-6 border-t border-border">
+      TERAS PHOTOBOOTH &bull; TERIMA KASIH TELAH MENGABADIKAN MOMEN BERSAMA KAMI
+    </footer>
+
+  </main>
+
+  <script src="/config.js" onerror="/* fallback if config.js is not present */"></script>
+  <script>
+    // Extract token from path /s/:token or query ?token=:token
+    function getToken() {
+      const pathParts = window.location.pathname.split('/');
+      const sIndex = pathParts.indexOf('s');
+      if (sIndex !== -1 && pathParts[sIndex + 1]) {
+        return pathParts[sIndex + 1].replace(/[^a-zA-Z0-9_-]/g, '');
+      }
+      if (pathParts[1] && pathParts[1] !== 's' && pathParts[1] !== 'index.html') {
+        return pathParts[1].replace(/[^a-zA-Z0-9_-]/g, '');
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('token') || '';
+    }
+
+    const token = getToken();
+    const sessionBadge = document.getElementById('session-badge');
+    const stateLoading = document.getElementById('state-loading');
+    const stateError = document.getElementById('state-error');
+    const errorMessage = document.getElementById('error-message');
+    const stateGallery = document.getElementById('state-gallery');
+    const uploadStatus = document.getElementById('upload-status');
+    const compositeImg = document.getElementById('composite-img');
+    const btnDownloadComposite = document.getElementById('btn-download-composite');
+    const rawPhotosGrid = document.getElementById('raw-photos-grid');
+    const rawCountBadge = document.getElementById('raw-count-badge');
+
+    let pollInterval = null;
+
+    async function loadGalleryData() {
+      if (!token) {
+        showError('Token sesi tidak ditemukan pada URL.');
+        return;
+      }
+
+      sessionBadge.textContent = 'TOKEN: ' + token.substring(0, 8);
+
+      // 1. Coba baca dari local Express API jika ada
+      try {
+        const localRes = await fetch('/api/gallery/' + token);
+        if (localRes.ok) {
+          const resJson = await localRes.json();
+          if (resJson.success && resJson.data) {
+            handleSessionData(resJson.data);
+            return;
+          }
+        }
+      } catch (e) {
+        // Bukan di localhost Express, lanjutkan ke R2 metadata
+      }
+
+      // 2. Baca dari Cloudflare R2 public URL
+      const r2Base = (window.__GALLERY_CONFIG__?.r2PublicUrl || '').replace(/\/+$/, '');
+      if (r2Base) {
+        try {
+          const r2Res = await fetch(r2Base + '/sessions/' + token + '/meta.json', { cache: 'no-store' });
+          if (r2Res.ok) {
+            const meta = await r2Res.json();
+            handleSessionData({
+              sessionNo: meta.sessionNo,
+              createdAt: meta.createdAt,
+              isFullyUploaded: true,
+              composite: meta.composite ? {
+                filename: meta.composite.filename,
+                localUrl: meta.composite.url,
+                r2Url: meta.composite.url
+              } : null,
+              photos: (meta.photos || []).map(p => ({
+                urutan: p.urutan,
+                filename: p.filename,
+                localUrl: p.url,
+                r2Url: p.url
+              }))
+            });
+            return;
+          }
+        } catch (e) {
+          console.warn('Gagal memuat metadata R2:', e);
+        }
+      }
+
+      // Jika belum ditemukan, tunggu & polling setiap 3 detik
+      uploadStatus.textContent = 'Menunggu data dari booth photobooth... (' + new Date().toLocaleTimeString('id-ID') + ')';
+    }
+
+    function handleSessionData(data) {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+
+      sessionBadge.textContent = 'SESI #' + (data.sessionNo || '0001');
+
+      // Tampilkan Komposit
+      if (data.composite) {
+        const compUrl = data.composite.r2Url || data.composite.localUrl;
+        compositeImg.src = compUrl;
+        btnDownloadComposite.href = compUrl;
+      }
+
+      // Tampilkan Raw Photos
+      const rawPhotos = data.photos || [];
+      rawCountBadge.textContent = rawPhotos.length + ' FOTO';
+      rawPhotosGrid.innerHTML = '';
+
+      rawPhotos.forEach((photo, idx) => {
+        const photoUrl = photo.r2Url || photo.localUrl;
+        const card = document.createElement('div');
+        card.className = 'border border-border bg-canvas p-2 flex flex-col justify-between space-y-2';
+        card.innerHTML = `
+          <div class="aspect-[4/3] bg-white border border-border overflow-hidden flex items-center justify-center">
+            <img src="${photoUrl}" alt="Jepretan ${idx + 1}" class="w-full h-full object-cover" />
+          </div>
+          <div class="flex items-center justify-between text-[10px] font-mono text-subtle">
+            <span>FOTO #${idx + 1}</span>
+          </div>
+          <a
+            href="${photoUrl}"
+            download="foto-${idx + 1}.jpg"
+            target="_blank"
+            class="block w-full text-center bg-white border border-border hover:border-brand text-brand font-mono text-[11px] uppercase py-2 transition-colors"
+          >
+            UNDUH &darr;
+          </a>
+        `;
+        rawPhotosGrid.appendChild(card);
+      });
+
+      stateLoading.classList.add('hidden');
+      stateError.classList.add('hidden');
+      stateGallery.classList.remove('hidden');
+    }
+
+    function showError(msg) {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+      stateLoading.classList.add('hidden');
+      stateGallery.classList.add('hidden');
+      stateError.classList.remove('hidden');
+      errorMessage.textContent = msg;
+    }
+
+    // Initial load & poll
+    loadGalleryData();
+    pollInterval = setInterval(loadGalleryData, 3000);
+  </script>
+</body>
+</html>

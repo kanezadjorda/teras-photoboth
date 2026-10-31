@@ -234,17 +234,29 @@ function initPrintingScreen(session, compositeUrl, copies, sessionNo) {
       } catch (err) {
         console.warn('[Kiosk] Gagal update status ke DONE:', err.message);
       }
-      initDoneScreen(sessionNo);
+      await initDoneScreen(session, sessionNo);
     }
   });
 
   renderScreen(printingScreen);
 }
 
-// 6. Done Screen (Soft File & QR Drive instructions)
-function initDoneScreen(sessionNo) {
+// 6. Done Screen (Soft File & QR Galeri Web)
+async function initDoneScreen(session, sessionNo) {
+  let galleryBaseUrl = '';
+  try {
+    const settingsRes = await api.getSettings();
+    if (settingsRes?.data?.gallery_base_url) {
+      galleryBaseUrl = settingsRes.data.gallery_base_url;
+    }
+  } catch (err) {
+    console.warn('[Kiosk] Gagal membaca gallery_base_url:', err.message);
+  }
+
   const doneScreen = createDoneScreen({
+    session,
     sessionNo,
+    galleryBaseUrl,
     onFinished: () => {
       console.log('[Kiosk] Sesi selesai sepenuhnya. Kembali ke Layar Awal.');
       initWelcomeScreen();

@@ -13,10 +13,12 @@ export function createSettingsScreen() {
         const copiesInput = el.querySelector('#setting-copies');
         const countdownInput = el.querySelector('#setting-countdown');
         const pinInput = el.querySelector('#setting-pin');
+        const galleryUrlInput = el.querySelector('#setting-gallery-url');
         if (priceInput) priceInput.value = res.data.session_price || 25000;
         if (copiesInput) copiesInput.value = res.data.copies_per_session || 1;
         if (countdownInput) countdownInput.value = String(res.data.countdown_seconds || 3);
         if (pinInput) pinInput.value = res.data.admin_pin || '1234';
+        if (galleryUrlInput) galleryUrlInput.value = res.data.gallery_base_url || '';
       }
     } catch (err) {
       console.error('Gagal memuat pengaturan:', err);
@@ -36,11 +38,13 @@ export function createSettingsScreen() {
           const copies = Number(el.querySelector('#setting-copies')?.value) || 1;
           const countdown = Number(el.querySelector('#setting-countdown')?.value) || 3;
           const pin = el.querySelector('#setting-pin')?.value?.trim() || '1234';
+          const galleryUrl = el.querySelector('#setting-gallery-url')?.value?.trim() || '';
           await api.updateSettings({
             session_price: price,
             copies_per_session: copies,
             countdown_seconds: countdown,
-            admin_pin: pin
+            admin_pin: pin,
+            gallery_base_url: galleryUrl
           });
           alert('Pengaturan berhasil disimpan');
         },
@@ -86,6 +90,11 @@ export function createSettingsScreen() {
               <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">PIN OPERATOR (4 DIGIT)</label>
               <input type="password" id="setting-pin" maxlength="4" class="input-sb font-mono tracking-widest text-center w-full text-xs" placeholder="1234" />
               <p class="text-caption text-[#737373] mt-1">PIN untuk membuka panel & konfirmasi manual (F-14)</p>
+            </div>
+            <div class="sm:col-span-2 lg:col-span-4">
+              <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">BASE URL GALERI WEB (VERCEL / PUBLIC)</label>
+              <input type="text" id="setting-gallery-url" class="input-sb w-full font-mono text-xs" placeholder="https://teras-booth.vercel.app" />
+              <p class="text-caption text-[#737373] mt-1">URL publik galeri untuk di-generate ke QR Code di layar Selesai</p>
             </div>
             <div class="sm:col-span-2 lg:col-span-4 flex justify-end pt-2 border-t border-[#E5E5E5]">
               <button id="btn-save-settings" class="btn-sb-primary px-6 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer">

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'node:crypto';
 import { db } from '../db.js';
 import { SESSION_STATES } from '../../src/shared/constants.js';
 import { transitionSessionState } from '../../src/shared/session-state.js';
@@ -27,6 +28,7 @@ router.get('/current', (req, res) => {
 router.post('/', (req, res) => {
   try {
     const id = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const token = randomUUID().replace(/-/g, '');
     const now = new Date().toISOString();
     const initialStatus = req.body?.status || SESSION_STATES.WAITING_PAYMENT;
     const effectId = req.body?.effect_id || 'normal';
@@ -41,11 +43,11 @@ router.post('/', (req, res) => {
     }
 
     db.prepare(`
-      INSERT INTO sessions (id, template_id, event_id, status, effect_id, dibuat_pada)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(id, null, eventId, initialStatus, effectId, now);
+      INSERT INTO sessions (id, token, template_id, event_id, status, effect_id, dibuat_pada)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, token, null, eventId, initialStatus, effectId, now);
 
-    const session = { id, template_id: null, event_id: eventId, status: initialStatus, effect_id: effectId, dibuat_pada: now };
+    const session = { id, token, template_id: null, event_id: eventId, status: initialStatus, effect_id: effectId, dibuat_pada: now };
     broadcastEvent('session_created', session);
 
     res.status(201).json({ success: true, data: session });

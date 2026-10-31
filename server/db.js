@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { resolve, dirname } from 'node:path';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import dotenv from 'dotenv';
 import { DEFAULTS, TIMEOUTS } from '../src/shared/constants.js';
 import {
@@ -48,6 +49,7 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
+      token TEXT UNIQUE,
       template_id TEXT,
       event_id TEXT,
       status TEXT NOT NULL,
@@ -78,19 +80,41 @@ export function initDb() {
       FOREIGN KEY(session_id) REFERENCES sessions(id)
     );
 
+    CREATE TABLE IF NOT EXISTS upload_queue (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      remote_key TEXT NOT NULL,
+      file_type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      attempts INTEGER NOT NULL DEFAULT 0,
+      error_message TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(session_id) REFERENCES sessions(id)
+    );
+
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
   `);
 
-  // Safe migration for existing sessions table (event_id, effect_id columns)
+  // Safe migration for existing sessions table (event_id, effect_id, token columns)
   const sessionCols = db.prepare('PRAGMA table_info(sessions)').all().map((c) => c.name);
   if (!sessionCols.includes('event_id')) {
     db.exec('ALTER TABLE sessions ADD COLUMN event_id TEXT');
   }
   if (!sessionCols.includes('effect_id')) {
     db.exec("ALTER TABLE sessions ADD COLUMN effect_id TEXT DEFAULT 'normal'");
+  }
+  if (!sessionCols.includes('token')) {
+    db.exec('ALTER TABLE sessions ADD COLUMN token TEXT');
+    const sessionsWithoutToken = db.prepare('SELECT id FROM sessions WHERE token IS NULL').all();
+    for (const s of sessionsWithoutToken) {
+      const generatedToken = randomUUID().replace(/-/g, '');
+      db.prepare('UPDATE sessions SET token = ? WHERE id = ?').run(generatedToken, s.id);
+    }
   }
 
   // Safe migration for existing payments table

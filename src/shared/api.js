@@ -84,7 +84,8 @@ export const api = {
   deactivateEvent: (id) =>
     fetchApi(`/events/${id}/deactivate`, { method: 'PATCH' }),
   deleteEvent: (id) =>
-    fetchApi(`/events/${id}`, { method: 'DELETE' })
+    fetchApi(`/events/${id}`, { method: 'DELETE' }),
+  getGalleryInfo: (token) => fetchApi(`/gallery/${token}`)
 };
 
 // Graceful fallback for window.photobooth when running in web browser mode

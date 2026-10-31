@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { db } from '../db.js';
 import { DEFAULT_PHOTOS_FOLDER, ensureStoredDir } from '../paths.js';
 import { generatePhotoFilename, formatSessionNumber } from '../../src/shared/filename.js';
+import { enqueueUpload } from '../storage/r2.js';
 
 const router = Router();
 
@@ -86,6 +87,16 @@ router.post('/:id/photo', (req, res) => {
       VALUES (?, ?, ?, ?)
     `).run(rawPhotoId, sessionId, urutan, rawFilename);
 
+    // Enqueue async upload to Cloudflare R2 (PRD F-31)
+    if (session.token) {
+      enqueueUpload({
+        sessionId,
+        filePath: rawFilePath,
+        remoteKey: `sessions/${session.token}/${rawFilename}`,
+        fileType: 'raw'
+      });
+    }
+
     res.json({
       success: true,
       data: {
@@ -139,6 +150,16 @@ router.post('/:id/save-photos', (req, res) => {
       VALUES (?, ?, 0, ?)
     `).run(compositePhotoId, sessionId, compositeFilename);
 
+    // Enqueue komposit ke antrean upload R2 (PRD F-31)
+    if (session.token) {
+      enqueueUpload({
+        sessionId,
+        filePath: compositeFilePath,
+        remoteKey: `sessions/${session.token}/${compositeFilename}`,
+        fileType: 'composite'
+      });
+    }
+
     // 3. Simpan Foto Mentah (Raw Photos) jika tersedia
     const savedRawFilenames = [];
     if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
@@ -162,6 +183,16 @@ router.post('/:id/save-photos', (req, res) => {
           INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file)
           VALUES (?, ?, ?, ?)
         `).run(rawPhotoId, sessionId, index + 1, rawFilename);
+
+        // Enqueue foto mentah ke antrean upload R2 (PRD F-31)
+        if (session.token) {
+          enqueueUpload({
+            sessionId,
+            filePath: rawFilePath,
+            remoteKey: `sessions/${session.token}/${rawFilename}`,
+            fileType: 'raw'
+          });
+        }
       });
     }
 
