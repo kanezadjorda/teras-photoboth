@@ -1,6 +1,7 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/r2/:path*", "destination": "https://pub-f2c72d0cfc074ddf87a90bc99aec28ed.r2.dev/:path*" },
     { "source": "/s/:token", "destination": "/index.html" },
     { "source": "/s", "destination": "/index.html" },
     { "source": "/:token", "destination": "/index.html" }

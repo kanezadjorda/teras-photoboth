@@ -42,7 +42,8 @@ export function getS3Client() {
       credentials: {
         accessKeyId: process.env.R2_ACCESS_KEY_ID,
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
-      }
+      },
+      forcePathStyle: true
     });
   }
   return s3ClientInstance;
@@ -250,3 +251,4 @@ export function stopR2QueueWorker() {
     workerInterval = null;
   }
 }
+

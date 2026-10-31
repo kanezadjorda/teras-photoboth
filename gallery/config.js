@@ -1,5 +1,4 @@
 // Konfigurasi Web Galeri Publik (Cloudflare R2)
-// Ganti r2PublicUrl dengan URL Public Access r2.dev Anda (misal: https://pub-xxxxxx.r2.dev)
 window.__GALLERY_CONFIG__ = {
-  r2PublicUrl: ""
+  r2PublicUrl: "https://pub-f2c72d0cfc074ddf87a90bc99aec28ed.r2.dev"
 };

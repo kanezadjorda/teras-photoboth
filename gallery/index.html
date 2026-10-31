@@ -135,7 +135,7 @@
       if (sIndex !== -1 && pathParts[sIndex + 1]) {
         return pathParts[sIndex + 1].replace(/[^a-zA-Z0-9_-]/g, '');
       }
-      if (pathParts[1] && pathParts[1] !== 's' && pathParts[1] !== 'index.html') {
+      if (pathParts[1] && pathParts[1] !== 's' && pathParts[1] !== 'index.html' && pathParts[1] !== 'api') {
         return pathParts[1].replace(/[^a-zA-Z0-9_-]/g, '');
       }
       const urlParams = new URLSearchParams(window.location.search);
@@ -156,6 +156,44 @@
 
     let pollInterval = null;
 
+    function normalizeData(meta) {
+      const isHosted = window.location.hostname.includes('vercel.app') || window.location.hostname !== 'localhost';
+
+      const resolveViewUrl = (filename, directUrl) => {
+        if (!filename) return directUrl || '';
+        if (isHosted) {
+          // Melalui serverless proxy Vercel untuk mem-bypass pemblokiran ISP lokal terhadap domain r2.dev
+          return '/api/photo?key=sessions/' + token + '/' + encodeURIComponent(filename);
+        }
+        return directUrl || ('/photos/' + filename);
+      };
+
+      const resolveDownloadUrl = (filename, directUrl) => {
+        if (!filename) return directUrl || '';
+        if (isHosted) {
+          return '/api/photo?download=1&key=sessions/' + token + '/' + encodeURIComponent(filename);
+        }
+        return directUrl || ('/photos/' + filename);
+      };
+
+      return {
+        sessionNo: meta.sessionNo,
+        createdAt: meta.createdAt,
+        isFullyUploaded: true,
+        composite: meta.composite ? {
+          filename: meta.composite.filename,
+          viewUrl: resolveViewUrl(meta.composite.filename, meta.composite.url),
+          downloadUrl: resolveDownloadUrl(meta.composite.filename, meta.composite.url)
+        } : null,
+        photos: (meta.photos || []).map(p => ({
+          urutan: p.urutan,
+          filename: p.filename,
+          viewUrl: resolveViewUrl(p.filename, p.url),
+          downloadUrl: resolveDownloadUrl(p.filename, p.url)
+        }))
+      };
+    }
+
     async function loadGalleryData() {
       if (!token) {
         showError('Token sesi tidak ditemukan pada URL.');
@@ -164,51 +202,78 @@
 
       sessionBadge.textContent = 'TOKEN: ' + token.substring(0, 8);
 
-      // 1. Coba baca dari local Express API jika ada
+      // Jalur 1: Vercel Serverless Function (/api/meta?token=...) - bypass blokir ISP
+      try {
+        const metaRes = await fetch('/api/meta?token=' + token, { cache: 'no-store' });
+        if (metaRes.ok) {
+          const meta = await metaRes.json();
+          if (meta && meta.token) {
+            handleSessionData(normalizeData(meta));
+            return;
+          }
+        }
+      } catch (e) {
+        // Lanjutkan ke opsi berikutnya
+      }
+
+      // Jalur 2: Vercel Proxy Rewrite (/r2/sessions/:token/meta.json)
+      try {
+        const r2ProxyRes = await fetch('/r2/sessions/' + token + '/meta.json', { cache: 'no-store' });
+        if (r2ProxyRes.ok) {
+          const meta = await r2ProxyRes.json();
+          if (meta && meta.token) {
+            handleSessionData(normalizeData(meta));
+            return;
+          }
+        }
+      } catch (e) {
+        // Lanjutkan
+      }
+
+      // Jalur 3: Local Express API jika dibuka dari jaringan lokal booth (/api/gallery/:token)
       try {
         const localRes = await fetch('/api/gallery/' + token);
         if (localRes.ok) {
           const resJson = await localRes.json();
           if (resJson.success && resJson.data) {
-            handleSessionData(resJson.data);
+            handleSessionData({
+              sessionNo: resJson.data.sessionNo,
+              createdAt: resJson.data.createdAt,
+              composite: resJson.data.composite ? {
+                filename: resJson.data.composite.filename,
+                viewUrl: resJson.data.composite.localUrl,
+                downloadUrl: resJson.data.composite.localUrl
+              } : null,
+              photos: (resJson.data.photos || []).map(p => ({
+                urutan: p.urutan,
+                filename: p.filename,
+                viewUrl: p.localUrl,
+                downloadUrl: p.localUrl
+              }))
+            });
             return;
           }
         }
       } catch (e) {
-        // Bukan di localhost Express, lanjutkan ke R2 metadata
+        // Lanjutkan
       }
 
-      // 2. Baca dari Cloudflare R2 public URL
-      const r2Base = (window.__GALLERY_CONFIG__?.r2PublicUrl || '').replace(/\/+$/, '');
+      // Jalur 4: Direct Cloudflare R2 Public URL
+      const r2Base = (window.__GALLERY_CONFIG__?.r2PublicUrl || 'https://pub-f2c72d0cfc074ddf87a90bc99aec28ed.r2.dev').replace(/\/+$/, '');
       if (r2Base) {
         try {
           const r2Res = await fetch(r2Base + '/sessions/' + token + '/meta.json', { cache: 'no-store' });
           if (r2Res.ok) {
             const meta = await r2Res.json();
-            handleSessionData({
-              sessionNo: meta.sessionNo,
-              createdAt: meta.createdAt,
-              isFullyUploaded: true,
-              composite: meta.composite ? {
-                filename: meta.composite.filename,
-                localUrl: meta.composite.url,
-                r2Url: meta.composite.url
-              } : null,
-              photos: (meta.photos || []).map(p => ({
-                urutan: p.urutan,
-                filename: p.filename,
-                localUrl: p.url,
-                r2Url: p.url
-              }))
-            });
+            handleSessionData(normalizeData(meta));
             return;
           }
         } catch (e) {
-          console.warn('Gagal memuat metadata R2:', e);
+          console.warn('R2 direct fetch gagal (mungkin diblokir ISP lokal):', e);
         }
       }
 
-      // Jika belum ditemukan, tunggu & polling setiap 3 detik
+      // Jika belum ditemukan, polling kembali dalam 3 detik
       uploadStatus.textContent = 'Menunggu data dari booth photobooth... (' + new Date().toLocaleTimeString('id-ID') + ')';
     }
 
@@ -222,9 +287,10 @@
 
       // Tampilkan Komposit
       if (data.composite) {
-        const compUrl = data.composite.r2Url || data.composite.localUrl;
-        compositeImg.src = compUrl;
-        btnDownloadComposite.href = compUrl;
+        const compView = data.composite.viewUrl || data.composite.r2Url || data.composite.localUrl;
+        const compDownload = data.composite.downloadUrl || compView;
+        compositeImg.src = compView;
+        btnDownloadComposite.href = compDownload;
       }
 
       // Tampilkan Raw Photos
@@ -233,18 +299,19 @@
       rawPhotosGrid.innerHTML = '';
 
       rawPhotos.forEach((photo, idx) => {
-        const photoUrl = photo.r2Url || photo.localUrl;
+        const viewUrl = photo.viewUrl || photo.r2Url || photo.localUrl;
+        const downloadUrl = photo.downloadUrl || viewUrl;
         const card = document.createElement('div');
         card.className = 'border border-border bg-canvas p-2 flex flex-col justify-between space-y-2';
         card.innerHTML = `
           <div class="aspect-[4/3] bg-white border border-border overflow-hidden flex items-center justify-center">
-            <img src="${photoUrl}" alt="Jepretan ${idx + 1}" class="w-full h-full object-cover" />
+            <img src="${viewUrl}" alt="Jepretan ${idx + 1}" class="w-full h-full object-cover" />
           </div>
           <div class="flex items-center justify-between text-[10px] font-mono text-subtle">
             <span>FOTO #${idx + 1}</span>
           </div>
           <a
-            href="${photoUrl}"
+            href="${downloadUrl}"
             download="foto-${idx + 1}.jpg"
             target="_blank"
             class="block w-full text-center bg-white border border-border hover:border-brand text-brand font-mono text-[11px] uppercase py-2 transition-colors"
