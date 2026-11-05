@@ -49,6 +49,21 @@ function applySecurityHandlers(win) {
   // 3. Nonaktifkan menu bar default pada kiosk dan mode fullscreen
   win.removeMenu();
 
+  // Aktifkan pintasan reload & DevTools untuk lingkungan development
+  if (isDev) {
+    win.webContents.on('before-input-event', (event, input) => {
+      if (input.type === 'keyDown') {
+        if (input.key === 'F5' || (input.control && input.key.toLowerCase() === 'r')) {
+          win.reload();
+          event.preventDefault();
+        } else if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
+          win.webContents.toggleDevTools();
+          event.preventDefault();
+        }
+      }
+    });
+  }
+
   // 4. Log pesan dan kegagalan load dari renderer untuk kemudahan diagnosis
   win.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
     console.log(`[Renderer] [${win.getTitle()}] ${message} (${sourceId}:${line})`);

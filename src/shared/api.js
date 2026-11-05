@@ -54,10 +54,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ index, photo })
     }),
-  savePhotos: (sessionId, { composite, rawPhotos }) =>
+  savePhotos: (sessionId, payload) =>
     fetchApi(`/sessions/${sessionId}/save-photos`, {
       method: 'POST',
-      body: JSON.stringify({ composite, rawPhotos })
+      body: JSON.stringify(payload)
     }),
   getSessionPhotos: (sessionId) => fetchApi(`/sessions/${sessionId}/photos`),
   verifyPin: (pin) =>

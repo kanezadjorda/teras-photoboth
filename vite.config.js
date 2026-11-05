@@ -11,7 +11,13 @@ export default defineConfig({
   plugins: [tailwindcss()],
   server: {
     port: 5173,
-    strictPort: true
+    strictPort: true,
+    proxy: {
+      '^/s/': 'http://localhost:3000',
+      '/photos': 'http://localhost:3000',
+      '/api': 'http://localhost:3000',
+      '/config.js': 'http://localhost:3000'
+    }
   },
   build: {
     outDir: 'dist',
