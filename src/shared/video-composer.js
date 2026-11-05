@@ -45,17 +45,32 @@ export function loadVideoElement(source) {
     video.muted = true;
     video.playsInline = true;
     video.loop = true;
-    video.crossOrigin = 'anonymous';
+
+    // Hanya terapkan crossOrigin pada remote HTTP(S) URL
+    if (typeof source === 'string' && !source.startsWith('blob:') && !source.startsWith('data:')) {
+      video.crossOrigin = 'anonymous';
+    }
 
     const objectUrl = source instanceof Blob ? URL.createObjectURL(source) : source;
 
-    video.onloadedmetadata = () => {
+    let isSettled = false;
+    const onReady = () => {
+      if (isSettled) return;
+      isSettled = true;
       video.currentTime = 0;
       resolve(video);
     };
 
+    video.onloadeddata = onReady;
+    video.onloadedmetadata = () => {
+      if (video.videoWidth > 0) onReady();
+    };
+
     video.onerror = (err) => {
-      reject(new Error(`Gagal memuat video slot: ${err?.message || 'Unknown error'}`));
+      if (isSettled) return;
+      isSettled = true;
+      const mediaErr = video.error;
+      reject(new Error(`Gagal memuat video slot: ${mediaErr?.message || err?.message || 'Unknown error'}`));
     };
 
     video.src = objectUrl;
@@ -68,13 +83,20 @@ export function loadVideoElement(source) {
  * @param {Blob} blob
  * @returns {Promise<string>}
  */
-export function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+export async function blobToDataUrl(blob) {
+  if (typeof FileReader !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Fallback untuk lingkungan Node.js / unit tests
+  const buffer = Buffer.from(await blob.arrayBuffer());
+  const mime = blob.type || 'application/octet-stream';
+  return `data:${mime};base64,${buffer.toString('base64')}`;
 }
 
 /**
