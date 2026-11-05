@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { db } from '../server/db.js';
-import { existsSync, unlinkSync } from 'node:fs';
+import { existsSync, unlinkSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { app } from '../server/index.js';
 
@@ -44,7 +44,8 @@ describe('Save Photos API (PRD F-17, F-18 & Multi-Variant)', () => {
     // Minimal 1x1 png and dummy base64
     const dummyImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     const dummyGifBase64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    const dummyVideoBase64 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAA';
+    const rawVideoPayload = 'AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAA';
+    const dummyVideoBase64 = `data:video/mp4;codecs=avc1;base64,${rawVideoPayload}`;
 
     const res = await fetch(`${baseUrl}/api/sessions/${testSessionId}/save-photos`, {
       method: 'POST',
@@ -88,6 +89,10 @@ describe('Save Photos API (PRD F-17, F-18 & Multi-Variant)', () => {
     expect(existsSync(filtFile)).toBe(true);
     expect(existsSync(gifFile)).toBe(true);
     expect(existsSync(liveFile)).toBe(true);
+
+    // Verify video file is not truncated by complex MIME headers
+    const expectedVideoSize = Buffer.from(rawVideoPayload, 'base64').length;
+    expect(statSync(liveFile).size).toBe(expectedVideoSize);
 
     // Verify recorded in SQLite photos table with correct tipe
     const photoRecords = db.prepare('SELECT * FROM photos WHERE session_id = ?').all(testSessionId);

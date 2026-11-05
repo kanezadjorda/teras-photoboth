@@ -9,6 +9,18 @@ import { enqueueUpload } from '../storage/r2.js';
 const router = Router();
 
 /**
+ * Strips any data URI header (e.g. data:image/jpeg;base64, or data:video/mp4;codecs=avc1;base64,)
+ * cleanly by locating the comma separator, avoiding regex failures on MIME codec parameters.
+ * @param {string} dataUri
+ * @returns {string} clean base64 payload
+ */
+function stripBase64Prefix(dataUri) {
+  if (typeof dataUri !== 'string') return '';
+  const commaIdx = dataUri.indexOf(',');
+  return commaIdx !== -1 ? dataUri.substring(commaIdx + 1) : dataUri;
+}
+
+/**
  * Helper untuk mendapatkan direktori folder output foto
  * Mengutamakan folder event dari sesi terkait (PRD F-17, F-18)
  */
@@ -69,7 +81,7 @@ router.post('/:id/photo', (req, res) => {
     const now = new Date();
     const urutan = rawIndex + 1; // 1-based urutan in DB
 
-    const cleanRaw = photo.replace(/^data:image\/\w+;base64,/, '');
+    const cleanRaw = stripBase64Prefix(photo);
     const rawBuffer = Buffer.from(cleanRaw, 'base64');
     const rawFilename = generatePhotoFilename({
       date: now,
@@ -145,7 +157,7 @@ router.post('/:id/save-photos', (req, res) => {
     const now = new Date();
 
     // 2. Simpan Foto Komposit Final (Berfilter, siap cetak)
-    const cleanCompositeBase64 = composite.replace(/^data:image\/\w+;base64,/, '');
+    const cleanCompositeBase64 = stripBase64Prefix(composite);
     const compositeBuffer = Buffer.from(cleanCompositeBase64, 'base64');
     const compositeFilename = generatePhotoFilename({ date: now, sessionNo, type: 'composite' });
     const compositeFilePath = resolve(outputDir, compositeFilename);
@@ -170,7 +182,7 @@ router.post('/:id/save-photos', (req, res) => {
     // 3. Simpan Foto Komposit Original (Tanpa Filter) jika tersedia
     let compositeOriginalFilename = null;
     if (compositeOriginal) {
-      const cleanOrigBase64 = compositeOriginal.replace(/^data:image\/\w+;base64,/, '');
+      const cleanOrigBase64 = stripBase64Prefix(compositeOriginal);
       const origBuffer = Buffer.from(cleanOrigBase64, 'base64');
       compositeOriginalFilename = generatePhotoFilename({ date: now, sessionNo, type: 'composite_original' });
       const origFilePath = resolve(outputDir, compositeOriginalFilename);
@@ -198,7 +210,7 @@ router.post('/:id/save-photos', (req, res) => {
     if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
       rawPhotos.forEach((rawBase64, index) => {
         if (!rawBase64) return;
-        const cleanRaw = rawBase64.replace(/^data:image\/\w+;base64,/, '');
+        const cleanRaw = stripBase64Prefix(rawBase64);
         const rawBuffer = Buffer.from(cleanRaw, 'base64');
         const rawFilename = generatePhotoFilename({
           date: now,
@@ -233,7 +245,7 @@ router.post('/:id/save-photos', (req, res) => {
     if (Array.isArray(rawFilteredPhotos) && rawFilteredPhotos.length > 0) {
       rawFilteredPhotos.forEach((filtBase64, index) => {
         if (!filtBase64) return;
-        const cleanFilt = filtBase64.replace(/^data:image\/\w+;base64,/, '');
+        const cleanFilt = stripBase64Prefix(filtBase64);
         const filtBuffer = Buffer.from(cleanFilt, 'base64');
         const filtFilename = generatePhotoFilename({
           date: now,
@@ -266,7 +278,7 @@ router.post('/:id/save-photos', (req, res) => {
     // 6. Simpan Animasi GIF Foto Satuan jika tersedia
     let savedGifFilename = null;
     if (gif) {
-      const cleanGif = gif.replace(/^data:image\/\w+;base64,/, '');
+      const cleanGif = stripBase64Prefix(gif);
       const gifBuffer = Buffer.from(cleanGif, 'base64');
       savedGifFilename = generatePhotoFilename({ date: now, sessionNo, type: 'animation' });
       const gifFilePath = resolve(outputDir, savedGifFilename);
@@ -292,7 +304,7 @@ router.post('/:id/save-photos', (req, res) => {
     // 7. Simpan Live Video Template jika tersedia
     let savedLiveVideoFilename = null;
     if (liveVideo) {
-      const cleanVideo = liveVideo.replace(/^data:video\/\w+;base64,/, '');
+      const cleanVideo = stripBase64Prefix(liveVideo);
       const videoBuffer = Buffer.from(cleanVideo, 'base64');
       const ext = liveVideoExtension || 'mp4';
       savedLiveVideoFilename = generatePhotoFilename({
