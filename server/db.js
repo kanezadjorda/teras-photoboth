@@ -126,6 +126,12 @@ export function initDb() {
     db.exec('ALTER TABLE payments ADD COLUMN qr_code_url_v2 TEXT');
   }
 
+  // Safe migration for existing photos table (tipe column)
+  const photoCols = db.prepare('PRAGMA table_info(photos)').all().map((c) => c.name);
+  if (!photoCols.includes('tipe')) {
+    db.exec("ALTER TABLE photos ADD COLUMN tipe TEXT DEFAULT 'photo'");
+  }
+
   // Seed default event if empty
   const eventCount = db.prepare('SELECT count(*) as count FROM events').get();
   if (eventCount.count === 0) {

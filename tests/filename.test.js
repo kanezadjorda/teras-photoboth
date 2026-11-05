@@ -6,7 +6,7 @@ import {
   parsePhotoFilename
 } from '../src/shared/filename.js';
 
-describe('Filename Generator (PRD F-17)', () => {
+describe('Filename Generator (PRD F-17 & Multi-Variant)', () => {
   it('formats session numbers with 4-digit zero-padding', () => {
     expect(formatSessionNumber(1)).toBe('0001');
     expect(formatSessionNumber(42)).toBe('0042');
@@ -17,7 +17,7 @@ describe('Filename Generator (PRD F-17)', () => {
   });
 
   it('formats date timestamps correctly into YYYYMMDD-HHMMSS', () => {
-    const fixedDate = new Date(2026, 9, 12, 14, 30, 22); // Note: month 9 is October in 0-indexed JS Date
+    const fixedDate = new Date(2026, 9, 12, 14, 30, 22); // Month 9 = October
     const ts = formatTimestampWib(fixedDate);
     expect(ts).toBe('20261012-143022');
   });
@@ -29,35 +29,87 @@ describe('Filename Generator (PRD F-17)', () => {
       sessionNo: 42,
       type: 'composite'
     });
-
     expect(filename).toBe('20261012-143022-0042.jpg');
   });
 
-  it('generates raw photo filename pattern with rawIndex', () => {
+  it('generates original (unfiltered) composite filename pattern', () => {
     const fixedDate = new Date(2026, 9, 12, 14, 30, 22);
     const filename = generatePhotoFilename({
+      date: fixedDate,
+      sessionNo: 42,
+      type: 'composite_original'
+    });
+    expect(filename).toBe('20261012-143022-0042-original.jpg');
+  });
+
+  it('generates raw and raw_filtered photo filename patterns', () => {
+    const fixedDate = new Date(2026, 9, 12, 14, 30, 22);
+    const rawFile = generatePhotoFilename({
       date: fixedDate,
       sessionNo: 42,
       type: 'raw',
       rawIndex: 3
     });
+    expect(rawFile).toBe('20261012-143022-0042-raw-3.jpg');
 
-    expect(filename).toBe('20261012-143022-0042-raw-3.jpg');
+    const filteredRawFile = generatePhotoFilename({
+      date: fixedDate,
+      sessionNo: 42,
+      type: 'raw_filtered',
+      rawIndex: 3
+    });
+    expect(filteredRawFile).toBe('20261012-143022-0042-raw-3-filtered.jpg');
   });
 
-  it('correctly parses valid photobooth filenames back into metadata', () => {
+  it('generates animation GIF and live video filename patterns', () => {
+    const fixedDate = new Date(2026, 9, 12, 14, 30, 22);
+    const gifFile = generatePhotoFilename({
+      date: fixedDate,
+      sessionNo: 42,
+      type: 'animation'
+    });
+    expect(gifFile).toBe('20261012-143022-0042-animation.gif');
+
+    const liveMp4 = generatePhotoFilename({
+      date: fixedDate,
+      sessionNo: 42,
+      type: 'live',
+      extension: 'mp4'
+    });
+    expect(liveMp4).toBe('20261012-143022-0042-live.mp4');
+
+    const liveWebm = generatePhotoFilename({
+      date: fixedDate,
+      sessionNo: 42,
+      type: 'live',
+      extension: 'webm'
+    });
+    expect(liveWebm).toBe('20261012-143022-0042-live.webm');
+  });
+
+  it('correctly parses valid photobooth filenames back into metadata for all types', () => {
     const compositeParsed = parsePhotoFilename('20261012-143022-0042.jpg');
-    expect(compositeParsed).not.toBeNull();
-    expect(compositeParsed.datePart).toBe('20261012');
-    expect(compositeParsed.timePart).toBe('143022');
-    expect(compositeParsed.sessionNo).toBe('0042');
     expect(compositeParsed.type).toBe('composite');
+    expect(compositeParsed.sessionNo).toBe('0042');
     expect(compositeParsed.rawIndex).toBeNull();
 
+    const originalParsed = parsePhotoFilename('20261012-143022-0042-original.jpg');
+    expect(originalParsed.type).toBe('composite_original');
+
     const rawParsed = parsePhotoFilename('20261012-143022-0042-raw-2.jpg');
-    expect(rawParsed).not.toBeNull();
     expect(rawParsed.type).toBe('raw');
     expect(rawParsed.rawIndex).toBe(2);
+
+    const filteredRawParsed = parsePhotoFilename('20261012-143022-0042-raw-2-filtered.jpg');
+    expect(filteredRawParsed.type).toBe('raw_filtered');
+    expect(filteredRawParsed.rawIndex).toBe(2);
+
+    const gifParsed = parsePhotoFilename('20261012-143022-0042-animation.gif');
+    expect(gifParsed.type).toBe('animation');
+
+    const liveParsed = parsePhotoFilename('20261012-143022-0042-live.mp4');
+    expect(liveParsed.type).toBe('live');
+    expect(liveParsed.extension).toBe('mp4');
 
     expect(parsePhotoFilename('invalid-file.png')).toBeNull();
   });

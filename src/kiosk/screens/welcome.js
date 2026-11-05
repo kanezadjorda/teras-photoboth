@@ -63,35 +63,35 @@ export function createWelcomeScreen({ onStart }) {
       <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80 z-10 pointer-events-none"></div>
 
       <!-- Konten Utama Kiosk (StudioBlank: ultra-minimal, ruang bernapas lapang, tanpa shadow/radius) -->
-      <div class="relative z-20 flex flex-col items-center justify-between text-center p-8 sm:p-12 md:p-16 w-full h-full max-w-5xl select-none">
+      <div class="relative z-20 flex flex-col items-center justify-between text-center p-5 sm:p-8 md:p-12 lg:p-16 xl:p-20 w-full min-h-screen max-w-5xl 2xl:max-w-6xl mx-auto select-none">
         <!-- Bagian Atas: Branding & Tagline -->
-        <div class="space-y-3 pt-8 sm:pt-12">
-          <span class="inline-block font-mono text-xs tracking-[0.2em] uppercase text-white/60 mb-2 border border-white/20 px-3 py-1">
+        <div class="space-y-3 pt-4 sm:pt-8 md:pt-12">
+          <span class="inline-block font-mono text-[10px] sm:text-xs tracking-[0.2em] uppercase text-white/60 mb-2 border border-white/20 px-2.5 sm:px-3 py-1">
             PHOTOBOOTH OTOMATIS
           </span>
           <h1 class="text-hero uppercase tracking-tight text-white leading-none">
             Teras Photobooth
           </h1>
-          <p class="text-body md:text-lg text-white/80 max-w-xl mx-auto font-light leading-relaxed">
+          <p class="text-body-sm sm:text-body md:text-lg xl:text-xl text-white/80 max-w-xl mx-auto font-light leading-relaxed px-2">
             Abadikan momen spesialmu dalam hitungan menit
           </p>
         </div>
 
         <!-- Bagian Tengah: Tombol Mulai (StudioBlank: flat sharp rectangle, hover inversion) -->
-        <div class="my-auto py-8">
+        <div class="my-auto py-6 sm:py-8 w-full sm:w-auto flex justify-center">
           <button
             id="btn-start"
-            class="btn-sb-primary btn-kiosk min-h-[64px] px-12 md:px-16 text-base md:text-lg font-mono tracking-wider font-semibold uppercase cursor-pointer transition-colors duration-150"
+            class="btn-sb-primary btn-kiosk w-full sm:w-auto min-h-[64px] px-8 sm:px-12 md:px-16 text-sm sm:text-base md:text-lg font-mono tracking-wider font-semibold uppercase cursor-pointer transition-colors duration-150"
           >
             Mulai Sesi Foto &rarr;
           </button>
         </div>
 
         <!-- Bagian Bawah: Info Footer Bersih -->
-        <div class="pb-6 sm:pb-8">
-          <div class="font-mono text-xs uppercase tracking-[0.15em] text-white/80 bg-black/60 px-5 py-2.5 border border-white/20 inline-flex items-center gap-3">
+        <div class="pb-4 sm:pb-6 md:pb-8 w-full flex justify-center">
+          <div class="font-mono text-[10px] sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.15em] text-white/80 bg-black/60 px-4 sm:px-5 py-2.5 border border-white/20 inline-flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 max-w-full">
             <span>PEMBAYARAN INSTAN QRIS</span>
-            <span class="text-white/40">&bull;</span>
+            <span class="hidden sm:inline text-white/40">&bull;</span>
             <span>CETAK OTOMATIS 4R</span>
           </div>
         </div>

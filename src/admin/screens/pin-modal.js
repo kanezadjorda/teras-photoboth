@@ -82,10 +82,10 @@ export function createPinModal({ onAuthenticated }) {
       isMounted = true;
       container = document.createElement('div');
       container.className =
-        'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 select-none backdrop-blur-xs';
+        'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto select-none backdrop-blur-xs';
 
       container.innerHTML = `
-        <div class="card-sb border border-[#E5E5E5] bg-white max-w-sm w-full p-8 space-y-6">
+        <div class="card-sb border border-[#E5E5E5] bg-white max-w-sm w-full p-5 sm:p-8 space-y-5 sm:space-y-6 my-auto">
           
           <!-- Header -->
           <div class="text-center space-y-2 border-b border-[#E5E5E5] pb-4">
@@ -101,11 +101,11 @@ export function createPinModal({ onAuthenticated }) {
           </div>
 
           <!-- PIN Display (4 Kotak) -->
-          <div id="pin-dots" class="flex justify-center items-center gap-3 py-2">
-            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
-            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
-            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
-            <div class="pin-dot w-12 h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+          <div id="pin-dots" class="flex justify-center items-center gap-2.5 sm:gap-3 py-2">
+            <div class="pin-dot w-11 h-12 sm:w-12 sm:h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+            <div class="pin-dot w-11 h-12 sm:w-12 sm:h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+            <div class="pin-dot w-11 h-12 sm:w-12 sm:h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
+            <div class="pin-dot w-11 h-12 sm:w-12 sm:h-14 border border-[#D4D4D8] flex items-center justify-center font-mono text-xl bg-[#FAFAFA] text-[#A3A3A3]">○</div>
           </div>
 
           <!-- Pesan Error -->

@@ -83,8 +83,8 @@ router.post('/:id/photo', (req, res) => {
 
     const rawPhotoId = `photo_${sessionId}_raw_${urutan}`;
     db.prepare(`
-      INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file)
-      VALUES (?, ?, ?, ?)
+      INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+      VALUES (?, ?, ?, ?, 'raw')
     `).run(rawPhotoId, sessionId, urutan, rawFilename);
 
     // Enqueue async upload to Cloudflare R2 (PRD F-31)
@@ -114,12 +114,21 @@ router.post('/:id/photo', (req, res) => {
 
 /**
  * POST /api/sessions/:id/save-photos
- * Menyimpan file foto final komposit dan foto-foto mentah ke disk sebelum instruksi cetak (PRD F-17, F-18)
+ * Menyimpan seluruh aset bundel multi-varian (komposit +/- filter, raw +/- filter, gif, live video)
+ * ke disk lokal sebelum instruksi cetak (PRD F-17, F-18)
  */
 router.post('/:id/save-photos', (req, res) => {
   try {
     const sessionId = req.params.id;
-    const { composite, rawPhotos } = req.body;
+    const {
+      composite,
+      compositeOriginal,
+      rawPhotos,
+      rawFilteredPhotos,
+      gif,
+      liveVideo,
+      liveVideoExtension
+    } = req.body;
 
     if (!composite) {
       return res.status(400).json({ success: false, error: 'Foto komposit (base64) wajib disertakan' });
@@ -135,7 +144,7 @@ router.post('/:id/save-photos', (req, res) => {
     const outputDir = getOutputDir(sessionId);
     const now = new Date();
 
-    // 2. Simpan Foto Komposit Final
+    // 2. Simpan Foto Komposit Final (Berfilter, siap cetak)
     const cleanCompositeBase64 = composite.replace(/^data:image\/\w+;base64,/, '');
     const compositeBuffer = Buffer.from(cleanCompositeBase64, 'base64');
     const compositeFilename = generatePhotoFilename({ date: now, sessionNo, type: 'composite' });
@@ -143,14 +152,12 @@ router.post('/:id/save-photos', (req, res) => {
 
     writeFileSync(compositeFilePath, compositeBuffer);
 
-    // Catat komposit ke tabel photos (urutan 0 untuk komposit utama)
     const compositePhotoId = `photo_${sessionId}_comp`;
     db.prepare(`
-      INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file)
-      VALUES (?, ?, 0, ?)
+      INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+      VALUES (?, ?, 0, ?, 'composite')
     `).run(compositePhotoId, sessionId, compositeFilename);
 
-    // Enqueue komposit ke antrean upload R2 (PRD F-31)
     if (session.token) {
       enqueueUpload({
         sessionId,
@@ -160,7 +167,33 @@ router.post('/:id/save-photos', (req, res) => {
       });
     }
 
-    // 3. Simpan Foto Mentah (Raw Photos) jika tersedia
+    // 3. Simpan Foto Komposit Original (Tanpa Filter) jika tersedia
+    let compositeOriginalFilename = null;
+    if (compositeOriginal) {
+      const cleanOrigBase64 = compositeOriginal.replace(/^data:image\/\w+;base64,/, '');
+      const origBuffer = Buffer.from(cleanOrigBase64, 'base64');
+      compositeOriginalFilename = generatePhotoFilename({ date: now, sessionNo, type: 'composite_original' });
+      const origFilePath = resolve(outputDir, compositeOriginalFilename);
+
+      writeFileSync(origFilePath, origBuffer);
+
+      const origPhotoId = `photo_${sessionId}_comp_orig`;
+      db.prepare(`
+        INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+        VALUES (?, ?, 0, ?, 'composite_original')
+      `).run(origPhotoId, sessionId, compositeOriginalFilename);
+
+      if (session.token) {
+        enqueueUpload({
+          sessionId,
+          filePath: origFilePath,
+          remoteKey: `sessions/${session.token}/${compositeOriginalFilename}`,
+          fileType: 'composite_original'
+        });
+      }
+    }
+
+    // 4. Simpan Foto Mentah Asli (Raw Photos) jika tersedia
     const savedRawFilenames = [];
     if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
       rawPhotos.forEach((rawBase64, index) => {
@@ -180,11 +213,10 @@ router.post('/:id/save-photos', (req, res) => {
 
         const rawPhotoId = `photo_${sessionId}_raw_${index + 1}`;
         db.prepare(`
-          INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file)
-          VALUES (?, ?, ?, ?)
+          INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+          VALUES (?, ?, ?, ?, 'raw')
         `).run(rawPhotoId, sessionId, index + 1, rawFilename);
 
-        // Enqueue foto mentah ke antrean upload R2 (PRD F-31)
         if (session.token) {
           enqueueUpload({
             sessionId,
@@ -196,17 +228,114 @@ router.post('/:id/save-photos', (req, res) => {
       });
     }
 
+    // 5. Simpan Foto Mentah Berfilter (Raw Filtered Photos) jika tersedia
+    const savedFilteredFilenames = [];
+    if (Array.isArray(rawFilteredPhotos) && rawFilteredPhotos.length > 0) {
+      rawFilteredPhotos.forEach((filtBase64, index) => {
+        if (!filtBase64) return;
+        const cleanFilt = filtBase64.replace(/^data:image\/\w+;base64,/, '');
+        const filtBuffer = Buffer.from(cleanFilt, 'base64');
+        const filtFilename = generatePhotoFilename({
+          date: now,
+          sessionNo,
+          type: 'raw_filtered',
+          rawIndex: index + 1
+        });
+        const filtFilePath = resolve(outputDir, filtFilename);
+
+        writeFileSync(filtFilePath, filtBuffer);
+        savedFilteredFilenames.push(filtFilename);
+
+        const filtPhotoId = `photo_${sessionId}_raw_filtered_${index + 1}`;
+        db.prepare(`
+          INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+          VALUES (?, ?, ?, ?, 'raw_filtered')
+        `).run(filtPhotoId, sessionId, index + 1, filtFilename);
+
+        if (session.token) {
+          enqueueUpload({
+            sessionId,
+            filePath: filtFilePath,
+            remoteKey: `sessions/${session.token}/${filtFilename}`,
+            fileType: 'raw_filtered'
+          });
+        }
+      });
+    }
+
+    // 6. Simpan Animasi GIF Foto Satuan jika tersedia
+    let savedGifFilename = null;
+    if (gif) {
+      const cleanGif = gif.replace(/^data:image\/\w+;base64,/, '');
+      const gifBuffer = Buffer.from(cleanGif, 'base64');
+      savedGifFilename = generatePhotoFilename({ date: now, sessionNo, type: 'animation' });
+      const gifFilePath = resolve(outputDir, savedGifFilename);
+
+      writeFileSync(gifFilePath, gifBuffer);
+
+      const gifPhotoId = `photo_${sessionId}_gif`;
+      db.prepare(`
+        INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+        VALUES (?, ?, -1, ?, 'animation')
+      `).run(gifPhotoId, sessionId, savedGifFilename);
+
+      if (session.token) {
+        enqueueUpload({
+          sessionId,
+          filePath: gifFilePath,
+          remoteKey: `sessions/${session.token}/${savedGifFilename}`,
+          fileType: 'animation'
+        });
+      }
+    }
+
+    // 7. Simpan Live Video Template jika tersedia
+    let savedLiveVideoFilename = null;
+    if (liveVideo) {
+      const cleanVideo = liveVideo.replace(/^data:video\/\w+;base64,/, '');
+      const videoBuffer = Buffer.from(cleanVideo, 'base64');
+      const ext = liveVideoExtension || 'mp4';
+      savedLiveVideoFilename = generatePhotoFilename({
+        date: now,
+        sessionNo,
+        type: 'live',
+        extension: ext
+      });
+      const videoFilePath = resolve(outputDir, savedLiveVideoFilename);
+
+      writeFileSync(videoFilePath, videoBuffer);
+
+      const livePhotoId = `photo_${sessionId}_live`;
+      db.prepare(`
+        INSERT OR REPLACE INTO photos (id, session_id, urutan, path_file, tipe)
+        VALUES (?, ?, -2, ?, 'live')
+      `).run(livePhotoId, sessionId, savedLiveVideoFilename);
+
+      if (session.token) {
+        enqueueUpload({
+          sessionId,
+          filePath: videoFilePath,
+          remoteKey: `sessions/${session.token}/${savedLiveVideoFilename}`,
+          fileType: 'live'
+        });
+      }
+    }
+
     res.json({
       success: true,
       data: {
         sessionNo,
         compositeFilename,
         compositePath: `/photos/${compositeFilename}`,
-        rawFilenames: savedRawFilenames
+        compositeOriginalFilename,
+        rawFilenames: savedRawFilenames,
+        filteredRawFilenames: savedFilteredFilenames,
+        gifFilename: savedGifFilename,
+        liveVideoFilename: savedLiveVideoFilename
       }
     });
   } catch (error) {
-    console.error('[Photos] Gagal menyimpan foto:', error);
+    console.error('[Photos] Gagal menyimpan bundle foto:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

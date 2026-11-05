@@ -257,20 +257,20 @@ function renderLayout() {
     </aside>
 
     <div class="flex-1 min-w-0 flex flex-col w-full bg-[#FAFAFA]">
-      <header class="sticky top-0 z-40 bg-white border-b border-[#E5E5E5] px-6 py-3 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 md:hidden">
-          <button id="btn-toggle-sidebar" class="md:hidden! btn-sb-secondary px-3 py-1.5 text-xs font-mono flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
+      <header class="sticky top-0 z-40 bg-white border-b border-[#E5E5E5] px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+        <div class="flex items-center gap-2 sm:gap-3 md:hidden">
+          <button id="btn-toggle-sidebar" class="md:hidden! btn-sb-secondary px-3 py-1.5 h-9 text-xs font-mono flex items-center gap-1.5 cursor-pointer" aria-label="Buka menu navigasi">
             <span>☰</span>
             <span>MENU</span>
           </button>
         </div>
-        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-          <span id="topbar-camera" class="chip-sb text-xs">KAMERA: ...</span>
-          <span id="topbar-printer" class="chip-sb text-xs">PRINTER: ...</span>
-          <span id="topbar-event" class="chip-sb text-xs">EVENT: ...</span>
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 ml-auto md:ml-0">
+          <span id="topbar-camera" class="chip-sb text-[10px] sm:text-xs">KAMERA: ...</span>
+          <span id="topbar-printer" class="chip-sb text-[10px] sm:text-xs">PRINTER: ...</span>
+          <span id="topbar-event" class="chip-sb text-[10px] sm:text-xs max-w-[200px] sm:max-w-xs truncate">EVENT: ...</span>
         </div>
       </header>
-      <main id="admin-content" class="flex-1 p-6 lg:p-8 w-full max-w-none"></main>
+      <main id="admin-content" class="flex-1 p-4 sm:p-6 lg:p-8 xl:p-10 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto"></main>
     </div>
   `;
 }

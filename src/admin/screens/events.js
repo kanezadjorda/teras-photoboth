@@ -211,21 +211,21 @@ export function createEventsScreen({ onStatusChange } = {}) {
         ${pageHeader({
           title: 'EVENT',
           description: 'Folder penyimpanan foto per kegiatan (disinkronkan Google Drive)',
-          actionsHtml: '<button id="btn-create-event-modal" class="btn-sb-primary px-4 py-2 text-xs font-mono uppercase tracking-wider">+ BUAT EVENT BARU</button>'
+          actionsHtml: '<button id="btn-create-event-modal" class="btn-sb-primary w-full sm:w-auto px-4 py-2 text-xs font-mono uppercase tracking-wider">+ BUAT EVENT BARU</button>'
         })}
 
         <!-- Banner Event Aktif -->
-        <div class="card-sb p-6 border border-[#E5E5E5] bg-[#FAFAFA] mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
+        <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-[#FAFAFA] mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="min-w-0">
             <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">EVENT OPERASIONAL AKTIF SAAT INI</span>
-            <h3 id="active-event-name" class="text-h3 font-semibold text-[#0A0A0A] uppercase mt-1">
+            <h3 id="active-event-name" class="text-h3 font-semibold text-[#0A0A0A] uppercase mt-1 break-words">
               MEMUAT EVENT...
             </h3>
             <p id="active-event-path" class="font-mono text-xs text-[#737373] mt-1 break-all">
               Folder: -
             </p>
           </div>
-          <span id="active-event-chip" class="chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 self-start md:self-auto px-3 py-1 font-mono text-xs whitespace-nowrap">
+          <span id="active-event-chip" class="chip-sb border border-[#2BB673]/40 text-[#0A0A0A] bg-[#2BB673]/10 self-start lg:self-auto px-3 py-1 font-mono text-xs shrink-0">
             SESI KIOSK TERSAMBUNG KE EVENT INI
           </span>
         </div>
@@ -253,9 +253,9 @@ export function createEventsScreen({ onStatusChange } = {}) {
         </div>
 
         <!-- Modal Buat Event Baru StudioBlank -->
-        <div id="event-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div class="card-sb border border-[#E5E5E5] bg-white max-w-lg w-full p-6 space-y-4">
-            <div class="border-b border-[#E5E5E5] pb-3 flex items-center justify-between">
+        <div id="event-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-xs">
+          <div class="card-sb border border-[#E5E5E5] bg-white max-w-lg w-full p-5 sm:p-6 space-y-4 my-auto">
+            <div class="border-b border-[#E5E5E5] pb-3 flex flex-wrap items-center justify-between gap-2">
               <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">SESI OPERASIONAL</span>
               <span class="text-body font-semibold uppercase text-[#0A0A0A]">BUAT EVENT BARU</span>
             </div>
@@ -275,7 +275,7 @@ export function createEventsScreen({ onStatusChange } = {}) {
 
               <div>
                 <label class="block text-caption font-mono uppercase text-[#737373] mb-1">FOLDER OUTPUT / GOOGLE DRIVE SYNC</label>
-                <div class="flex gap-2">
+                <div class="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     id="input-event-folder"
@@ -286,7 +286,7 @@ export function createEventsScreen({ onStatusChange } = {}) {
                   <button
                     type="button"
                     id="btn-browse-event-folder"
-                    class="btn-sb-secondary px-3 py-2 text-xs font-mono whitespace-nowrap"
+                    class="btn-sb-secondary w-full sm:w-auto px-3 py-2 text-xs font-mono whitespace-nowrap"
                   >
                     PILIH FOLDER
                   </button>
@@ -296,14 +296,14 @@ export function createEventsScreen({ onStatusChange } = {}) {
                 </p>
               </div>
 
-              <div class="flex items-center gap-2 pt-1">
-                <input type="checkbox" id="check-event-activate" class="w-4 h-4 accent-[#0A0A0A] rounded-none" checked />
+              <div class="flex items-start sm:items-center gap-2 pt-1">
+                <input type="checkbox" id="check-event-activate" class="w-4 h-4 mt-0.5 sm:mt-0 accent-[#0A0A0A] rounded-none shrink-0" checked />
                 <label for="check-event-activate" class="text-caption font-mono uppercase text-[#0A0A0A] cursor-pointer">
                   JADIKAN EVENT AKTIF SEGERA UNTUK KIOSK
                 </label>
               </div>
 
-              <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5]">
+              <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#E5E5E5]">
                 <button type="button" id="btn-cancel-event-modal" class="btn-sb-secondary px-5 py-2 text-xs font-mono uppercase tracking-wider">
                   BATAL
                 </button>

@@ -10,7 +10,7 @@ export function createRecoveryModal({ session, onResume, onDiscard }) {
     mount(parent) {
       container = document.createElement('div');
       container.className =
-        'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 select-none';
+        'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto select-none';
 
       let statusIndo = 'AKTIF';
       if (session.status === 'waiting_payment') statusIndo = 'MENUNGGU PEMBAYARAN';
@@ -20,7 +20,7 @@ export function createRecoveryModal({ session, onResume, onDiscard }) {
       else if (session.status === 'printing') statusIndo = 'PENCETAKAN';
 
       container.innerHTML = `
-        <div class="card-sb border border-[#E5E5E5] bg-white max-w-lg w-full p-8 space-y-6">
+        <div class="card-sb border border-[#E5E5E5] bg-white max-w-lg w-full p-5 sm:p-8 space-y-5 sm:space-y-6 my-auto">
           
           <!-- Header -->
           <div class="border-b border-[#E5E5E5] pb-4 space-y-2">
@@ -36,16 +36,16 @@ export function createRecoveryModal({ session, onResume, onDiscard }) {
           </div>
 
           <!-- Detail Sesi -->
-          <div class="p-4 border border-[#E5E5E5] bg-[#FAFAFA] space-y-2.5">
-            <div class="flex items-center justify-between font-mono text-xs">
+          <div class="p-3.5 sm:p-4 border border-[#E5E5E5] bg-[#FAFAFA] space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
               <span class="text-[#737373] uppercase">ID SESI:</span>
-              <span class="font-medium text-[#0A0A0A]">${session.id}</span>
+              <span class="font-medium text-[#0A0A0A] break-all">${session.id}</span>
             </div>
-            <div class="flex items-center justify-between font-mono text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
               <span class="text-[#737373] uppercase">STATUS TERAKHIR:</span>
               <span class="chip-sb text-[10px] uppercase font-mono px-2 py-0.5 border border-[#D4D4D8] text-[#0A0A0A]">${statusIndo}</span>
             </div>
-            <div class="flex items-center justify-between font-mono text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
               <span class="text-[#737373] uppercase">WAKTU DIBUAT:</span>
               <span class="text-[#0A0A0A]">${session.dibuat_pada ? session.dibuat_pada.replace('T', ' ').slice(0, 19) : '-'}</span>
             </div>

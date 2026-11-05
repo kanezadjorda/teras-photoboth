@@ -59,10 +59,10 @@ export function setupOfflineMonitor(parent = document.body, message = 'KONEKSI I
     banner = document.createElement('div');
     banner.id = 'raw-offline-banner';
     banner.className =
-      'hidden fixed top-0 left-0 right-0 bg-[#DC2626] text-[#FAFAFA] font-headline text-xs py-2.5 px-4 text-center uppercase z-50 border-b border-[#0A0A0A] tracking-wider flex items-center justify-center gap-2 select-none';
+      'hidden fixed top-0 left-0 right-0 bg-[#DC2626] text-[#FAFAFA] font-headline text-[11px] sm:text-xs py-2 px-3 sm:py-2.5 sm:px-4 text-center uppercase z-50 border-b border-[#0A0A0A] tracking-wider flex items-center justify-center gap-2 select-none';
     banner.innerHTML = `
-      <span class="inline-block w-2 h-2 bg-white animate-pulse"></span>
-      <span id="raw-offline-banner-text">${message}</span>
+      <span class="inline-block w-2 h-2 bg-white animate-pulse shrink-0"></span>
+      <span id="raw-offline-banner-text" class="leading-snug">${message}</span>
     `;
     parent.appendChild(banner);
   }

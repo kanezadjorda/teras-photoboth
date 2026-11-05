@@ -37,50 +37,91 @@ export function formatTimestampWib(date = new Date()) {
 }
 
 /**
- * Menghasilkan nama file foto sesuai standar PRD F-17
+ * Menghasilkan nama file foto/video/GIF sesuai standar PRD F-17 & varian baru
  * @param {Object} options
  * @param {Date} [options.date=new Date()]
  * @param {number|string} [options.sessionNo=1]
- * @param {'composite'|'raw'} [options.type='composite']
+ * @param {'composite'|'composite_original'|'raw'|'raw_filtered'|'animation'|'live'} [options.type='composite']
  * @param {number} [options.rawIndex=1]
- * @returns {string} Contoh: '20261012-143022-0042.jpg' atau '20261012-143022-0042-raw-1.jpg'
+ * @param {string} [options.extension]
+ * @returns {string} Contoh:
+ *   - '20261012-143022-0042.jpg'
+ *   - '20261012-143022-0042-original.jpg'
+ *   - '20261012-143022-0042-raw-1.jpg'
+ *   - '20261012-143022-0042-raw-1-filtered.jpg'
+ *   - '20261012-143022-0042-animation.gif'
+ *   - '20261012-143022-0042-live.mp4'
  */
 export function generatePhotoFilename({
   date = new Date(),
   sessionNo = 1,
   type = 'composite',
-  rawIndex = 1
+  rawIndex = 1,
+  extension
 } = {}) {
   const timestamp = formatTimestampWib(date);
   const formattedSessionNo = formatSessionNumber(sessionNo);
 
+  if (type === 'composite_original') {
+    return `${timestamp}-${formattedSessionNo}-original.jpg`;
+  }
+
   if (type === 'raw') {
     return `${timestamp}-${formattedSessionNo}-raw-${rawIndex}.jpg`;
+  }
+
+  if (type === 'raw_filtered') {
+    return `${timestamp}-${formattedSessionNo}-raw-${rawIndex}-filtered.jpg`;
+  }
+
+  if (type === 'animation' || type === 'gif') {
+    return `${timestamp}-${formattedSessionNo}-animation.gif`;
+  }
+
+  if (type === 'live') {
+    const ext = extension || 'mp4';
+    return `${timestamp}-${formattedSessionNo}-live.${ext}`;
   }
 
   return `${timestamp}-${formattedSessionNo}.jpg`;
 }
 
 /**
- * Mem-parse nama file foto kembali ke komponen datanya
+ * Mem-parse nama file foto/media kembali ke komponen datanya
  * @param {string} filename
  * @returns {Object|null}
  */
 export function parsePhotoFilename(filename) {
   if (!filename || typeof filename !== 'string') return null;
 
-  // Pattern: YYYYMMDD-HHMMSS-SSSS(-raw-N)?.jpg
-  const regex = /^(\d{8})-(\d{6})-(\d{4})(?:-raw-(\d+))?\.jpg$/i;
+  // Pattern: YYYYMMDD-HHMMSS-SSSS(-variant)?.(jpg|jpeg|gif|mp4|webm)
+  const regex = /^(\d{8})-(\d{6})-(\d{4})(?:-(original|animation|live|raw-(\d+)(?:-(filtered))?))?\.(jpg|jpeg|gif|mp4|webm)$/i;
   const match = filename.trim().match(regex);
   if (!match) return null;
 
-  const [, datePart, timePart, sessionNo, rawIndex] = match;
+  const [, datePart, timePart, sessionNo, modifier, rawIdx, isFiltered, ext] = match;
+
+  let type = 'composite';
+  let rawIndex = null;
+
+  if (modifier === 'original') {
+    type = 'composite_original';
+  } else if (modifier === 'animation') {
+    type = 'animation';
+  } else if (modifier === 'live') {
+    type = 'live';
+  } else if (rawIdx) {
+    rawIndex = parseInt(rawIdx, 10);
+    type = isFiltered ? 'raw_filtered' : 'raw';
+  }
+
   return {
     filename,
     datePart,
     timePart,
     sessionNo,
-    type: rawIndex ? 'raw' : 'composite',
-    rawIndex: rawIndex ? parseInt(rawIndex, 10) : null
+    type,
+    rawIndex,
+    extension: ext.toLowerCase()
   };
 }

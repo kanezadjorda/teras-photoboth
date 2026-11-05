@@ -214,8 +214,8 @@ export function createHomeScreen({ onStatusChange } = {}) {
 
         widgetContent.innerHTML = `
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-[#E5E5E5] bg-[#FAFAFA]">
-            <div>
-              <p class="text-body font-semibold text-[#0A0A0A] uppercase">
+            <div class="min-w-0">
+              <p class="text-body font-semibold text-[#0A0A0A] uppercase break-all">
                 SESI AKTIF: ${session.id}
               </p>
               <p class="font-mono text-xs text-[#737373] mt-1">
@@ -229,7 +229,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
               id="btn-manual-confirm"
               type="button"
               data-session-id="${session.id}"
-              class="btn-sb-primary px-5 py-2.5 text-xs font-mono whitespace-nowrap cursor-pointer"
+              class="btn-sb-primary w-full md:w-auto px-5 py-2.5 text-xs font-mono whitespace-nowrap cursor-pointer shrink-0"
             >
               KONFIRMASI BAYAR MANUAL
             </button>
@@ -296,6 +296,20 @@ export function createHomeScreen({ onStatusChange } = {}) {
           printerHint.textContent = `Printer "${chosenName}" siap digunakan untuk cetak senyap otomatis (silent print).`;
         }
         onStatusChange?.();
+      }
+    });
+
+    const btnOpenPrinterSettings = el.querySelector('#btn-open-printer-settings');
+    btnOpenPrinterSettings?.addEventListener('click', async () => {
+      const chosenName = selectPrinter?.value;
+      if (!chosenName) {
+        alert('Silakan pilih perangkat printer terlebih dahulu.');
+        return;
+      }
+      if (window.photobooth?.openPrinterSettings) {
+        await window.photobooth.openPrinterSettings(chosenName);
+      } else {
+        alert(`Buka Windows Settings > Bluetooth & devices > Printers & scanners > ${chosenName} > Printing preferences untuk mengatur ukuran kertas ke 4R Borderless dan kualitas ke High.`);
       }
     });
 
@@ -375,32 +389,32 @@ export function createHomeScreen({ onStatusChange } = {}) {
         })}
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white">
             <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">SESI HARI INI</span>
             <div class="mt-2">
               <span id="home-today-sessions" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 SESI</span>
             </div>
           </div>
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white">
             <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">LUNAS</span>
             <div class="mt-2">
               <span id="home-today-paid" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 LUNAS</span>
             </div>
           </div>
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white sm:col-span-2 lg:col-span-1">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white sm:col-span-2 lg:col-span-1">
             <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">OMSET HARI INI</span>
             <div class="mt-2">
-              <span id="home-today-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">RP 0</span>
+              <span id="home-today-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight break-words">RP 0</span>
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div class="lg:col-span-2">
-            <section id="waiting-payment-section" class="card-sb border border-[#E5E5E5] bg-white h-full flex flex-col justify-between p-6">
-              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
-                <div class="flex items-center gap-2">
-                  <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">F-04</span>
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6 mb-6">
+          <div class="xl:col-span-2">
+            <section id="waiting-payment-section" class="card-sb border border-[#E5E5E5] bg-white h-full flex flex-col justify-between p-4 sm:p-6">
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E5E5]">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5] shrink-0">F-04</span>
                   <h2 class="text-body font-semibold uppercase tracking-tight text-[#0A0A0A]">
                     SESI MENUNGGU PEMBAYARAN (QRIS)
                   </h2>
@@ -415,9 +429,9 @@ export function createHomeScreen({ onStatusChange } = {}) {
           </div>
 
           <div>
-            <section class="card-sb border border-[#E5E5E5] bg-white h-full flex flex-col justify-between p-6">
+            <section class="card-sb border border-[#E5E5E5] bg-white h-full flex flex-col justify-between p-4 sm:p-6">
               <div>
-                <div class="flex items-center gap-2 pb-3 border-b border-[#E5E5E5]">
+                <div class="flex flex-wrap items-center gap-2 pb-3 border-b border-[#E5E5E5]">
                   <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">F-16</span>
                   <h3 class="text-body font-semibold uppercase text-[#0A0A0A]">TOMBOL DARURAT</h3>
                 </div>
@@ -435,17 +449,17 @@ export function createHomeScreen({ onStatusChange } = {}) {
         </div>
 
         <div class="mb-6">
-          <div class="flex items-center gap-2 pb-2 mb-4 border-b border-[#E5E5E5]">
+          <div class="flex flex-wrap items-center gap-2 pb-2 mb-4 border-b border-[#E5E5E5]">
             <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">PERANGKAT</span>
             <h2 class="text-body font-semibold uppercase tracking-tight text-[#0A0A0A]">
               STATUS & PEMILIHAN PERANGKAT
             </h2>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             <!-- Card Kamera -->
-            <div class="card-sb flex flex-col justify-between p-6 bg-white border border-[#E5E5E5]">
-              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+            <div class="card-sb flex flex-col justify-between p-4 sm:p-6 bg-white border border-[#E5E5E5]">
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E5E5]">
                 <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">PERANGKAT KAMERA</span>
                 <span id="cam-chip" class="chip-sb text-xs border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10">MEMINDAI...</span>
               </div>
@@ -463,8 +477,8 @@ export function createHomeScreen({ onStatusChange } = {}) {
             </div>
 
             <!-- Card Printer -->
-            <div class="card-sb flex flex-col justify-between p-6 bg-white border border-[#E5E5E5]">
-              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+            <div class="card-sb flex flex-col justify-between p-4 sm:p-6 bg-white border border-[#E5E5E5]">
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E5E5]">
                 <span class="text-caption font-mono uppercase text-[#737373] font-medium tracking-wider">PERANGKAT PRINTER</span>
                 <span id="printer-chip" class="chip-sb text-xs border border-[#FFD166]/40 text-[#0A0A0A] bg-[#FFD166]/10">MEMINDAI...</span>
               </div>
@@ -478,20 +492,23 @@ export function createHomeScreen({ onStatusChange } = {}) {
                 <p id="printer-hint" class="font-mono text-[11px] text-[#737373] mt-2">
                   Mendeteksi printer sistem untuk cetak senyap otomatis...
                 </p>
+                <button id="btn-open-printer-settings" type="button" class="btn-sb-secondary btn-sm w-full mt-3 font-mono text-[11px] uppercase flex items-center justify-center gap-1.5 cursor-pointer" title="Buka dialog pengaturan ukuran kertas dan kualitas cetak driver Epson">
+                  <span>⚙️ ATUR KERTAS & KUALITAS EPSON (4R BORDERLESS)</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Modal PIN Konfirmasi Manual StudioBlank (F-04) -->
-        <div id="pin-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div class="card-sb border border-[#E5E5E5] bg-white max-w-md w-full p-6 space-y-4">
-            <div class="border-b border-[#E5E5E5] pb-3 flex items-center justify-between">
+        <div id="pin-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-xs">
+          <div class="card-sb border border-[#E5E5E5] bg-white max-w-md w-full p-5 sm:p-6 space-y-4 my-auto">
+            <div class="border-b border-[#E5E5E5] pb-3 flex flex-wrap items-center justify-between gap-2">
               <span class="chip-sb text-xs font-mono text-[#737373] border border-[#E5E5E5]">OTORISASI STAFF</span>
               <span class="text-body font-semibold uppercase text-[#0A0A0A]">MASUKKAN PIN</span>
             </div>
 
-            <p class="text-body-sm text-[#737373]">
+            <p class="text-body-sm text-[#737373] break-all">
               Konfirmasi pembayaran manual untuk sesi: <span id="pin-modal-session-id" class="font-mono font-medium text-[#0A0A0A]"></span>
             </p>
 
@@ -511,7 +528,7 @@ export function createHomeScreen({ onStatusChange } = {}) {
                 </p>
               </div>
 
-              <div class="flex items-center justify-end gap-3 pt-2">
+              <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-2">
                 <button type="button" id="btn-cancel-pin-modal" class="btn-sb-secondary px-5 py-2 text-xs font-mono uppercase tracking-wider">
                   BATAL
                 </button>

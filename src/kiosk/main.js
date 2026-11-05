@@ -155,7 +155,7 @@ async function initCaptureScreen(session, template) {
     template,
     countdownSeconds,
     existingPhotos,
-    onCaptureComplete: async (photos) => {
+    onCaptureComplete: async (photos, slotVideos = []) => {
       console.log(`[Kiosk] Selesai mengambil ${photos.length} foto! Masuk ke review & pilih efek.`);
       try {
         if (isRealSession(session)) {
@@ -164,7 +164,7 @@ async function initCaptureScreen(session, template) {
       } catch (err) {
         console.warn('[Kiosk] Status update warning:', err.message);
       }
-      initReviewScreen(session, template, photos, countdownSeconds, session.effect_id || 'normal');
+      initReviewScreen(session, template, photos, countdownSeconds, session.effect_id || 'normal', slotVideos);
     }
   });
 
@@ -172,27 +172,43 @@ async function initCaptureScreen(session, template) {
 }
 
 // 4. Review & Effect Screen (with Photo Effects - PRD F-27, F-28)
-function initReviewScreen(session, template, photos, countdownSeconds = 3, currentEffectId = 'normal') {
+function initReviewScreen(session, template, photos, countdownSeconds = 3, currentEffectId = 'normal', slotVideos = []) {
   const reviewScreen = createReviewScreen({
     template,
     photos,
+    slotVideos,
     initialEffectId: currentEffectId,
     onTimeout: async () => {
       console.warn(`[Kiosk] Review foto sesi ${session.id} timeout 60 detik tanpa aktivitas.`);
       await cancelSession(session);
     },
-    onConfirm: async ({ photos: confirmedPhotos, compositeDataUrl, effectId }) => {
-      console.log(`[Kiosk] Foto dikonfirmasi pelanggan dengan efek '${effectId}', menyimpan komposit...`);
+    onConfirm: async ({
+      photos: confirmedPhotos,
+      compositeDataUrl,
+      compositeOriginalDataUrl,
+      rawFilteredPhotos,
+      gifDataUrl,
+      liveVideoDataUrl,
+      liveVideoExtension,
+      effectId
+    }) => {
+      console.log(`[Kiosk] Foto dikonfirmasi pelanggan dengan efek '${effectId}', menyimpan seluruh varian aset...`);
 
       let sessionNo = '0001';
       try {
         if (isRealSession(session)) {
-          // 1. Simpan foto komposit ke disk & database sebelum cetak (PRD F-17, F-28)
+          // 1. Simpan foto komposit & seluruh varian ke disk & database sebelum cetak (PRD F-17, F-28)
           const saveResult = await api.savePhotos(session.id, {
-            composite: compositeDataUrl
+            composite: compositeDataUrl,
+            compositeOriginal: compositeOriginalDataUrl,
+            rawPhotos: confirmedPhotos,
+            rawFilteredPhotos,
+            gif: gifDataUrl,
+            liveVideo: liveVideoDataUrl,
+            liveVideoExtension
           });
           sessionNo = saveResult?.data?.sessionNo || sessionNo;
-          console.log(`[Kiosk] Foto komposit tersimpan ke disk! Nomor sesi #${sessionNo}`);
+          console.log(`[Kiosk] Seluruh aset sesi #${sessionNo} tersimpan ke disk!`);
 
           // 2. Transisi status sesi ke printing dan simpan effect_id terpilih (PRD F-28)
           await api.updateSessionStatus(session.id, SESSION_STATES.PRINTING, undefined, effectId);

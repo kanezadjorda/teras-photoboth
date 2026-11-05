@@ -4,12 +4,11 @@ import { existsSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { app } from '../server/index.js';
 
-describe('Save Photos API (PRD F-17, F-18)', () => {
+describe('Save Photos API (PRD F-17, F-18 & Multi-Variant)', () => {
   let server = null;
   let baseUrl = '';
   const testSessionId = `sess_test_${Date.now()}`;
-  let savedCompositeFile = null;
-  let savedRawFile = null;
+  const filesToClean = [];
 
   beforeAll(async () => {
     await new Promise((resolvePromise) => {
@@ -26,32 +25,38 @@ describe('Save Photos API (PRD F-17, F-18)', () => {
       await new Promise((res) => server.close(res));
     }
     // Clean up created test files and database records
-    if (savedCompositeFile && existsSync(savedCompositeFile)) {
-      try { unlinkSync(savedCompositeFile); } catch {}
-    }
-    if (savedRawFile && existsSync(savedRawFile)) {
-      try { unlinkSync(savedRawFile); } catch {}
-    }
+    filesToClean.forEach((file) => {
+      if (file && existsSync(file)) {
+        try { unlinkSync(file); } catch {}
+      }
+    });
     db.prepare('DELETE FROM photos WHERE session_id = ?').run(testSessionId);
     db.prepare('DELETE FROM sessions WHERE id = ?').run(testSessionId);
   });
 
-  it('saves composite and raw photos to disk and records to SQLite', async () => {
-    // 1. Insert dummy session with explicit evt_default for test concurrency isolation
+  it('saves composite, original composite, raw, raw filtered, gif, and live video to disk and SQLite', async () => {
+    // 1. Insert dummy session with explicit evt_default
     db.prepare(`
       INSERT INTO sessions (id, template_id, event_id, status, dibuat_pada)
       VALUES (?, NULL, 'evt_default', 'reviewing', ?)
     `).run(testSessionId, new Date().toISOString());
 
-    // Minimal 1x1 transparent png base64
-    const dummyBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    // Minimal 1x1 png and dummy base64
+    const dummyImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const dummyGifBase64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    const dummyVideoBase64 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAA';
 
     const res = await fetch(`${baseUrl}/api/sessions/${testSessionId}/save-photos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        composite: dummyBase64,
-        rawPhotos: [dummyBase64]
+        composite: dummyImageBase64,
+        compositeOriginal: dummyImageBase64,
+        rawPhotos: [dummyImageBase64],
+        rawFilteredPhotos: [dummyImageBase64],
+        gif: dummyGifBase64,
+        liveVideo: dummyVideoBase64,
+        liveVideoExtension: 'mp4'
       })
     });
 
@@ -61,18 +66,40 @@ describe('Save Photos API (PRD F-17, F-18)', () => {
     expect(body.success).toBe(true);
     expect(body.data.sessionNo).toBeDefined();
     expect(body.data.compositeFilename).toMatch(/^\d{8}-\d{6}-\d{4}\.jpg$/);
+    expect(body.data.compositeOriginalFilename).toMatch(/^\d{8}-\d{6}-\d{4}-original\.jpg$/);
     expect(body.data.rawFilenames.length).toBe(1);
+    expect(body.data.filteredRawFilenames.length).toBe(1);
+    expect(body.data.gifFilename).toMatch(/^\d{8}-\d{6}-\d{4}-animation\.gif$/);
+    expect(body.data.liveVideoFilename).toMatch(/^\d{8}-\d{6}-\d{4}-live\.mp4$/);
 
-    savedCompositeFile = resolve(process.cwd(), 'data/photos', body.data.compositeFilename);
-    savedRawFile = resolve(process.cwd(), 'data/photos', body.data.rawFilenames[0]);
+    const compFile = resolve(process.cwd(), 'data/photos', body.data.compositeFilename);
+    const origFile = resolve(process.cwd(), 'data/photos', body.data.compositeOriginalFilename);
+    const rawFile = resolve(process.cwd(), 'data/photos', body.data.rawFilenames[0]);
+    const filtFile = resolve(process.cwd(), 'data/photos', body.data.filteredRawFilenames[0]);
+    const gifFile = resolve(process.cwd(), 'data/photos', body.data.gifFilename);
+    const liveFile = resolve(process.cwd(), 'data/photos', body.data.liveVideoFilename);
+
+    filesToClean.push(compFile, origFile, rawFile, filtFile, gifFile, liveFile);
 
     // Verify files exist on disk
-    expect(existsSync(savedCompositeFile)).toBe(true);
-    expect(existsSync(savedRawFile)).toBe(true);
+    expect(existsSync(compFile)).toBe(true);
+    expect(existsSync(origFile)).toBe(true);
+    expect(existsSync(rawFile)).toBe(true);
+    expect(existsSync(filtFile)).toBe(true);
+    expect(existsSync(gifFile)).toBe(true);
+    expect(existsSync(liveFile)).toBe(true);
 
-    // Verify recorded in SQLite photos table
+    // Verify recorded in SQLite photos table with correct tipe
     const photoRecords = db.prepare('SELECT * FROM photos WHERE session_id = ?').all(testSessionId);
-    expect(photoRecords.length).toBe(2); // 1 composite + 1 raw
+    expect(photoRecords.length).toBe(6);
+
+    const tipes = photoRecords.map((p) => p.tipe);
+    expect(tipes).toContain('composite');
+    expect(tipes).toContain('composite_original');
+    expect(tipes).toContain('raw');
+    expect(tipes).toContain('raw_filtered');
+    expect(tipes).toContain('animation');
+    expect(tipes).toContain('live');
   });
 
   it('returns 400 if composite base64 is missing', async () => {

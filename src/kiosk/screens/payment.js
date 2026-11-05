@@ -42,12 +42,12 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col items-center justify-between w-full h-full max-w-5xl mx-auto p-6 box-border font-body';
+      'flex flex-col items-center justify-between w-full min-h-screen max-w-5xl 2xl:max-w-6xl mx-auto p-4 sm:p-6 md:p-8 xl:p-10 box-border font-body';
 
     container.innerHTML = `
       <!-- Header (StudioBlank: 1px border, clear hierarchy) -->
-      <div class="w-full flex items-center justify-between border-b border-[#D4D4D8] pb-4 mb-4">
-        <div>
+      <div class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#D4D4D8] pb-4 mb-4">
+        <div class="min-w-0">
           <h1 class="text-h1 uppercase text-[#0A0A0A]">
             PEMBAYARAN QRIS
           </h1>
@@ -55,7 +55,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
             Pindai kode QRIS menggunakan GoPay, OVO, Dana, BCA, atau Mobile Banking apa saja
           </p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0">
           <div class="chip-sb font-mono text-xs text-[#71717A]">
             SESI: ${sessionId.substring(0, 14)}
           </div>
@@ -66,19 +66,19 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
       </div>
 
       <!-- Main Payment Body -->
-      <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center my-auto py-2">
+      <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 items-center justify-center my-auto py-2">
         <!-- Left: QRIS Card Frame -->
         <div class="flex flex-col items-center justify-center">
-          <div class="card-sb border border-[#E5E5E5] bg-white p-6 max-w-[360px] w-full flex flex-col items-center hover:border-[#0A0A0A]">
+          <div class="card-sb border border-[#E5E5E5] bg-white p-4 sm:p-6 max-w-[360px] w-full flex flex-col items-center hover:border-[#0A0A0A]">
             <!-- QRIS Header Label -->
-            <div class="w-full border-b border-[#E5E5E5] pb-3 mb-4 flex items-center justify-between">
-              <span class="font-headline text-lg font-bold tracking-wider text-[#0A0A0A]">QRIS</span>
+            <div class="w-full border-b border-[#E5E5E5] pb-3 mb-4 flex items-center justify-between gap-2">
+              <span class="font-headline text-base sm:text-lg font-bold tracking-wider text-[#0A0A0A]">QRIS</span>
               <span class="chip-sb chip-sb-selected text-[10px] px-2 py-0.5">STANDAR NASIONAL</span>
             </div>
 
             <!-- QR Code Image / Container -->
-            <div id="qr-container" class="w-64 h-64 border border-[#D4D4D8] bg-[#FAFAFA] flex items-center justify-center overflow-hidden">
-              <p class="font-mono text-xs text-[#71717A] animate-pulse">MEMBUAT KODE QRIS...</p>
+            <div id="qr-container" class="w-52 h-52 sm:w-60 sm:h-60 lg:w-64 lg:h-64 max-w-full aspect-square border border-[#D4D4D8] bg-[#FAFAFA] flex items-center justify-center overflow-hidden">
+              <p class="font-mono text-xs text-[#71717A] animate-pulse text-center px-2">MEMBUAT KODE QRIS...</p>
             </div>
 
             <!-- Instruction -->
@@ -89,11 +89,11 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
         </div>
 
         <!-- Right: Nominal & Countdown Card -->
-        <div class="flex flex-col space-y-5 max-w-md w-full mx-auto md:mx-0">
+        <div class="flex flex-col space-y-4 sm:space-y-5 max-w-md w-full mx-auto md:mx-0">
           <!-- Total Tagihan -->
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A]">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A]">
             <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] block mb-1">TOTAL PEMBAYARAN</span>
-            <div id="payment-nominal" class="font-headline text-4xl md:text-5xl font-bold text-[#0A0A0A] mt-1 tracking-tight">
+            <div id="payment-nominal" class="font-headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#0A0A0A] mt-1 tracking-tight break-words">
               ${formatPrice(DEFAULTS.SESSION_PRICE)}
             </div>
             <p class="text-body-sm text-[#71717A] mt-2 font-light">
@@ -102,9 +102,9 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           </div>
 
           <!-- Countdown Timer -->
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A]">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white hover:border-[#0A0A0A]">
             <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] block mb-1">SISA WAKTU PEMBAYARAN</span>
-            <div id="payment-timer" class="font-mono text-4xl md:text-5xl font-semibold text-[#0A0A0A] tracking-wider mt-1">
+            <div id="payment-timer" class="font-mono text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#0A0A0A] tracking-wider mt-1">
               03:00
             </div>
             <div class="w-full bg-[#F4F4F5] h-1.5 mt-4 overflow-hidden">
@@ -113,7 +113,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           </div>
 
           <!-- Status Indicator -->
-          <div id="payment-status-box" class="border border-[#E5E5E5] bg-[#FAFAFA] p-4 flex items-center gap-3">
+          <div id="payment-status-box" class="border border-[#E5E5E5] bg-[#FAFAFA] p-3.5 sm:p-4 flex items-center gap-3">
             <div class="w-2.5 h-2.5 bg-[#0A0A0A] animate-pulse shrink-0"></div>
             <p id="payment-status-text" class="font-mono text-xs text-[#0A0A0A] uppercase tracking-wider">
               MENUNGGU PEMBAYARAN DARI PELANGGAN...
@@ -122,7 +122,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
 
           <!-- Dev Simulator Panel (Sandbox Only) -->
           <div id="dev-sim-wrapper" class="hidden card-sb p-4 border border-dashed border-[#A1A1AA] bg-[#FAFAFA] space-y-2">
-            <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-2">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-2">
               <span class="font-mono text-[11px] uppercase text-[#71717A]">[DEV PANEL - SANDBOX ONLY]</span>
               <span class="chip-sb text-[9px] px-1.5 py-0.5">SANDBOX</span>
             </div>
@@ -157,8 +157,8 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
       </div>
 
       <!-- Confirmation Modal for Cancellation -->
-      <div id="modal-confirm-cancel" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 select-none backdrop-blur-xs">
-        <div class="card-sb border border-[#E5E5E5] bg-white max-w-md w-full p-8 space-y-6">
+      <div id="modal-confirm-cancel" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto select-none backdrop-blur-xs">
+        <div class="card-sb border border-[#E5E5E5] bg-white max-w-md w-full p-5 sm:p-8 space-y-6 my-auto">
           <!-- Header -->
           <div class="border-b border-[#E5E5E5] pb-4 space-y-2">
             <span class="font-mono text-xs uppercase tracking-widest text-[#71717A] font-medium">
@@ -173,7 +173,7 @@ export function createPaymentScreen({ sessionId, onPaid, onExpired, onCancel }) 
           </div>
 
           <!-- Pilihan Tombol YA / TIDAK -->
-          <div class="flex flex-row gap-4 pt-2">
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
             <button id="btn-cancel-yes" type="button" class="btn-sb-destructive flex-1 h-12 text-xs font-mono uppercase tracking-wider cursor-pointer">
               YA, BATALKAN
             </button>

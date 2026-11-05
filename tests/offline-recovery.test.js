@@ -32,7 +32,7 @@ describe('Offline Resilience & Session Recovery (PRD Bagian 7 & 12)', () => {
       db.prepare("UPDATE sessions SET status = 'cancelled' WHERE status NOT IN ('done', 'cancelled', 'expired')").run();
 
       // 1. Insert session simulating abrupt crash during capturing
-      const nowIso = new Date().toISOString();
+      const nowIso = new Date(Date.now() + 5000).toISOString();
       db.prepare(`
         INSERT INTO sessions (id, template_id, status, dibuat_pada)
         VALUES (?, NULL, 'capturing', ?)

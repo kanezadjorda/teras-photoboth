@@ -21,8 +21,40 @@ router.get('/:token', (req, res) => {
     }
 
     const photos = db.prepare('SELECT * FROM photos WHERE session_id = ? ORDER BY urutan ASC').all(session.id);
-    const compositePhoto = photos.find((p) => p.urutan === 0);
-    const rawPhotos = photos.filter((p) => p.urutan > 0);
+    const compositePhoto = photos.find((p) => p.tipe === 'composite' || (p.urutan === 0 && p.tipe !== 'composite_original'));
+    const compositeOriginalPhoto = photos.find((p) => p.tipe === 'composite_original');
+    const gifPhoto = photos.find((p) => p.tipe === 'animation');
+    const liveVideo = photos.find((p) => p.tipe === 'live');
+
+    const rawPhotos = photos.filter((p) => p.tipe === 'raw' || (!p.tipe && p.urutan > 0));
+    const rawFilteredPhotos = photos.filter((p) => p.tipe === 'raw_filtered');
+
+    // Kelompokkan foto mentah per urutan
+    const rawPhotoMap = new Map();
+    rawPhotos.forEach((p) => {
+      rawPhotoMap.set(p.urutan, {
+        urutan: p.urutan,
+        filename: p.path_file,
+        localUrl: `/photos/${p.path_file}`,
+        r2Url: getPublicUrl(`sessions/${session.token}/${p.path_file}`)
+      });
+    });
+
+    rawFilteredPhotos.forEach((p) => {
+      const existing = rawPhotoMap.get(p.urutan);
+      if (existing) {
+        existing.filteredFilename = p.path_file;
+        existing.filteredLocalUrl = `/photos/${p.path_file}`;
+        existing.filteredR2Url = getPublicUrl(`sessions/${session.token}/${p.path_file}`);
+      } else {
+        rawPhotoMap.set(p.urutan, {
+          urutan: p.urutan,
+          filteredFilename: p.path_file,
+          filteredLocalUrl: `/photos/${p.path_file}`,
+          filteredR2Url: getPublicUrl(`sessions/${session.token}/${p.path_file}`)
+        });
+      }
+    });
 
     // Hitung antrean upload untuk sesi ini
     const queueStats = db.prepare(`
@@ -51,12 +83,22 @@ router.get('/:token', (req, res) => {
           localUrl: `/photos/${compositePhoto.path_file}`,
           r2Url: getPublicUrl(`sessions/${session.token}/${compositePhoto.path_file}`)
         } : null,
-        photos: rawPhotos.map((p) => ({
-          urutan: p.urutan,
-          filename: p.path_file,
-          localUrl: `/photos/${p.path_file}`,
-          r2Url: getPublicUrl(`sessions/${session.token}/${p.path_file}`)
-        }))
+        compositeOriginal: compositeOriginalPhoto ? {
+          filename: compositeOriginalPhoto.path_file,
+          localUrl: `/photos/${compositeOriginalPhoto.path_file}`,
+          r2Url: getPublicUrl(`sessions/${session.token}/${compositeOriginalPhoto.path_file}`)
+        } : null,
+        gif: gifPhoto ? {
+          filename: gifPhoto.path_file,
+          localUrl: `/photos/${gifPhoto.path_file}`,
+          r2Url: getPublicUrl(`sessions/${session.token}/${gifPhoto.path_file}`)
+        } : null,
+        live: liveVideo ? {
+          filename: liveVideo.path_file,
+          localUrl: `/photos/${liveVideo.path_file}`,
+          r2Url: getPublicUrl(`sessions/${session.token}/${liveVideo.path_file}`)
+        } : null,
+        photos: Array.from(rawPhotoMap.values()).sort((a, b) => a.urutan - b.urutan)
       }
     });
   } catch (err) {
@@ -66,4 +108,3 @@ router.get('/:token', (req, res) => {
 });
 
 export default router;
-

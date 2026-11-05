@@ -192,7 +192,7 @@ export function createTemplateEditor({ onBack }) {
       row.className = 'border border-[#E5E5E5] bg-white p-3 space-y-2';
 
       row.innerHTML = `
-        <div class="flex items-center justify-between pb-1 border-b border-[#E5E5E5]">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-[#E5E5E5]">
           <span class="font-mono text-xs uppercase font-medium text-[#0A0A0A]">
             SLOT #${index + 1} <span class="slot-title-photo text-[#737373] text-[11px]">(FOTO #${currentPhotoIdx})</span>
           </span>
@@ -202,7 +202,7 @@ export function createTemplateEditor({ onBack }) {
             <button class="btn-delete-slot btn-sb-destructive px-2 py-0.5 text-xs font-mono">✕</button>
           </div>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 font-mono text-xs">
           <div>
             <label class="block text-[10px] uppercase font-medium text-[#737373] mb-0.5" title="Nomor jepretan foto yang akan mengisi slot ini">FOTO #</label>
             <input type="number" min="1" class="slot-photo-idx input-sb p-1 text-xs bg-[#FAFAFA] font-medium text-[#0A0A0A]" value="${currentPhotoIdx}" />
@@ -376,26 +376,26 @@ export function createTemplateEditor({ onBack }) {
 
     container.innerHTML = `
       <!-- Sub-header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5]">
-        <div>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-[#E5E5E5]">
+        <div class="min-w-0">
           <h2 class="text-h3 font-semibold uppercase text-[#0A0A0A]">MANAJEMEN & EDITOR TEMPLATE</h2>
-          <p class="text-caption font-mono uppercase text-[#737373]">UNGGAH PNG 4R (1200×1800 PX) &bull; DETEKSI LUBANG FOTO OTOMATIS &bull; KOREKSI SLOT</p>
+          <p class="text-caption font-mono uppercase text-[#737373] mt-0.5">UNGGAH PNG 4R (1200×1800 PX) &bull; DETEKSI LUBANG FOTO OTOMATIS &bull; KOREKSI SLOT</p>
         </div>
-        <button id="btn-back" class="btn-sb-secondary px-5 py-2 text-xs font-mono uppercase tracking-wider self-start sm:self-auto">
+        <button id="btn-back" class="btn-sb-secondary w-full sm:w-auto px-5 py-2 text-xs font-mono uppercase tracking-wider shrink-0">
           KEMBALI KE DASHBOARD
         </button>
       </div>
 
       <!-- Upload & Editor Workspace -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start">
         <!-- Left: Upload & Interactive Canvas Preview 4R Full -->
-        <div class="lg:col-span-5 xl:col-span-5 space-y-4">
-          <div class="card-sb flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white border border-[#E5E5E5]">
+        <div class="xl:col-span-5 space-y-4">
+          <div class="card-sb flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-[#E5E5E5]">
             <div class="flex-1 min-w-0">
               <label class="block text-caption font-mono uppercase text-[#737373] mb-1">PILIH FILE TEMPLATE PNG</label>
               <input type="file" id="file-upload" accept="image/png" class="font-mono text-xs cursor-pointer w-full mt-1" />
             </div>
-            <span class="chip-sb text-[10px] self-start md:self-auto shrink-0 border border-[#E5E5E5] text-[#737373]">4R (1200×1800 PX)</span>
+            <span class="chip-sb text-[10px] self-start sm:self-auto shrink-0 border border-[#E5E5E5] text-[#737373]">4R (1200×1800 PX)</span>
           </div>
 
           <!-- Canvas Preview 4R Full tanpa scroll -->
@@ -404,9 +404,9 @@ export function createTemplateEditor({ onBack }) {
               id="canvas-preview"
               width="1200"
               height="1800"
-              class="aspect-[2/3] h-[520px] sm:h-[560px] lg:h-[600px] max-h-[calc(100vh-280px)] w-auto max-w-full border border-[#D4D4D8] bg-white block"
+              class="aspect-[2/3] w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[400px] h-auto border border-[#D4D4D8] bg-white block"
             ></canvas>
-            <div class="mt-3 flex items-center justify-between w-full max-w-[400px] text-[11px] font-mono text-[#737373]">
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 w-full max-w-[400px] text-[11px] font-mono text-[#737373]">
               <span>FORMAT 4R (2:3)</span>
               <span>1200 × 1800 PX &bull; 300 DPI</span>
             </div>
@@ -414,8 +414,8 @@ export function createTemplateEditor({ onBack }) {
         </div>
 
         <!-- Right: Slot Controls & Form -->
-        <div class="lg:col-span-7 xl:col-span-7 space-y-6">
-          <div class="card-sb space-y-4 p-6 bg-white border border-[#E5E5E5]">
+        <div class="xl:col-span-7 space-y-6">
+          <div class="card-sb space-y-4 p-4 sm:p-6 bg-white border border-[#E5E5E5]">
             <h3 class="text-body font-semibold uppercase text-[#0A0A0A] pb-3 border-b border-[#E5E5E5]">
               INFORMASI & SLOT FOTO
             </h3>
@@ -427,7 +427,7 @@ export function createTemplateEditor({ onBack }) {
 
             <!-- Slots list -->
             <div class="space-y-3">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <label class="block text-caption font-mono uppercase text-[#737373] mb-0">DAFTAR KOREKSI SLOT</label>
                 <button id="btn-add-slot" class="btn-sb-secondary px-3 py-1 text-xs font-mono uppercase tracking-wider cursor-pointer">
                   + TAMBAH SLOT MANUAL
@@ -452,7 +452,7 @@ export function createTemplateEditor({ onBack }) {
           <h3 class="text-h3 font-semibold uppercase text-[#0A0A0A]">GALERI TEMPLATE TERSIMPAN</h3>
           <span class="font-mono text-xs text-[#737373]">HANYA TEMPLATE AKTIF YANG MUNCUL DI KIOSK</span>
         </div>
-        <div id="template-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        <div id="template-gallery" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6"></div>
       </section>
     `;
 

@@ -41,21 +41,21 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
 
         const card = document.createElement('div');
         card.className =
-          'card-sb flex flex-col justify-between cursor-pointer group bg-white border border-[#E5E5E5] hover:border-[#0A0A0A] transition-colors duration-150 p-5 space-y-4';
+          'card-sb flex flex-col justify-between cursor-pointer group bg-white border border-[#E5E5E5] hover:border-[#0A0A0A] transition-colors duration-150 p-4 sm:p-5 space-y-4';
 
         card.innerHTML = `
           <div class="space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-[#E5E5E5]">
-              <h3 class="font-headline text-base font-semibold uppercase text-[#0A0A0A] truncate">
+            <div class="flex items-center justify-between gap-2 pb-2 border-b border-[#E5E5E5]">
+              <h3 class="font-headline text-sm sm:text-base font-semibold uppercase text-[#0A0A0A] truncate min-w-0">
                 ${tpl.nama}
               </h3>
-              <span class="chip-sb text-[10px] font-mono text-[#71717A]">
+              <span class="chip-sb text-[10px] font-mono text-[#71717A] shrink-0">
                 ${photoBadgeText}
               </span>
             </div>
 
             <!-- Thumbnail Preview: StudioBlank clean image container -->
-            <div class="aspect-[2/3] bg-[#FAFAFA] border border-[#E5E5E5] overflow-hidden flex items-center justify-center p-3 group-hover:border-[#0A0A0A] transition-colors duration-150">
+            <div class="aspect-[2/3] bg-[#FAFAFA] border border-[#E5E5E5] overflow-hidden flex items-center justify-center p-2.5 sm:p-3 group-hover:border-[#0A0A0A] transition-colors duration-150">
               <img src="/templates/${tpl.file_png}" alt="${tpl.nama}" class="w-full h-full object-contain" />
             </div>
           </div>
@@ -117,11 +117,11 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
   function mount(parent) {
     container = document.createElement('div');
     container.className =
-      'flex flex-col justify-between w-full h-full max-w-6xl mx-auto p-6 md:p-8 box-border font-body overflow-y-auto select-none';
+      'flex flex-col justify-between w-full min-h-screen max-w-6xl 2xl:max-w-7xl mx-auto p-4 sm:p-6 md:p-8 xl:p-10 box-border font-body select-none';
 
     container.innerHTML = `
       <!-- Header (StudioBlank: 1px border, refined hierarchy) -->
-      <div class="flex items-center justify-between pb-4 mb-6 border-b border-[#D4D4D8]">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 sm:mb-6 border-b border-[#D4D4D8]">
         <div>
           <h1 class="text-h1 uppercase text-[#0A0A0A]">
             PILIH TEMPLATE CETAKAN
@@ -133,14 +133,14 @@ export function createChooseTemplateScreen({ onSelectTemplate, onTimeout }) {
       </div>
 
       <!-- Templates Grid -->
-      <div id="templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-auto py-2">
-        <div class="col-span-full font-mono text-sm text-center p-12 border border-[#E5E5E5] bg-white text-[#71717A]">
+      <div id="templates-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 my-auto py-2">
+        <div class="col-span-full font-mono text-sm text-center p-8 sm:p-12 border border-[#E5E5E5] bg-white text-[#71717A]">
           MEMUAT DAFTAR TEMPLATE AKTIF...
         </div>
       </div>
 
       <!-- Footer Info -->
-      <div class="mt-6 pt-4 border-t border-[#D4D4D8] flex items-center justify-between font-mono text-xs text-[#71717A]">
+      <div class="mt-6 pt-4 border-t border-[#D4D4D8] flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left font-mono text-xs text-[#71717A]">
         <span>FORMAT CETAK: 4R (1200×1800 PX) BORDERLESS</span>
         <span>KLIK PADA SALAH SATU KARTU UNTUK MEMILIH</span>
       </div>

@@ -26,8 +26,8 @@ export function createDoneScreen({
       const galleryUrl = token ? `${base}/s/${token}` : '';
 
       container.innerHTML = `
-        <div class="w-full h-full min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center p-6 select-none font-sans">
-          <div class="card-sb max-w-2xl w-full flex flex-col items-center text-center p-8 md:p-10 bg-white border border-[#E5E5E5] space-y-6">
+        <div class="w-full min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 select-none font-sans">
+          <div class="card-sb max-w-2xl w-full flex flex-col items-center text-center p-5 sm:p-8 md:p-10 bg-white border border-[#E5E5E5] space-y-5 sm:space-y-6 my-auto">
             
             <!-- Badge Sesi Selesai -->
             <div class="chip-sb text-xs py-1 px-3 font-mono text-[#0A0A0A] bg-[#FAFAFA] border border-[#D4D4D8] uppercase tracking-wider">
@@ -45,15 +45,15 @@ export function createDoneScreen({
             </div>
 
             <!-- Box Info Soft File & QR Code Dinamis -->
-            <div class="w-full border border-[#E5E5E5] bg-[#FAFAFA] p-6 text-left">
-              <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-3 mb-4">
+            <div class="w-full border border-[#E5E5E5] bg-[#FAFAFA] p-4 sm:p-6 text-left">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3 mb-4">
                 <span class="font-mono text-xs uppercase tracking-wider text-[#737373]">NOMOR SESI ANDA:</span>
-                <span class="font-mono font-semibold text-lg text-[#0A0A0A] tracking-wider">#${sessionNo}</span>
+                <span class="font-mono font-semibold text-base sm:text-lg text-[#0A0A0A] tracking-wider">#${sessionNo}</span>
               </div>
 
-              <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                 <!-- QR Code Container -->
-                <div class="border border-[#E5E5E5] bg-white p-2 shrink-0 flex items-center justify-center w-[160px] h-[160px] shadow-sm">
+                <div class="border border-[#E5E5E5] bg-white p-2 shrink-0 flex items-center justify-center w-[144px] h-[144px] sm:w-[160px] sm:h-[160px] shadow-sm">
                   <img id="qr-image" src="" alt="QR Code Galeri" class="w-full h-full object-contain hidden" />
                   <div id="qr-loading" class="text-caption font-mono text-[#737373] text-center">
                     MEMBUAT QR...
@@ -61,7 +61,7 @@ export function createDoneScreen({
                 </div>
 
                 <!-- Petunjuk Scan -->
-                <div class="space-y-2 text-center sm:text-left flex-1">
+                <div class="space-y-2 text-center sm:text-left flex-1 min-w-0">
                   <div class="text-body-sm font-semibold uppercase text-[#0A0A0A]">
                     PINDAI UNTUK UNDUH SOFT FILE DIGITAL
                   </div>
@@ -80,15 +80,15 @@ export function createDoneScreen({
             </div>
 
             <!-- Countdown Timer & Tombol Selesai -->
-            <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-[#E5E5E5]">
-              <div class="font-mono text-xs text-[#737373] flex items-center gap-2">
-                <span class="w-2 h-2 bg-[#2BB673] inline-block"></span>
+            <div class="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2 border-t border-[#E5E5E5]">
+              <div class="font-mono text-xs text-[#737373] flex items-center justify-center sm:justify-start gap-2">
+                <span class="w-2 h-2 bg-[#2BB673] inline-block shrink-0"></span>
                 <span>KEMBALI KE AWAL DALAM <strong id="done-countdown" class="text-xs font-semibold text-[#0A0A0A]">${remainingSeconds}</strong> DETIK</span>
               </div>
 
               <button
                 id="btn-done-finish"
-                class="btn-sb-primary btn-kiosk px-8 text-xs font-mono uppercase tracking-wider w-full sm:w-auto cursor-pointer"
+                class="btn-sb-primary btn-kiosk px-6 sm:px-8 text-xs font-mono uppercase tracking-wider w-full sm:w-auto cursor-pointer"
               >
                 SELESAI SEKARANG &rarr;
               </button>

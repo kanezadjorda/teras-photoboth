@@ -255,16 +255,16 @@ export function createReportsScreen() {
           title: 'LAPORAN',
           description: 'Omset, riwayat transaksi, dan cetak ulang',
           actionsHtml: `
-            <div class="flex items-center gap-2">
-              <span class="text-caption font-mono uppercase text-[#737373] font-medium">FILTER:</span>
-              <select id="select-report-event" class="input-sb py-1.5 px-3 text-xs font-mono bg-white">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <span class="text-caption font-mono uppercase text-[#737373] font-medium shrink-0">FILTER:</span>
+              <select id="select-report-event" class="input-sb py-1.5 px-3 text-xs font-mono bg-white flex-1 sm:w-48">
                 <option value="">SEMUA EVENT</option>
               </select>
             </div>
-            <button id="btn-refresh-history" class="btn-sb-secondary px-4 py-2 text-xs font-mono uppercase tracking-wider">
+            <button id="btn-refresh-history" class="btn-sb-secondary flex-1 sm:flex-initial px-4 py-2 text-xs font-mono uppercase tracking-wider">
               REFRESH
             </button>
-            <button id="btn-export-csv" class="btn-sb-primary px-4 py-2 text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2">
+            <button id="btn-export-csv" class="btn-sb-primary flex-1 sm:flex-initial px-4 py-2 text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2">
               <span>EKSPOR CSV</span>
             </button>
           `
@@ -272,33 +272,33 @@ export function createReportsScreen() {
 
         <!-- 4 Kartu Ringkasan -->
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6">
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white">
             <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">TOTAL SESI HARI INI</span>
-            <div class="mt-2 flex items-baseline justify-between">
+            <div class="mt-2 flex flex-wrap items-baseline justify-between gap-2">
               <span id="report-today-sessions" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 SESI</span>
               <span id="report-today-paid" class="font-mono text-xs text-[#737373]">0 LUNAS</span>
             </div>
           </div>
 
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white">
             <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">OMSET HARI INI</span>
             <div class="mt-2">
-              <span id="report-today-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">RP 0</span>
+              <span id="report-today-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight break-words">RP 0</span>
             </div>
           </div>
 
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white">
             <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">TOTAL SESI (AKUMULASI)</span>
-            <div class="mt-2 flex items-baseline justify-between">
+            <div class="mt-2 flex flex-wrap items-baseline justify-between gap-2">
               <span id="report-alltime-sessions" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">0 SESI</span>
               <span id="report-alltime-paid" class="font-mono text-xs text-[#737373]">0 LUNAS</span>
             </div>
           </div>
 
-          <div class="card-sb p-6 border border-[#E5E5E5] bg-white">
+          <div class="card-sb p-4 sm:p-6 border border-[#E5E5E5] bg-white">
             <span class="text-caption font-mono uppercase text-[#737373] tracking-wider font-medium">TOTAL OMSET (AKUMULASI)</span>
             <div class="mt-2">
-              <span id="report-alltime-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight">RP 0</span>
+              <span id="report-alltime-revenue" class="text-h2 font-semibold text-[#0A0A0A] tracking-tight break-words">RP 0</span>
             </div>
           </div>
         </div>

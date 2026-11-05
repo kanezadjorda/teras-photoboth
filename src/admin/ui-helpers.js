@@ -4,12 +4,12 @@
  */
 export function pageHeader({ title, description, actionsHtml = '' }) {
   return `
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 mb-6 border-b border-[#E5E5E5]">
-      <div>
-        <h1 class="text-h2 font-semibold text-[#0A0A0A] tracking-tight uppercase">${title}</h1>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 pb-4 mb-6 border-b border-[#E5E5E5]">
+      <div class="min-w-0">
+        <h1 class="text-h2 font-semibold text-[#0A0A0A] tracking-tight uppercase break-words">${title}</h1>
         <p class="text-body-sm text-[#737373] mt-1">${description}</p>
       </div>
-      <div class="flex flex-wrap items-center gap-2 sm:gap-3">${actionsHtml}</div>
+      ${actionsHtml ? `<div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto shrink-0">${actionsHtml}</div>` : ''}
     </div>
   `;
 }

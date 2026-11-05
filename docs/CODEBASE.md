@@ -74,12 +74,14 @@ teras-photobooth/
 │       └── payments.js        # Integrasi QRIS dinamis, background poller, dan verifikasi manual staff
 │
 ├── src/                       # Frontend antarmuka pengguna
-│   ├── styles.css             # Import Tailwind CSS v4 & konfigurasi tema RawBlock
+│   ├── styles.css             # Import Tailwind CSS v4 & konfigurasi tema StudioBlank
 │   ├── shared/                # Modul logika bersama (reusable & pure logic)
 │   │   ├── constants.js       # Konstanta global (status sesi, ukuran kanvas 4R, batas waktu)
 │   │   ├── session-state.js   # Pure state machine transisi status sesi photobooth
 │   │   ├── camera.js          # Modul kamera WebRTC (start/stop stream, capture frame mirror)
 │   │   ├── composite.js       # Kompositor foto 4R 1200x1800 300 DPI dengan template PNG
+│   │   ├── gif.js             # Generator GIF animasi looping dari foto satuan (gifenc)
+│   │   ├── video-composer.js  # Komposer Live Video Template bergerak dari klip slot (MediaRecorder)
 │   │   ├── slot-detector.js   # Detektor otomatis lubang transparan alpha PNG (Connected Component)
 │   │   └── api.js             # Klien fetch API ke backend + polyfill browser untuk print
 │   ├── kiosk/                 # Antarmuka Layar Pelanggan (Monitor 2)
@@ -87,34 +89,26 @@ teras-photobooth/
 │   │   ├── main.js            # Entry point script kiosk & router state machine layar
 │   │   └── screens/           # Komponen layar modular (pola mount/unmount)
 │   │       ├── welcome.js     # Layar sambutan ("Sentuh/Klik untuk Mulai")
+│   │       ├── instructions.js # Layar tata cara 4 langkah bergambar & idle timeout 60s
 │   │       ├── payment.js     # Layar QRIS dinamis, hitung mundur 3 menit & listener SSE
 │   │       ├── choose-template.js # Layar galeri pemilihan template aktif
-│   │       ├── capture.js     # Layar hitung mundur, shutter flash & jepret foto beruntun
-│   │       └── review.js      # Layar pratinjau komposit 4R & retake foto (maksimal 1x)
+│   │       ├── capture.js     # Layar hitung mundur, perekam live video slot & shutter flash
+│   │       ├── review.js      # Layar pratinjau komposit 4R, 7 preset efek & ekspor multi-varian
+│   │       ├── printing.js    # Layar status cetak otomatis CSS @page (N salinan)
+│   │       └── done.js        # Layar selesai dengan QR code dinamis galeri web
 │   └── admin/                 # Antarmuka Layar Staff / Operator (Laptop)
-│       ├── index.html         # Dokumen HTML panel admin dengan CSP ketat
-│       ├── main.js            # Entry point otentikasi PIN & mounting shell admin
-│       ├── router.js          # Helper routing murni berbasis hash (#/beranda, dsb.)
-│       ├── shell.js           # Layout sidebar, live top bar, router hash, SSE & background poller
-│       ├── ui-helpers.js      # Helper UI bersama (pageHeader, formatRupiah)
-│       └── screens/           # Komponen layar modular admin
-│           ├── pin-modal.js   # Modal otentikasi keypad PIN operator
-│           ├── home.js        # Beranda (statistik hari ini, sesi menunggu bayar, tombol darurat, monitor perangkat)
-│           ├── events.js      # Pengelolaan folder kegiatan & sinkronisasi Google Drive
-│           ├── reports.js     # Laporan omset, riwayat transaksi & cetak ulang foto
-│           ├── settings.js    # Pengaturan harga sesi, jumlah cetak & PIN operator
-│           └── template-editor.js # Visual editor koordinat slot template & uploader PNG
+│
+├── gallery/                   # Web Galeri Unduh Soft File (Vercel Serverless / Static)
+│   ├── index.html             # Antarmuka galeri responsif (Live Video, 4R Composite, GIF, Raw Shots)
+│   ├── config.js              # Fallback URL Cloudflare R2 publik
+│   └── api/                   # Serverless edge endpoint (meta.js, photo.js)
 │
 ├── data/                      # Folder data lokal (runtime storage)
 │   ├── photobooth.db          # Database file SQLite (dibuat otomatis saat runtime)
-│   └── photos/                # Direktori penyimpanan file foto mentah dan komposit cetak
+│   └── photos/                # Direktori penyimpanan foto, GIF, dan video template
 │
 ├── templates/                 # Direktori penyimpanan file template cetakan (PNG + JSON)
-└── tests/                     # Unit testing (Vitest)
-    ├── session-state.test.js  # Pengujian otomatis logika transisi state machine sesi
-    ├── payment.test.js        # Pengujian mapping status Midtrans, base URL & mock QRIS
-    ├── composite.test.js      # Pengujian komposit kanvas 1200x1800 300 DPI
-    └── slot-detector.test.js  # Pengujian deteksi lubang transparan template PNG
+└── tests/                     # Unit testing (Vitest - 17 suite, 114 test)
 ```
 
 ---
@@ -134,6 +128,9 @@ Sesuai filosofi **KISS (Keep It Simple, Stupid)** dan **YAGNI (You Aren't Gonna 
 | **`better-sqlite3`** | `^13.0.3` | Driver SQLite paling cepat dan stabil untuk Node.js. Berjalan sinkron (tanpa event loop lag), bebas ketergantungan server terpisah, dan mendukung WAL mode. |
 | **`cors`** | `^2.8.6` | Mengizinkan permintaan lintas domain saat Vite dev server (`port 5173`) mengakses Express API (`port 3000`). |
 | **`dotenv`** | `^18.0.7` | Membaca konfigurasi sensitif (API Key payment gateway, port, admin PIN) dari file lokal `.env` ke `process.env`. |
+| **`@aws-sdk/client-s3`** | `^3.1161.0` | Klien S3 resmi AWS untuk sinkronisasi async berkas foto, GIF, dan live video ke Cloudflare R2 bucket. |
+| **`qrcode`** | `^1.5.4` | Generator QR code dinamis per sesi untuk akses unduh galeri web privat customer. |
+| **`gifenc`** | `^1.0.3` | Encoder animasi GIF murni JavaScript yang ultra-ringan (~3KB, zero native dependencies) untuk merangkai foto satuan menjadi animasi bergerak. |
 
 ### 3.2. Development Dependencies (`devDependencies`)
 

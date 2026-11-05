@@ -61,11 +61,11 @@ export function createSettingsScreen() {
           title: 'PENGATURAN',
           description: 'Harga sesi, jumlah cetak, durasi countdown, dan PIN operator'
         })}
-        <section class="card-sb my-6 bg-white p-6 lg:p-8 border border-[#E5E5E5]">
+        <section class="card-sb my-6 bg-white p-4 sm:p-6 lg:p-8 border border-[#E5E5E5]">
           <h2 class="text-h3 font-semibold uppercase tracking-tight text-[#0A0A0A] pb-3 mb-6 border-b border-[#E5E5E5]">
             PENGATURAN SESI & KEAMANAN
           </h2>
-          <div id="settings-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div id="settings-form" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 sm:gap-6">
             <div>
               <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">HARGA PER SESI (RUPIAH)</label>
               <input type="number" id="setting-price" class="input-sb w-full font-mono text-xs" />
@@ -91,13 +91,13 @@ export function createSettingsScreen() {
               <input type="password" id="setting-pin" maxlength="4" class="input-sb font-mono tracking-widest text-center w-full text-xs" placeholder="1234" />
               <p class="text-caption text-[#737373] mt-1">PIN untuk membuka panel & konfirmasi manual (F-14)</p>
             </div>
-            <div class="sm:col-span-2 lg:col-span-4">
+            <div class="sm:col-span-2 xl:col-span-4">
               <label class="block text-caption font-mono uppercase text-[#737373] mb-1 font-medium">BASE URL GALERI WEB (VERCEL / PUBLIC)</label>
               <input type="text" id="setting-gallery-url" class="input-sb w-full font-mono text-xs" placeholder="https://teras-booth.vercel.app" />
               <p class="text-caption text-[#737373] mt-1">URL publik galeri untuk di-generate ke QR Code di layar Selesai</p>
             </div>
-            <div class="sm:col-span-2 lg:col-span-4 flex justify-end pt-2 border-t border-[#E5E5E5]">
-              <button id="btn-save-settings" class="btn-sb-primary px-6 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer">
+            <div class="sm:col-span-2 xl:col-span-4 flex justify-end pt-2 border-t border-[#E5E5E5]">
+              <button id="btn-save-settings" class="btn-sb-primary w-full sm:w-auto px-6 py-2.5 text-xs font-mono uppercase tracking-wider cursor-pointer">
                 SIMPAN PENGATURAN
               </button>
             </div>

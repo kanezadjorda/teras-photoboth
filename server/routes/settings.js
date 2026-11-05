@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db.js';
+import { broadcastEvent } from '../events.js';
 
 const router = Router();
 
@@ -43,6 +44,16 @@ router.put('/', (req, res) => {
     });
 
     updateMany(Object.entries(updates));
+
+    // Broadcast update settings ke seluruh client terhubung (Kiosk & Admin)
+    broadcastEvent('settings_updated', updates);
+    if (updates.selected_camera_label || updates.selected_camera_id) {
+      broadcastEvent('camera_changed', {
+        label: updates.selected_camera_label,
+        deviceId: updates.selected_camera_id
+      });
+    }
+
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

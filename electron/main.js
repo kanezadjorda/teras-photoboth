@@ -126,6 +126,16 @@ async function createWindows() {
 // IPC Handlers - Hanya ekspos fungsi yang tervalidasi minimal
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('app:quit', () => app.quit());
+ipcMain.handle('camera:change', (_event, cameraData) => {
+  BrowserWindow.getAllWindows().forEach((win) => {
+    try {
+      win.webContents.send('camera:changed', cameraData);
+    } catch (e) {
+      console.warn('[Electron] Gagal broadcast camera:changed ke window:', e.message);
+    }
+  });
+  return { success: true };
+});
 ipcMain.handle('dialog:select-folder', async (event, defaultPath) => {
   const win = BrowserWindow.fromWebContents(event.sender) || adminWindow || null;
   const options = {
@@ -163,6 +173,9 @@ ipcMain.handle('printer:print-silent', async (event, options = {}) => {
       {
         silent: true,
         printBackground: true,
+        color: true,
+        margins: { marginType: 'none' },
+        pageSize: { width: 101600, height: 152400 }, // 4x6 inch (4R) in microns
         ...options
       },
       (success, failureReason) => {
@@ -174,6 +187,20 @@ ipcMain.handle('printer:print-silent', async (event, options = {}) => {
       }
     );
   });
+});
+
+ipcMain.handle('printer:open-settings', async (_event, printerName) => {
+  if (process.platform === 'win32' && printerName) {
+    try {
+      const { exec } = require('node:child_process');
+      exec(`rundll32.exe printui.dll,PrintUIEntry /e /n "${printerName}"`);
+      return { success: true };
+    } catch (err) {
+      console.warn('[Electron] Gagal membuka pengaturan printer Windows:', err.message);
+      return { success: false, error: err.message };
+    }
+  }
+  return { success: false, message: 'Hanya didukung di Windows' };
 });
 
 app.whenReady().then(async () => {

@@ -18,11 +18,11 @@ export function createPrintingScreen({
 
       // 1. Render UI Kiosk StudioBlank
       container.innerHTML = `
-        <div class="w-full h-full min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center p-8 select-none">
-          <div class="card-sb max-w-lg w-full flex flex-col items-center text-center p-8 md:p-10 bg-white border border-[#E5E5E5]">
+        <div class="w-full min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 select-none">
+          <div class="card-sb max-w-lg w-full flex flex-col items-center text-center p-5 sm:p-8 md:p-10 bg-white border border-[#E5E5E5] my-auto">
             
             <!-- Header Status -->
-            <div class="chip-sb mb-6 text-xs py-1 px-3 font-mono text-[#737373] uppercase tracking-wider">
+            <div class="chip-sb mb-4 sm:mb-6 text-xs py-1 px-3 font-mono text-[#737373] uppercase tracking-wider">
               STATUS PERANGKAT: MENCETAK
             </div>
 
@@ -31,12 +31,12 @@ export function createPrintingScreen({
               SEDANG MENCETAK HASIL FOTOMU!
             </h1>
 
-            <p class="text-body-sm text-[#737373] max-w-md mb-8 leading-relaxed">
+            <p class="text-body-sm text-[#737373] max-w-md mb-6 sm:mb-8 leading-relaxed">
               Kertas foto ukuran 4R sedang diproses oleh printer. Mohon tunggu beberapa saat dan jangan matikan printer.
             </p>
 
             <!-- Thumbnail Preview -->
-            <div class="w-44 h-64 border border-[#E5E5E5] overflow-hidden mb-6 bg-[#FAFAFA] flex items-center justify-center relative">
+            <div class="w-36 h-52 sm:w-44 sm:h-64 border border-[#E5E5E5] overflow-hidden mb-6 bg-[#FAFAFA] flex items-center justify-center relative">
               ${
                 compositeUrl
                   ? `<img src="${compositeUrl}" alt="Preview Cetak" class="w-full h-full object-cover" />`
@@ -48,7 +48,7 @@ export function createPrintingScreen({
             </div>
 
             <!-- Indikator Jumlah Salinan -->
-            <div class="w-full border border-[#E5E5E5] p-3 mb-6 flex items-center justify-between font-mono text-xs text-[#0A0A0A] bg-[#FAFAFA]">
+            <div class="w-full border border-[#E5E5E5] p-3 mb-6 flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-[#0A0A0A] bg-[#FAFAFA]">
               <span class="font-medium uppercase text-[#737373]">JUMLAH SALINAN:</span>
               <span class="bg-[#0A0A0A] text-[#FAFAFA] font-medium px-2.5 py-1 text-xs">${copies} LEMBAR</span>
             </div>
@@ -99,7 +99,11 @@ export function createPrintingScreen({
             const selectedPrinter = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_printer_name') : null;
             const printResult = await window.photobooth.printSilent({
               copies: validCopies,
-              deviceName: selectedPrinter || undefined
+              deviceName: selectedPrinter || undefined,
+              margins: { marginType: 'none' },
+              pageSize: { width: 101600, height: 152400 },
+              color: true,
+              printBackground: true
             });
             console.log('[Printing] Hasil silent print Electron:', printResult);
           } else {

@@ -6,6 +6,13 @@ contextBridge.exposeInMainWorld('photobooth', {
   printSilent: (options) => ipcRenderer.invoke('printer:print-silent', options),
   getPrinters: () => ipcRenderer.invoke('printer:get-printers'),
   selectFolder: (defaultPath) => ipcRenderer.invoke('dialog:select-folder', defaultPath),
-  quitApp: () => ipcRenderer.invoke('app:quit')
+  openPrinterSettings: (printerName) => ipcRenderer.invoke('printer:open-settings', printerName),
+  quitApp: () => ipcRenderer.invoke('app:quit'),
+  notifyCameraChanged: (data) => ipcRenderer.invoke('camera:change', data),
+  onCameraChanged: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('camera:changed', handler);
+    return () => ipcRenderer.removeListener('camera:changed', handler);
+  }
 });
 
