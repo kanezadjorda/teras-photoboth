@@ -83,7 +83,17 @@
         </div>
 
         <div class="aspect-[2/3] max-w-sm mx-auto bg-canvas border border-border overflow-hidden flex items-center justify-center">
-          <video id="live-video-player" autoplay loop muted playsinline controls class="w-full h-full object-contain"></video>
+          <video
+            id="live-video-player"
+            autoplay
+            loop
+            muted
+            playsinline
+            webkit-playsinline
+            disablepictureinpicture
+            disableremoteplayback
+            class="w-full h-full object-contain pointer-events-none"
+          ></video>
         </div>
 
         <div>
@@ -467,7 +477,16 @@
       // 1. Live Video Template
       if (data.live && data.live.url) {
         liveVideoCard.classList.remove('hidden');
-        liveVideoPlayer.src = data.live.url;
+        if (liveVideoPlayer.src !== data.live.url) {
+          liveVideoPlayer.src = data.live.url;
+        }
+        liveVideoPlayer.muted = true;
+        const playPromise = liveVideoPlayer.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('[Gallery] Autoplay video live gagal:', err);
+          });
+        }
         btnDownloadLive.onclick = (e) => {
           e.preventDefault();
           downloadImage(data.live.url, data.live.filename || 'teras-photobooth-live.mp4');
