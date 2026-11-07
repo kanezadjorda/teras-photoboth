@@ -95,6 +95,9 @@ export function createHomeScreen({ onStatusChange } = {}) {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('selected_camera_id', selectedId);
         }
+        if (window.photobooth?.notifyCameraChanged) {
+          window.photobooth.notifyCameraChanged({ deviceId: selectedId });
+        }
       }
 
       selectCamera.value = selectedId;
@@ -266,15 +269,22 @@ export function createHomeScreen({ onStatusChange } = {}) {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('selected_camera_id', chosenId);
         }
+        if (window.photobooth?.notifyCameraChanged) {
+          window.photobooth.notifyCameraChanged({ deviceId: chosenId });
+        }
         const devices = await getCameraDevices();
         updateCameraStatusUI(devices, chosenId);
         onStatusChange?.();
       }
     });
 
-    handleDeviceChange = () => {
-      updateCameraDevices();
+    handleDeviceChange = async () => {
+      await updateCameraDevices();
       onStatusChange?.();
+      const currentSelected = typeof localStorage !== 'undefined' ? localStorage.getItem('selected_camera_id') : null;
+      if (currentSelected && window.photobooth?.notifyCameraChanged) {
+        window.photobooth.notifyCameraChanged({ deviceId: currentSelected });
+      }
     };
     if (typeof navigator !== 'undefined' && navigator.mediaDevices?.addEventListener) {
       navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);

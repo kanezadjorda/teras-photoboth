@@ -226,5 +226,17 @@ describe('cameraService Singleton & Stream Reuse (PRD F-24, F-25)', () => {
     // After unsubscribe, listener is not called again for the new start
     expect(listener).toHaveBeenCalledTimes(2);
   });
+
+  it('hot-swaps camera stream when a new deviceId is requested even if stream is active', async () => {
+    await cameraService.start({ deviceId: 'cam-laptop' });
+    expect(cameraService.currentDeviceId).toBe('cam-laptop');
+    expect(getUserMediaSpy).toHaveBeenCalledTimes(1);
+
+    // Change to external camera (e.g. user selected DSLR in Admin)
+    await cameraService.start({ deviceId: 'cam-dslr' });
+    expect(cameraService.currentDeviceId).toBe('cam-dslr');
+    expect(getUserMediaSpy).toHaveBeenCalledTimes(2);
+    expect(mockTrack.stop).toHaveBeenCalled();
+  });
 });
 

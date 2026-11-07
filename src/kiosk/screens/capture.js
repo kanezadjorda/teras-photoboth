@@ -46,6 +46,7 @@ export function createCaptureScreen({
   let thumbnailTray = null;
 
   let stream = null;
+  let unsubscribeStream = null;
   let countdownTimer = null;
   let isSaving = false;
 
@@ -327,6 +328,19 @@ export function createCaptureScreen({
         videoElement.srcObject = stream;
         await videoElement.play().catch(() => {});
       }
+      if (!unsubscribeStream) {
+        unsubscribeStream = cameraService.onStreamChange((newStream) => {
+          stream = newStream;
+          if (videoElement && newStream) {
+            videoElement.srcObject = newStream;
+            videoElement.play().catch(() => {});
+            if (cameraErrorBanner) cameraErrorBanner.classList.add('hidden');
+          } else if (cameraErrorBanner && !newStream) {
+            cameraErrorBanner.classList.remove('hidden');
+            cameraErrorBanner.textContent = 'KAMERA TIDAK TERDETEKSI. PERIKSA SAMBUNGAN PERANGKAT.';
+          }
+        });
+      }
     } catch (err) {
       console.error('[Capture] Gagal menginisialisasi kamera:', err);
       if (cameraErrorBanner) {
@@ -346,6 +360,10 @@ export function createCaptureScreen({
         currentMediaRecorder.stop();
       } catch {}
       currentMediaRecorder = null;
+    }
+    if (unsubscribeStream) {
+      unsubscribeStream();
+      unsubscribeStream = null;
     }
     if (videoElement) {
       videoElement.srcObject = null;

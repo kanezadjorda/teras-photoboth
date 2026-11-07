@@ -139,7 +139,44 @@ class CameraService {
     this.currentDeviceId = null;
     this.listeners = new Set();
     this.deviceChangeListener = null;
+    this.pollInterval = null;
     this.isStarting = false;
+    this._setupIpcAndStorageListeners();
+  }
+
+  /**
+   * Sets up IPC and storage listeners for live cross-window camera change synchronization.
+   */
+  _setupIpcAndStorageListeners() {
+    if (typeof window !== 'undefined') {
+      // 1. Electron IPC Listener (Multi-window sync between Admin and Kiosk)
+      if (window.photobooth?.onCameraChanged) {
+        try {
+          window.photobooth.onCameraChanged(async (data) => {
+            console.log('[CameraService] Menerima sinyal camera:changed dari IPC:', data);
+            const targetId = data?.deviceId || (await getOptimalCameraDeviceId());
+            if (targetId && targetId !== this.currentDeviceId) {
+              await this.start({ deviceId: targetId, forceRestart: true }).catch((err) => {
+                console.warn('[CameraService] Gagal beralih kamera via IPC:', err.message);
+              });
+            }
+          });
+        } catch {}
+      }
+
+      // 2. Storage event listener (Cross-tab/window sync in browser mode)
+      try {
+        window.addEventListener('storage', async (e) => {
+          if (e.key === 'selected_camera_id') {
+            const targetId = e.newValue || (await getOptimalCameraDeviceId());
+            if (targetId && targetId !== this.currentDeviceId) {
+              console.log('[CameraService] selected_camera_id berubah di storage:', targetId);
+              await this.start({ deviceId: targetId, forceRestart: true }).catch(() => {});
+            }
+          }
+        });
+      } catch {}
+    }
   }
 
   /**
@@ -166,15 +203,22 @@ class CameraService {
 
   /**
    * Starts or reuses the camera stream from the optimal camera.
-   * If already active and not forced, reuses the existing stream (PRD F-25).
+   * If already active, healthy, and matching the requested/optimal device, reuses the existing stream (PRD F-25).
+   * If a different device was selected or plugged in, switches automatically.
    * @param {object} [options]
    * @param {string} [options.deviceId] - Specific device ID override
    * @param {boolean} [options.forceRestart=false] - Force re-acquire new stream
    * @returns {Promise<MediaStream>}
    */
   async start(options = {}) {
-    // If stream is already healthy and active, reuse it (F-25)
-    if (this.isActive() && !options.forceRestart) {
+    const optimalDeviceId = options.deviceId || (await getOptimalCameraDeviceId());
+
+    // If stream is already healthy, active, and matching the requested/optimal device, reuse it (F-25)
+    if (
+      this.isActive() &&
+      !options.forceRestart &&
+      (!optimalDeviceId || this.currentDeviceId === optimalDeviceId)
+    ) {
       this._setupDeviceChangeListener();
       return this.stream;
     }
@@ -183,15 +227,17 @@ class CameraService {
       while (this.isStarting) {
         await new Promise((r) => setTimeout(r, 50));
       }
-      if (this.isActive() && !options.forceRestart) {
+      if (
+        this.isActive() &&
+        !options.forceRestart &&
+        (!optimalDeviceId || this.currentDeviceId === optimalDeviceId)
+      ) {
         return this.stream;
       }
     }
 
     this.isStarting = true;
     try {
-      const optimalDeviceId = options.deviceId || (await getOptimalCameraDeviceId());
-
       // Stop old tracks if any
       if (this.stream) {
         stopCameraStream(this.stream);
@@ -270,9 +316,32 @@ class CameraService {
     } else {
       navigator.mediaDevices.ondevicechange = this.deviceChangeListener;
     }
+
+    // Polling backup for virtual cameras (e.g. OBS Virtual Camera, digiCamControl) that may not trigger hardware devicechange
+    if (typeof window !== 'undefined' && !this.pollInterval && typeof setInterval === 'function') {
+      let lastDeviceCount = -1;
+      this.pollInterval = setInterval(async () => {
+        try {
+          if (!navigator.mediaDevices?.enumerateDevices) return;
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoCount = devices.filter((d) => d.kind === 'videoinput').length;
+          if (lastDeviceCount !== -1 && videoCount !== lastDeviceCount) {
+            console.log('[CameraService] Jumlah perangkat kamera berubah via polling:', videoCount);
+            if (this.deviceChangeListener) {
+              await this.deviceChangeListener();
+            }
+          }
+          lastDeviceCount = videoCount;
+        } catch {}
+      }, 2500);
+    }
   }
 
   _removeDeviceChangeListener() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
     if (!this.deviceChangeListener) return;
     if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
       if (typeof navigator.mediaDevices.removeEventListener === 'function') {
