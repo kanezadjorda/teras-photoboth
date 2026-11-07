@@ -33,18 +33,37 @@
       color: #0A0A0A;
       font-family: 'Inter', sans-serif;
     }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8">
+<body class="min-h-screen flex flex-col items-center justify-start p-3 sm:p-5 lg:p-6">
 
   <!-- Main Container -->
-  <main class="w-full max-w-xl lg:max-w-3xl xl:max-w-4xl mx-auto space-y-6">
+  <main class="w-full max-w-xl lg:max-w-2xl mx-auto flex flex-col justify-between min-h-[92vh] space-y-4">
 
-    <!-- Header & Brand -->
-    <header class="border-b border-border pb-4 flex flex-wrap items-center justify-between gap-2">
-      <div class="min-w-0">
+    <!-- Header & Brand Section -->
+    <header class="border-b border-border pb-3 flex flex-wrap items-center justify-between gap-2">
+      <div class="min-w-0 space-y-0.5">
         <h1 class="text-xs font-mono uppercase tracking-widest text-subtle">TERAS PHOTOBOOTH</h1>
         <p class="text-base sm:text-lg font-bold tracking-tight text-brand uppercase">GALERI SOFT FILE DIGITAL</p>
+        <div class="flex items-center gap-2 flex-wrap text-[11px] font-mono text-subtle pt-0.5">
+          <span id="session-date">Memuat tanggal...</span>
+          <span>&bull;</span>
+          <span class="inline-flex items-center gap-1 text-neutral-800">
+            <svg class="w-3 h-3 text-pink-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            <span>@terasphotobooth</span>
+          </span>
+          <span class="inline-flex items-center gap-1 text-neutral-800">
+            <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.27 6.27 0 0 0 1.93-4.49V8.62a8.21 8.21 0 0 0 4.84 1.57V6.69z"/></svg>
+            <span>@terasphotobooth</span>
+          </span>
+        </div>
       </div>
       <div id="session-badge" class="font-mono text-xs px-2.5 py-1 border border-border bg-white font-medium text-brand shrink-0">
         MEMUAT...
@@ -52,7 +71,7 @@
     </header>
 
     <!-- State: Loading / Uploading in Progress -->
-    <section id="state-loading" class="border border-border bg-white p-8 text-center space-y-4">
+    <section id="state-loading" class="border border-border bg-white p-8 text-center space-y-4 my-auto">
       <div class="inline-block animate-spin w-8 h-8 border-2 border-brand border-t-transparent"></div>
       <h2 class="text-base font-semibold text-brand uppercase">Mempersiapkan Foto & Video Anda...</h2>
       <p class="text-xs text-subtle font-mono max-w-md mx-auto leading-relaxed">
@@ -62,29 +81,91 @@
     </section>
 
     <!-- State: Error / Not Found -->
-    <section id="state-error" class="hidden border border-red-200 bg-red-50 p-6 text-center space-y-2">
+    <section id="state-error" class="hidden border border-red-200 bg-red-50 p-6 text-center space-y-2 my-auto">
       <h2 class="text-sm font-semibold text-red-700 uppercase font-mono">SESI TIDAK DITEMUKAN</h2>
       <p id="error-message" class="text-xs text-red-600 font-mono">
         Tautan tidak valid atau sesi foto belum tercatat. Pastikan Anda memindai kode QR yang tertera pada layar atau cetakan photobooth.
       </p>
     </section>
 
-    <!-- State: Success / Gallery Content -->
-    <section id="state-gallery" class="hidden space-y-6">
+    <!-- State: Success / Gallery Viewer Layout -->
+    <section id="state-gallery" class="hidden flex-1 flex flex-col justify-between space-y-3">
 
-      <!-- 1. Live Video Template Card -->
-      <div id="live-video-card" class="hidden border border-border bg-white p-4 sm:p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border">
-          <span class="font-mono text-xs font-semibold uppercase text-brand flex items-center gap-1.5">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-            LIVE PHOTO VIDEO (TEMPLATE)
+      <!-- Navigation & Action Toolbar -->
+      <div class="flex items-center justify-between gap-2 pt-1 pb-1">
+        
+        <!-- Left: Previous / Counter / Next Controls -->
+        <div class="flex items-center gap-1 border border-border bg-white px-1.5 py-1 rounded">
+          <button
+            id="btn-prev"
+            type="button"
+            class="p-1 hover:bg-neutral-100 rounded text-brand transition-colors cursor-pointer select-none"
+            aria-label="Foto Sebelumnya"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <span id="counter-badge" class="font-mono text-xs px-2 font-medium text-brand min-w-[54px] text-center select-none">
+            1 / 1
           </span>
-          <span class="text-[10px] font-mono uppercase text-subtle px-2 py-0.5 border border-border bg-canvas">2-3 DETIK</span>
+          <button
+            id="btn-next"
+            type="button"
+            class="p-1 hover:bg-neutral-100 rounded text-brand transition-colors cursor-pointer select-none"
+            aria-label="Foto Selanjutnya"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
-        <div class="aspect-[2/3] max-w-sm mx-auto bg-canvas border border-border overflow-hidden flex items-center justify-center">
+        <!-- Right: Share & Download Buttons -->
+        <div class="flex items-center gap-2">
+          <button
+            id="btn-share"
+            type="button"
+            class="p-2 border border-border bg-white hover:bg-neutral-100 text-brand rounded transition-colors cursor-pointer flex items-center justify-center"
+            title="Bagikan Tautan Galeri"
+            aria-label="Bagikan Tautan Galeri"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+          
+          <button
+            id="btn-download"
+            type="button"
+            class="flex items-center gap-1.5 px-3.5 py-2 bg-brand text-white font-mono text-xs uppercase tracking-wider rounded hover:bg-neutral-800 transition-colors cursor-pointer font-medium"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Download</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Main Stage / Single Preview Viewport -->
+      <div class="flex-1 flex flex-col items-center justify-center space-y-2 py-1">
+        <div
+          id="main-stage-container"
+          class="relative w-full max-w-sm sm:max-w-md mx-auto aspect-[2/3] max-h-[56vh] sm:max-h-[62vh] bg-canvas border border-border overflow-hidden flex items-center justify-center shadow-sm select-none"
+        >
+          <!-- Image Viewport -->
+          <img
+            id="main-preview-img"
+            src=""
+            alt="Pratinjau Foto"
+            class="w-full h-full object-contain select-none pointer-events-none"
+          />
+
+          <!-- Live Video Viewport (Autoplay, Loop, Muted, No Controls) -->
           <video
-            id="live-video-player"
+            id="main-preview-video"
             autoplay
             loop
             muted
@@ -92,88 +173,31 @@
             webkit-playsinline
             disablepictureinpicture
             disableremoteplayback
-            class="w-full h-full object-contain pointer-events-none"
+            class="hidden w-full h-full object-contain pointer-events-none select-none"
           ></video>
         </div>
 
-        <div>
-          <button
-            id="btn-download-live"
-            type="button"
-            class="block w-full text-center bg-brand text-white font-mono text-xs uppercase tracking-wider py-3.5 px-4 hover:bg-neutral-800 transition-colors cursor-pointer"
-          >
-            UNDUH LIVE VIDEO (MP4) &darr;
-          </button>
-        </div>
+        <!-- Retention / Expiry Notice -->
+        <p id="retention-notice" class="text-center font-mono text-[11px] text-subtle flex items-center justify-center gap-1.5">
+          <span>&#9432;</span>
+          <span id="retention-text">Unduh sebelum 30 hari &bull; Foto tersimpan otomatis</span>
+        </p>
       </div>
 
-      <!-- 2. 4R Composite Card (Main Photo) with Filter Switcher -->
-      <div class="border border-border bg-white p-4 sm:p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border">
-          <span class="font-mono text-xs font-semibold uppercase text-brand">HASIL CETAK 4R (KOMPOSIT)</span>
-          <div id="composite-filter-toggle" class="hidden flex items-center gap-1 font-mono text-[10px]">
-            <button id="btn-comp-filtered" type="button" class="px-2.5 py-1 border border-brand bg-brand text-white uppercase cursor-pointer">Dengan Efek</button>
-            <button id="btn-comp-original" type="button" class="px-2.5 py-1 border border-border bg-white text-subtle uppercase cursor-pointer">Warna Asli</button>
-          </div>
+      <!-- Bottom Thumbnails Tray (Horizontal Scroll Carousel) -->
+      <div class="w-full pt-1 border-t border-border">
+        <div
+          id="thumbnails-row"
+          class="flex items-center gap-2 overflow-x-auto py-2 px-1 scroll-smooth no-scrollbar"
+        >
+          <!-- Thumbnails injected via JS -->
         </div>
-
-        <div class="aspect-[2/3] max-w-sm mx-auto bg-canvas border border-border overflow-hidden flex items-center justify-center">
-          <img id="composite-img" src="" alt="Hasil Cetak 4R" class="w-full h-full object-contain" />
-        </div>
-
-        <div>
-          <button
-            id="btn-download-composite"
-            type="button"
-            class="block w-full text-center bg-brand text-white font-mono text-xs uppercase tracking-wider py-3.5 px-4 hover:bg-neutral-800 transition-colors cursor-pointer"
-          >
-            UNDUH FOTO CETAKAN 4R &darr;
-          </button>
-        </div>
-      </div>
-
-      <!-- 3. Animated GIF Card -->
-      <div id="gif-card" class="hidden border border-border bg-white p-4 sm:p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border">
-          <span class="font-mono text-xs font-semibold uppercase text-brand">ANIMASI GIF (FOTO SATUAN)</span>
-          <span class="text-[10px] font-mono uppercase text-subtle px-2 py-0.5 border border-border bg-canvas">LOOPING</span>
-        </div>
-
-        <div class="aspect-[3/4] max-w-xs mx-auto bg-canvas border border-border overflow-hidden flex items-center justify-center">
-          <img id="gif-img" src="" alt="Animasi GIF" class="w-full h-full object-cover" />
-        </div>
-
-        <div>
-          <button
-            id="btn-download-gif"
-            type="button"
-            class="block w-full text-center bg-brand text-white font-mono text-xs uppercase tracking-wider py-3.5 px-4 hover:bg-neutral-800 transition-colors cursor-pointer"
-          >
-            UNDUH ANIMASI GIF &darr;
-          </button>
-        </div>
-      </div>
-
-      <!-- 4. Single Raw Photos Grid with Filter Switcher -->
-      <div id="raw-photos-section" class="border border-border bg-white p-4 sm:p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border">
-          <span class="font-mono text-xs font-semibold uppercase text-brand">FOTO SATUAN (RAW SHOTS)</span>
-          <div class="flex items-center gap-2">
-            <div id="raw-filter-toggle" class="hidden flex items-center gap-1 font-mono text-[10px]">
-              <button id="btn-raw-filtered" type="button" class="px-2 py-0.5 border border-brand bg-brand text-white uppercase cursor-pointer">Efek</button>
-              <button id="btn-raw-original" type="button" class="px-2 py-0.5 border border-border bg-white text-subtle uppercase cursor-pointer">Asli</button>
-            </div>
-            <span id="raw-count-badge" class="text-[10px] font-mono uppercase text-subtle px-2 py-0.5 border border-border bg-canvas">0 FOTO</span>
-          </div>
-        </div>
-
-        <div id="raw-photos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"></div>
       </div>
 
     </section>
 
     <!-- Footer -->
-    <footer class="text-center font-mono text-[11px] text-subtle pt-6 border-t border-border">
+    <footer class="text-center font-mono text-[11px] text-subtle pt-3 border-t border-border">
       TERAS PHOTOBOOTH &bull; TERIMA KASIH TELAH MENGABADIKAN MOMEN BERSAMA KAMI
     </footer>
 
@@ -197,42 +221,48 @@
 
     const token = getToken();
     const sessionBadge = document.getElementById('session-badge');
+    const sessionDateEl = document.getElementById('session-date');
     const stateLoading = document.getElementById('state-loading');
     const stateError = document.getElementById('state-error');
     const errorMessage = document.getElementById('error-message');
     const stateGallery = document.getElementById('state-gallery');
     const uploadStatus = document.getElementById('upload-status');
+    const retentionTextEl = document.getElementById('retention-text');
 
-    // Live Video Elements
-    const liveVideoCard = document.getElementById('live-video-card');
-    const liveVideoPlayer = document.getElementById('live-video-player');
-    const btnDownloadLive = document.getElementById('btn-download-live');
-
-    // Composite Elements
-    const compositeImg = document.getElementById('composite-img');
-    const btnDownloadComposite = document.getElementById('btn-download-composite');
-    const compositeFilterToggle = document.getElementById('composite-filter-toggle');
-    const btnCompFiltered = document.getElementById('btn-comp-filtered');
-    const btnCompOriginal = document.getElementById('btn-comp-original');
-
-    // GIF Elements
-    const gifCard = document.getElementById('gif-card');
-    const gifImg = document.getElementById('gif-img');
-    const btnDownloadGif = document.getElementById('btn-download-gif');
-
-    // Raw Photo Elements
-    const rawPhotosGrid = document.getElementById('raw-photos-grid');
-    const rawCountBadge = document.getElementById('raw-count-badge');
-    const rawFilterToggle = document.getElementById('raw-filter-toggle');
-    const btnRawFiltered = document.getElementById('btn-raw-filtered');
-    const btnRawOriginal = document.getElementById('btn-raw-original');
+    // Viewer Elements
+    const mainStageContainer = document.getElementById('main-stage-container');
+    const mainPreviewImg = document.getElementById('main-preview-img');
+    const mainPreviewVideo = document.getElementById('main-preview-video');
+    const counterBadge = document.getElementById('counter-badge');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const btnShare = document.getElementById('btn-share');
+    const btnDownload = document.getElementById('btn-download');
+    const thumbnailsRow = document.getElementById('thumbnails-row');
 
     let pollInterval = null;
     let currentData = null;
-    let isCompositeFilteredView = true;
-    let isRawFilteredView = true;
+    let mediaItems = [];
+    let currentIndex = 0;
 
-    // Helper download file langsung ke perangkat tanpa membuka tab baru
+    // Toast Notification helper
+    function showToast(message) {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-brand text-white font-mono text-xs px-4 py-2.5 rounded shadow-lg transition-opacity duration-300 pointer-events-none z-50 text-center max-w-[90vw]';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.style.opacity = '1';
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 2500);
+    }
+
+    // Download helper directly to device
     async function downloadImage(url, filename) {
       try {
         const res = await fetch(url);
@@ -252,6 +282,36 @@
       } catch (err) {
         console.warn('Download blob error, fallback ke window.open:', err);
         window.open(url, '_blank');
+      }
+    }
+
+    // Share link handler
+    async function shareGallery() {
+      const shareData = {
+        title: 'Teras Photobooth — Galeri Soft File Digital',
+        text: 'Buka dan unduh foto serta video photobooth kami:',
+        url: window.location.href
+      };
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('Share error:', e);
+        }
+      }
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('Tautan galeri berhasil disalin ke clipboard!');
+      } catch (err) {
+        const tempInput = document.createElement('input');
+        tempInput.value = window.location.href;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('Tautan galeri berhasil disalin ke clipboard!');
       }
     }
 
@@ -385,83 +445,182 @@
       uploadStatus.textContent = 'Menunggu data dari booth photobooth... (' + new Date().toLocaleTimeString('id-ID') + ')';
     }
 
-    function renderCompositeSection() {
-      if (!currentData) return;
+    // Build unified flat array of all media items for the gallery
+    function buildMediaItems(data) {
+      const items = [];
 
-      const hasOriginal = Boolean(currentData.compositeOriginal);
-      if (hasOriginal) {
-        compositeFilterToggle.classList.remove('hidden');
-        if (isCompositeFilteredView) {
-          btnCompFiltered.className = 'px-2.5 py-1 border border-brand bg-brand text-white uppercase cursor-pointer';
-          btnCompOriginal.className = 'px-2.5 py-1 border border-border bg-white text-subtle uppercase cursor-pointer';
-        } else {
-          btnCompFiltered.className = 'px-2.5 py-1 border border-border bg-white text-subtle uppercase cursor-pointer';
-          btnCompOriginal.className = 'px-2.5 py-1 border border-brand bg-brand text-white uppercase cursor-pointer';
+      // 1. 4R Composite (Dengan Filter / Efek)
+      if (data.composite && data.composite.url) {
+        items.push({
+          id: 'composite-filtered',
+          type: 'image',
+          url: data.composite.url,
+          thumbUrl: data.composite.url,
+          filename: data.composite.filename || 'teras-photobooth-4R.jpg',
+          label: 'Hasil Cetak 4R (Dengan Efek)',
+          badge: '4R'
+        });
+      }
+
+      // 2. 4R Composite (Warna Asli)
+      if (data.compositeOriginal && data.compositeOriginal.url) {
+        items.push({
+          id: 'composite-original',
+          type: 'image',
+          url: data.compositeOriginal.url,
+          thumbUrl: data.compositeOriginal.url,
+          filename: data.compositeOriginal.filename || 'teras-photobooth-4R-original.jpg',
+          label: 'Hasil Cetak 4R (Warna Asli)',
+          badge: 'ASLI'
+        });
+      }
+
+      // 3. Live Photo Video (MP4 Template)
+      if (data.live && data.live.url) {
+        items.push({
+          id: 'live-video',
+          type: 'video',
+          url: data.live.url,
+          thumbUrl: (data.composite && data.composite.url) || data.live.url,
+          filename: data.live.filename || 'teras-photobooth-live.mp4',
+          label: 'Live Photo Video (Template)',
+          badge: 'LIVE',
+          isLive: true
+        });
+      }
+
+      // 4. Animated GIF
+      if (data.gif && data.gif.url) {
+        items.push({
+          id: 'gif-anim',
+          type: 'image',
+          url: data.gif.url,
+          thumbUrl: data.gif.url,
+          filename: data.gif.filename || 'teras-photobooth-animation.gif',
+          label: 'Animasi GIF',
+          badge: 'GIF'
+        });
+      }
+
+      // 5. Raw Photos (Foto Satuan)
+      (data.photos || []).forEach((photo, idx) => {
+        const shotNum = idx + 1;
+        // Versi dengan efek
+        if (photo.filteredUrl) {
+          items.push({
+            id: `raw-${idx}-filtered`,
+            type: 'image',
+            url: photo.filteredUrl,
+            thumbUrl: photo.filteredUrl,
+            filename: photo.filteredFilename || `foto-${shotNum}-filtered.jpg`,
+            label: `Foto #${shotNum} (Efek)`,
+            badge: `#${shotNum}`
+          });
         }
-      } else {
-        compositeFilterToggle.classList.add('hidden');
-      }
+        // Versi asli jika ada dan berbeda dari berfilter
+        if (photo.url && (!photo.filteredUrl || photo.url !== photo.filteredUrl)) {
+          items.push({
+            id: `raw-${idx}-original`,
+            type: 'image',
+            url: photo.url,
+            thumbUrl: photo.url,
+            filename: photo.filename || `foto-${shotNum}.jpg`,
+            label: `Foto #${shotNum} (Asli)`,
+            badge: photo.filteredUrl ? `#${shotNum} ASLI` : `#${shotNum}`
+          });
+        }
+      });
 
-      const activeComp = (isCompositeFilteredView || !hasOriginal)
-        ? currentData.composite
-        : currentData.compositeOriginal;
-
-      if (activeComp) {
-        compositeImg.src = activeComp.url;
-        btnDownloadComposite.onclick = (e) => {
-          e.preventDefault();
-          downloadImage(activeComp.url, activeComp.filename || 'teras-photobooth-4R.jpg');
-        };
-      }
+      return items;
     }
 
-    function renderRawPhotosSection() {
-      if (!currentData) return;
+    // Switch selected active media
+    function selectItem(index) {
+      if (!mediaItems.length) return;
+      if (index < 0) index = 0;
+      if (index >= mediaItems.length) index = mediaItems.length - 1;
+      currentIndex = index;
 
-      const rawPhotos = currentData.photos || [];
-      rawCountBadge.textContent = rawPhotos.length + ' FOTO';
+      const item = mediaItems[currentIndex];
 
-      const hasFiltered = rawPhotos.some(p => Boolean(p.filteredUrl));
-      if (hasFiltered) {
-        rawFilterToggle.classList.remove('hidden');
-        if (isRawFilteredView) {
-          btnRawFiltered.className = 'px-2 py-0.5 border border-brand bg-brand text-white uppercase cursor-pointer';
-          btnRawOriginal.className = 'px-2 py-0.5 border border-border bg-white text-subtle uppercase cursor-pointer';
-        } else {
-          btnRawFiltered.className = 'px-2 py-0.5 border border-border bg-white text-subtle uppercase cursor-pointer';
-          btnRawOriginal.className = 'px-2 py-0.5 border border-brand bg-brand text-white uppercase cursor-pointer';
+      // Update Toolbar Counter & Controls
+      counterBadge.textContent = `${currentIndex + 1} / ${mediaItems.length}`;
+      btnPrev.disabled = (currentIndex === 0);
+      btnNext.disabled = (currentIndex === mediaItems.length - 1);
+      btnPrev.style.opacity = (currentIndex === 0) ? '0.35' : '1';
+      btnNext.style.opacity = (currentIndex === mediaItems.length - 1) ? '0.35' : '1';
+
+      // Update Viewport Stage
+      if (item.type === 'video') {
+        mainPreviewImg.classList.add('hidden');
+        mainPreviewVideo.classList.remove('hidden');
+        if (mainPreviewVideo.src !== item.url) {
+          mainPreviewVideo.src = item.url;
+        }
+        mainPreviewVideo.muted = true;
+        const playPromise = mainPreviewVideo.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => console.warn('[Gallery] Autoplay video:', err));
         }
       } else {
-        rawFilterToggle.classList.add('hidden');
+        mainPreviewVideo.classList.add('hidden');
+        mainPreviewVideo.pause();
+        mainPreviewImg.classList.remove('hidden');
+        mainPreviewImg.src = item.url;
+        mainPreviewImg.alt = item.label;
       }
 
-      rawPhotosGrid.innerHTML = '';
-      rawPhotos.forEach((photo, idx) => {
-        const useFiltered = isRawFilteredView && Boolean(photo.filteredUrl);
-        const activeUrl = useFiltered ? photo.filteredUrl : photo.url;
-        const activeFilename = useFiltered ? (photo.filteredFilename || `foto-${idx + 1}-filtered.jpg`) : (photo.filename || `foto-${idx + 1}.jpg`);
+      // Download Action
+      btnDownload.onclick = (e) => {
+        e.preventDefault();
+        downloadImage(item.url, item.filename);
+      };
 
-        const card = document.createElement('div');
-        card.className = 'border border-border bg-canvas p-2 flex flex-col justify-between space-y-2';
-        card.innerHTML = `
-          <div class="aspect-[4/3] bg-white border border-border overflow-hidden flex items-center justify-center">
-            <img src="${activeUrl}" alt="Jepretan ${idx + 1}" class="w-full h-full object-cover" />
-          </div>
-          <div class="flex items-center justify-between text-[10px] font-mono text-subtle">
-            <span>FOTO #${idx + 1}</span>
-            <span>${useFiltered ? 'EFEK' : 'ASLI'}</span>
-          </div>
-          <button
-            type="button"
-            class="btn-download-raw block w-full text-center bg-white border border-border hover:border-brand text-brand font-mono text-[11px] uppercase py-2 transition-colors cursor-pointer"
-          >
-            UNDUH &darr;
-          </button>
+      // Update Active Thumbnail Visuals
+      const thumbElements = thumbnailsRow.querySelectorAll('.thumb-item');
+      thumbElements.forEach((el, idx) => {
+        if (idx === currentIndex) {
+          el.className = 'thumb-item relative shrink-0 w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 rounded-sm overflow-hidden transition-all cursor-pointer flex flex-col items-center justify-center bg-neutral-100 border-2 border-brand ring-2 ring-brand/20 opacity-100 scale-[1.03] shadow-sm';
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+          el.className = 'thumb-item relative shrink-0 w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 rounded-sm overflow-hidden transition-all cursor-pointer flex flex-col items-center justify-center bg-neutral-100 border border-border opacity-70 hover:opacity-100';
+        }
+      });
+    }
+
+    // Render all thumbnails into the bottom row
+    function renderThumbnails() {
+      thumbnailsRow.innerHTML = '';
+      mediaItems.forEach((item, idx) => {
+        const thumb = document.createElement('button');
+        thumb.type = 'button';
+        thumb.className = `thumb-item relative shrink-0 w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 rounded-sm overflow-hidden transition-all cursor-pointer flex flex-col items-center justify-center bg-neutral-100 ${
+          idx === currentIndex
+            ? 'border-2 border-brand ring-2 ring-brand/20 opacity-100 scale-[1.03]'
+            : 'border border-border opacity-70 hover:opacity-100'
+        }`;
+        thumb.setAttribute('aria-label', item.label);
+
+        let mediaTag = '';
+        if (item.type === 'video' && !item.thumbUrl.endsWith('.jpg') && !item.thumbUrl.endsWith('.png') && !item.thumbUrl.startsWith('data:image')) {
+          mediaTag = `<video src="${item.thumbUrl}" muted loop playsinline class="w-full h-full object-cover pointer-events-none select-none"></video>`;
+        } else {
+          mediaTag = `<img src="${item.thumbUrl}" alt="${item.label}" class="w-full h-full object-cover pointer-events-none select-none" loading="lazy" />`;
+        }
+
+        thumb.innerHTML = `
+          ${mediaTag}
+          ${item.isLive ? '<span class="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-sm"></span>' : ''}
+          <span class="absolute bottom-0 inset-x-0 bg-brand/85 text-white font-mono text-[8px] sm:text-[9px] font-semibold text-center py-0.5 tracking-wider uppercase truncate px-0.5">
+            ${item.badge}
+          </span>
         `;
-        card.querySelector('.btn-download-raw').addEventListener('click', () => {
-          downloadImage(activeUrl, activeFilename);
+
+        thumb.addEventListener('click', () => {
+          selectItem(idx);
         });
-        rawPhotosGrid.appendChild(card);
+
+        thumbnailsRow.appendChild(thumb);
       });
     }
 
@@ -474,68 +633,76 @@
       currentData = data;
       sessionBadge.textContent = 'SESI #' + (data.sessionNo || '0001');
 
-      // 1. Live Video Template
-      if (data.live && data.live.url) {
-        liveVideoCard.classList.remove('hidden');
-        if (liveVideoPlayer.src !== data.live.url) {
-          liveVideoPlayer.src = data.live.url;
-        }
-        liveVideoPlayer.muted = true;
-        const playPromise = liveVideoPlayer.play();
-        if (playPromise !== undefined) {
-          playPromise.catch((err) => {
-            console.warn('[Gallery] Autoplay video live gagal:', err);
-          });
-        }
-        btnDownloadLive.onclick = (e) => {
-          e.preventDefault();
-          downloadImage(data.live.url, data.live.filename || 'teras-photobooth-live.mp4');
-        };
-      } else {
-        liveVideoCard.classList.add('hidden');
-      }
+      // Date & Retention formatting
+      const createdAtDate = data.createdAt ? new Date(data.createdAt) : new Date();
+      sessionDateEl.textContent = createdAtDate.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
 
-      // 2. 4R Composite
-      renderCompositeSection();
+      const expireDate = new Date(createdAtDate.getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+      retentionTextEl.textContent = `Unduh sebelum ${expireDate} \u2022 Foto & video tersimpan otomatis`;
 
-      // 3. GIF Animasi
-      if (data.gif && data.gif.url) {
-        gifCard.classList.remove('hidden');
-        gifImg.src = data.gif.url;
-        btnDownloadGif.onclick = (e) => {
-          e.preventDefault();
-          downloadImage(data.gif.url, data.gif.filename || 'teras-photobooth-animation.gif');
-        };
-      } else {
-        gifCard.classList.add('hidden');
-      }
-
-      // 4. Raw Photos
-      renderRawPhotosSection();
+      // Build media items and render
+      mediaItems = buildMediaItems(data);
+      renderThumbnails();
+      selectItem(0);
 
       stateLoading.classList.add('hidden');
       stateError.classList.add('hidden');
       stateGallery.classList.remove('hidden');
     }
 
-    // Toggle listeners
-    btnCompFiltered.addEventListener('click', () => {
-      isCompositeFilteredView = true;
-      renderCompositeSection();
-    });
-    btnCompOriginal.addEventListener('click', () => {
-      isCompositeFilteredView = false;
-      renderCompositeSection();
+    // Navigation Listeners
+    btnPrev.addEventListener('click', () => {
+      if (currentIndex > 0) selectItem(currentIndex - 1);
     });
 
-    btnRawFiltered.addEventListener('click', () => {
-      isRawFilteredView = true;
-      renderRawPhotosSection();
+    btnNext.addEventListener('click', () => {
+      if (currentIndex < mediaItems.length - 1) selectItem(currentIndex + 1);
     });
-    btnRawOriginal.addEventListener('click', () => {
-      isRawFilteredView = false;
-      renderRawPhotosSection();
+
+    btnShare.addEventListener('click', () => {
+      shareGallery();
     });
+
+    // Keyboard Arrow navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        if (currentIndex > 0) selectItem(currentIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        if (currentIndex < mediaItems.length - 1) selectItem(currentIndex + 1);
+      }
+    });
+
+    // Mobile Touch Swipe Navigation
+    let touchStartX = 0;
+    let touchEndX = 0;
+    mainStageContainer.addEventListener('touchstart', (e) => {
+      if (e.changedTouches && e.changedTouches[0]) {
+        touchStartX = e.changedTouches[0].screenX;
+      }
+    }, { passive: true });
+
+    mainStageContainer.addEventListener('touchend', (e) => {
+      if (e.changedTouches && e.changedTouches[0]) {
+        touchEndX = e.changedTouches[0].screenX;
+        const diffX = touchEndX - touchStartX;
+        if (Math.abs(diffX) > 40) {
+          if (diffX < 0 && currentIndex < mediaItems.length - 1) {
+            selectItem(currentIndex + 1);
+          } else if (diffX > 0 && currentIndex > 0) {
+            selectItem(currentIndex - 1);
+          }
+        }
+      }
+    }, { passive: true });
 
     function showError(msg) {
       if (pollInterval) {
