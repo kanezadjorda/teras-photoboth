@@ -65,9 +65,6 @@
           </span>
         </div>
       </div>
-      <div id="session-badge" class="font-mono text-xs px-2.5 py-1 border border-border bg-white font-medium text-brand shrink-0">
-        MEMUAT...
-      </div>
     </header>
 
     <!-- State: Loading / Uploading in Progress -->
@@ -220,7 +217,6 @@
     }
 
     const token = getToken();
-    const sessionBadge = document.getElementById('session-badge');
     const sessionDateEl = document.getElementById('session-date');
     const stateLoading = document.getElementById('state-loading');
     const stateError = document.getElementById('state-error');
@@ -362,8 +358,6 @@
         showError('Token sesi tidak ditemukan pada URL.');
         return;
       }
-
-      sessionBadge.textContent = 'TOKEN: ' + token.substring(0, 8);
 
       // Jalur 1: Vercel Proxy Rewrite (/r2/sessions/:token/meta.json)
       try {
@@ -631,7 +625,6 @@
       }
 
       currentData = data;
-      sessionBadge.textContent = 'SESI #' + (data.sessionNo || '0001');
 
       // Date & Retention formatting
       const createdAtDate = data.createdAt ? new Date(data.createdAt) : new Date();
