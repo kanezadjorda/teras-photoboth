@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
       return acc;
     }, {});
 
-    if (!settings.gallery_base_url) {
+    if (!settings.gallery_base_url || (settings.gallery_base_url.includes('localhost') && process.env.GALLERY_BASE_URL && !process.env.GALLERY_BASE_URL.includes('localhost'))) {
       settings.gallery_base_url = process.env.GALLERY_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
     }
 

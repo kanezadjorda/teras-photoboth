@@ -22,6 +22,10 @@
       "from": "templates",
       "to": "templates",
       "filter": ["**/*"]
+    },
+    {
+      "from": ".env",
+      "to": ".env"
     }
   ],
   "win": {

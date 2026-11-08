@@ -1,9 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { readFileSync, existsSync } from 'node:fs';
 import { db } from '../db.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import '../env.js';
 
 const {
   R2_ACCOUNT_ID,

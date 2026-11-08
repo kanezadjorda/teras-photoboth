@@ -3,6 +3,7 @@
  * PRD Reference: F-01, F-02, F-03
  */
 
+import '../env.js';
 import { PAYMENT_STATES } from '../../src/shared/constants.js';
 
 // SVG placeholder QRIS for offline / local mock when server key is not provided

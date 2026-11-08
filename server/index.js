@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import './env.js';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initDb } from './db.js';
@@ -15,7 +15,7 @@ import galleryRouter from './routes/gallery.js';
 import { startR2QueueWorker } from './storage/r2.js';
 import { DEFAULTS } from '../src/shared/constants.js';
 
-dotenv.config();
+
 
 import eventsRouter from './routes/events.js';
 import { existsSync } from 'node:fs';

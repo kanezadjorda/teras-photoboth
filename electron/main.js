@@ -230,6 +230,9 @@ app.whenReady().then(async () => {
     process.env.BUNDLED_TEMPLATES_DIR = resolve(process.resourcesPath, 'templates');
   }
 
+  // Load environment variables (.env) from packaged resourcesPath or dev folder
+  await import('../server/env.js');
+
   // Batasi izin hanya untuk media (kamera/webcam untuk fitur capture)
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
     const allowed = ['media'];

@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { resolve, dirname } from 'node:path';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import dotenv from 'dotenv';
+import './env.js';
 import { DEFAULTS, TIMEOUTS } from '../src/shared/constants.js';
 import {
   DATA_DIR,
@@ -12,7 +12,7 @@ import {
   resolveStoredPath
 } from './paths.js';
 
-dotenv.config();
+
 
 const dbPath = process.env.DATABASE_PATH
   ? resolveStoredPath(process.env.DATABASE_PATH)
@@ -158,6 +158,10 @@ export function initDb() {
     ['admin_pin', process.env.ADMIN_PIN || DEFAULTS.ADMIN_PIN],
     ['output_folder', DEFAULT_PHOTOS_FOLDER]
   ];
+
+  if (process.env.GALLERY_BASE_URL) {
+    initialSettings.push(['gallery_base_url', process.env.GALLERY_BASE_URL.replace(/\/+$/, '')]);
+  }
 
   const transaction = db.transaction((settingsList) => {
     for (const [key, value] of settingsList) {
