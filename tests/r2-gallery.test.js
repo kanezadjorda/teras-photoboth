@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { app } from '../server/index.js';
 import { db, initDb } from '../server/db.js';
-import { getPublicUrl, enqueueUpload } from '../server/storage/r2.js';
+import { getPublicUrl, enqueueUpload, ensureR2LifecycleRule } from '../server/storage/r2.js';
 
 describe('Cloudflare R2 & Web Gallery Integration (PRD F-30, F-31)', () => {
   let server = null;
@@ -106,12 +106,21 @@ describe('Cloudflare R2 & Web Gallery Integration (PRD F-30, F-31)', () => {
     expect(bodyWithPhoto.data.composite.filename).toBe('comp_test.jpg');
   });
 
-  it('serves the local web gallery page at /s/:token (PRD F-30)', async () => {
+  it('serves the local web gallery page at /s/:token with 14-day retention notice (PRD F-30, F-31)', async () => {
     const res = await fetch(`${baseUrl}/s/${testSessionToken}`);
     const html = await res.text();
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toContain('text/html');
     expect(html).toContain('TERAS PHOTOBOOTH');
     expect(html).toContain('GALERI SOFT FILE DIGITAL');
+    expect(html).toContain('foto akan dihapus otomatis');
+    expect(html).toContain('Unduh sebelum');
+  });
+
+  it('exposes ensureR2LifecycleRule to configure 14-day automatic expiration (PRD F-30, F-31)', async () => {
+    expect(typeof ensureR2LifecycleRule).toBe('function');
+    // Function executes and returns a boolean without throwing unhandled exceptions
+    const result = await ensureR2LifecycleRule(14);
+    expect(typeof result).toBe('boolean');
   });
 });

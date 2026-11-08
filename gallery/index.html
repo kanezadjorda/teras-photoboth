@@ -177,7 +177,7 @@
         <!-- Retention / Expiry Notice -->
         <p id="retention-notice" class="text-center font-mono text-[11px] text-subtle flex items-center justify-center gap-1.5">
           <span>&#9432;</span>
-          <span id="retention-text">Unduh sebelum 30 hari &bull; Foto tersimpan otomatis</span>
+          <span id="retention-text">Unduh sebelum 14 hari &bull; foto akan dihapus otomatis</span>
         </p>
       </div>
 
@@ -635,12 +635,12 @@
         year: 'numeric'
       });
 
-      const expireDate = new Date(createdAtDate.getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID', {
+      const expireDate = new Date(createdAtDate.getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'short',
         year: 'numeric'
       });
-      retentionTextEl.textContent = `Unduh sebelum ${expireDate} \u2022 Foto & video tersimpan otomatis`;
+      retentionTextEl.textContent = `Unduh sebelum ${expireDate} \u2022 foto akan dihapus otomatis`;
 
       // Build media items and render
       mediaItems = buildMediaItems(data);

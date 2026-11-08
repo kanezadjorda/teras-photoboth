@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, PutBucketLifecycleConfigurationCommand } from '@aws-sdk/client-s3';
 import { readFileSync, existsSync } from 'node:fs';
 import { db } from '../db.js';
 import '../env.js';
@@ -54,6 +54,47 @@ export function getPublicUrl(remoteKey) {
   const base = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '');
   const cleanKey = remoteKey.replace(/^\/+/, '');
   return base ? `${base}/${cleanKey}` : cleanKey;
+}
+
+let lifecycleConfigured = false;
+
+/**
+ * Konfigurasi aturan siklus hidup (Lifecycle Rule) di Cloudflare R2:
+ * Otomatis menghapus seluruh file dalam folder sessions/ setelah retentionDays (default: 14 hari)
+ * PRD Reference: F-30, F-31
+ */
+export async function ensureR2LifecycleRule(retentionDays = 14) {
+  if (lifecycleConfigured || !isR2Configured()) return false;
+  const client = getS3Client();
+  const bucket = process.env.R2_BUCKET_NAME;
+
+  try {
+    const command = new PutBucketLifecycleConfigurationCommand({
+      Bucket: bucket,
+      LifecycleConfiguration: {
+        Rules: [
+          {
+            ID: `Auto delete session photos after ${retentionDays} days`,
+            Status: 'Enabled',
+            Filter: {
+              Prefix: 'sessions/',
+            },
+            Expiration: {
+              Days: retentionDays,
+            },
+          },
+        ],
+      },
+    });
+
+    await client.send(command);
+    console.log(`[R2 Lifecycle] Aturan retensi ${retentionDays} hari berhasil diterapkan pada bucket: ${bucket}`);
+    lifecycleConfigured = true;
+    return true;
+  } catch (err) {
+    console.warn(`[R2 Lifecycle] Gagal menerapkan aturan retensi ${retentionDays} hari:`, err.message);
+    return false;
+  }
 }
 
 /**
@@ -154,11 +195,16 @@ export async function syncSessionMetadata(sessionId) {
       }
     });
 
+    const createdAt = session.dibuat_pada || new Date().toISOString();
+    const expiresAt = new Date(new Date(createdAt).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
     const metadata = {
       sessionId: session.id,
       token: session.token,
       sessionNo: String(session.rowid).padStart(4, '0'),
-      createdAt: session.dibuat_pada,
+      createdAt,
+      expiresAt,
+      retentionDays: 14,
       effectId: session.effect_id || 'normal',
       composite: compositePhoto ? {
         filename: compositePhoto.path_file,
@@ -272,6 +318,8 @@ export async function processUploadQueue() {
  */
 export function startR2QueueWorker(intervalMs = 30000) {
   if (workerInterval) return;
+  // Pastikan aturan lifecycle 14 hari terpasang di Cloudflare R2
+  ensureR2LifecycleRule(14).catch(() => {});
   // Jalankan segera saat server boot
   processUploadQueue().catch(() => {});
   workerInterval = setInterval(() => {
